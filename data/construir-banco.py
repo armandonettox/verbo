@@ -3,12 +3,15 @@ Le biblia-ave-maria.json, gera embeddings via NVIDIA NIM
 e popula o banco vetorial Chroma. Executar uma unica vez.
 """
 import json
+import time
 import chromadb
 from openai import OpenAI
 from config import (
     NVIDIA_API_KEY, BIBLE_JSON_PATH, CHROMA_DB_PATH,
     COLLECTION_NAME, EMBEDDING_MODEL
 )
+
+BATCH_SIZE = 50
 
 
 def carregar_versiculos(caminho):
@@ -30,15 +33,11 @@ def carregar_versiculos(caminho):
     return versiculos
 
 
-def gerar_embedding(client, texto):
-    resposta = client.embeddings.create(model=EMBEDDING_MODEL, input=texto)
-    return resposta.data[0].embedding
-
-
 def main():
     print("Carregando versiculos...")
     versiculos = carregar_versiculos(BIBLE_JSON_PATH)
-    print(f"{len(versiculos)} versiculos carregados.")
+    total = len(versiculos)
+    print(f"{total} versiculos carregados.")
 
     client = OpenAI(
         api_key=NVIDIA_API_KEY,
@@ -48,17 +47,27 @@ def main():
     chroma = chromadb.PersistentClient(path=CHROMA_DB_PATH)
     colecao = chroma.get_or_create_collection(COLLECTION_NAME)
 
-    # TODO: processar em lotes para respeitar rate limit da NVIDIA NIM
-    for i, v in enumerate(versiculos):
-        embedding = gerar_embedding(client, v["texto"])
-        colecao.add(
-            ids=[v["id"]],
-            embeddings=[embedding],
-            documents=[v["texto"]],
-            metadatas=[{"referencia": v["referencia"]}],
+    for i in range(0, total, BATCH_SIZE):
+        lote = versiculos[i:i + BATCH_SIZE]
+        textos = [v["texto"] for v in lote]
+
+        resposta = client.embeddings.create(
+            model=EMBEDDING_MODEL,
+            input=textos,
+            extra_body={"input_type": "passage", "truncate": "END"},
         )
-        if i % 500 == 0:
-            print(f"  {i}/{len(versiculos)} processados...")
+        embeddings = [item.embedding for item in resposta.data]
+
+        colecao.add(
+            ids=[v["id"] for v in lote],
+            embeddings=embeddings,
+            documents=textos,
+            metadatas=[{"referencia": v["referencia"]} for v in lote],
+        )
+
+        processados = min(i + BATCH_SIZE, total)
+        print(f"  {processados}/{total} processados...")
+        time.sleep(0.5)
 
     print("Banco vetorial construido.")
 

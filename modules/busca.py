@@ -5,16 +5,29 @@ from config import (
     EMBEDDING_MODEL, TOP_K
 )
 
-_client = OpenAI(
-    api_key=NVIDIA_API_KEY,
-    base_url="https://integrate.api.nvidia.com/v1",
-)
-_chroma = chromadb.PersistentClient(path=CHROMA_DB_PATH)
-_colecao = _chroma.get_collection(COLLECTION_NAME)
+_client = None
+_colecao = None
+
+
+def _init():
+    global _client, _colecao
+    if _client is None:
+        _client = OpenAI(
+            api_key=NVIDIA_API_KEY,
+            base_url="https://integrate.api.nvidia.com/v1",
+        )
+    if _colecao is None:
+        chroma = chromadb.PersistentClient(path=CHROMA_DB_PATH)
+        _colecao = chroma.get_collection(COLLECTION_NAME)
 
 
 def buscar_versiculos(pergunta: str) -> list[dict]:
-    resposta = _client.embeddings.create(model=EMBEDDING_MODEL, input=pergunta)
+    _init()
+    resposta = _client.embeddings.create(
+        model=EMBEDDING_MODEL,
+        input=pergunta,
+        extra_body={"input_type": "query", "truncate": "END"},
+    )
     vetor = resposta.data[0].embedding
 
     resultados = _colecao.query(query_embeddings=[vetor], n_results=TOP_K)
