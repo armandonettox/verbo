@@ -252,6 +252,80 @@ with st.container(key="barra_menu"):
                 st.session_state.tema_escuro = not st.session_state.tema_escuro
                 st.rerun()
 
+components.html(
+    """
+    <script>
+    (function() {
+        var doc = window.parent.document;
+        var mostrar = MOSTRAR_FLAG;
+        var rolando = false;
+        var intervalo = null;
+
+        function pararRolagem(btn) {
+            if (intervalo) {
+                clearInterval(intervalo);
+                intervalo = null;
+            }
+            rolando = false;
+            if (btn) btn.textContent = 'Rolar';
+        }
+
+        function alternarRolagem(btn) {
+            if (rolando) {
+                pararRolagem(btn);
+                return;
+            }
+            rolando = true;
+            btn.textContent = 'Parar';
+            intervalo = setInterval(function() {
+                var win = window.parent;
+                win.scrollBy(0, 1);
+                var alturaTotal = win.document.documentElement.scrollHeight;
+                if (win.scrollY + win.innerHeight >= alturaTotal - 2) {
+                    pararRolagem(btn);
+                }
+            }, 40);
+        }
+
+        function garantirBotao() {
+            var btn = doc.getElementById('btn-rolar-automatico');
+            if (!btn) {
+                btn = doc.createElement('button');
+                btn.id = 'btn-rolar-automatico';
+                btn.type = 'button';
+                btn.textContent = 'Rolar';
+                btn.style.position = 'fixed';
+                btn.style.bottom = '20px';
+                btn.style.right = '20px';
+                btn.style.zIndex = '999999';
+                btn.style.padding = '0.5rem 1rem';
+                btn.style.borderRadius = '999px';
+                btn.style.border = '1px solid COR_MUTADO';
+                btn.style.backgroundColor = 'COR_FUNDO';
+                btn.style.color = 'COR_TEXTO';
+                btn.style.cursor = 'pointer';
+                btn.style.fontSize = '0.85rem';
+                btn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.25)';
+                btn.addEventListener('click', function() { alternarRolagem(btn); });
+                doc.body.appendChild(btn);
+            }
+            btn.style.display = mostrar ? 'block' : 'none';
+            if (!mostrar) {
+                pararRolagem(btn);
+            }
+        }
+
+        garantirBotao();
+    })();
+    </script>
+    """
+    .replace("MOSTRAR_FLAG", "true" if pagina == "Plano de Leitura" else "false")
+    .replace("COR_MUTADO", cor_mutado)
+    .replace("COR_FUNDO", cor_fundo)
+    .replace("COR_TEXTO", cor_texto),
+    height=0,
+)
+
 st.markdown('<div class="bloco-central">', unsafe_allow_html=True)
 st.markdown("# Explore as Escrituras")
 st.markdown(
