@@ -13,7 +13,11 @@ def gerar_resposta(pergunta: str, versiculos: list[dict]) -> str:
     )
 
     prompt = f"""Voce e um assistente que responde perguntas usando EXCLUSIVAMENTE os versiculos da Biblia fornecidos abaixo.
-Nao use conhecimento proprio. Se os versiculos nao responderem a pergunta, diga isso claramente.
+Nao use conhecimento proprio nem invente nada fora dos versiculos.
+
+Sintetize uma resposta clara em portugues juntando as informacoes relevantes dos versiculos,
+em vez de apenas citar um unico versiculo isolado. Cite as referencias (livro, capitulo e versiculo)
+que embasam cada parte da resposta. Se nenhum versiculo responder a pergunta, diga isso claramente.
 
 Versiculos:
 {contexto}

@@ -10,9 +10,9 @@ BIBLE_JSON_PATH = "data/biblia-ave-maria.json"
 CHROMA_DB_PATH = "chroma-db"
 COLLECTION_NAME = "biblia"
 
-# Modelos NVIDIA NIM (definir apos escolha no catalogo)
-EMBEDDING_MODEL = "a-definir"
-CHAT_MODEL = "a-definir"
+# Modelos NVIDIA NIM
+EMBEDDING_MODEL = "nvidia/nv-embedqa-e5-v5"
+CHAT_MODEL = "meta/llama-3.1-8b-instruct"
 
 # Parametros de busca
-TOP_K = 5
+TOP_K = 8
