@@ -50,7 +50,9 @@ st.markdown(
         display: flex !important;
         flex-direction: column !important;
     }}
-    .st-key-rodape_pagina {{ margin-top: auto; }}
+    [data-testid="stLayoutWrapper"]:has(> .st-key-rodape_pagina) {{
+        margin-top: auto;
+    }}
 
     [data-testid="stAppViewContainer"] {{ background-color: {cor_fundo}; }}
     [data-testid="stSidebar"] {{ background-color: {cor_fundo}; }}
