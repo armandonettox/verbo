@@ -113,6 +113,14 @@ st.markdown(
         width: 20px !important;
         height: 20px !important;
     }}
+
+    div[data-testid="stElementContainer"]:has(> iframe) {{
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        line-height: 0 !important;
+    }}
     </style>
     """,
     unsafe_allow_html=True,
