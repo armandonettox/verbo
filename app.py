@@ -46,7 +46,6 @@ st.markdown(
     }}
 
     .bloco-central {{ text-align: center; margin-bottom: 1.5rem; }}
-    .bloco-central .marca {{ font-size: 1.1rem; color: {cor_mutado}; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.5rem; }}
     .bloco-central h1 {{ font-size: 2.75rem; margin-bottom: 0.5rem; }}
     .bloco-central p {{ color: {cor_mutado} !important; font-style: italic; font-size: 1.05rem; }}
 
@@ -109,7 +108,6 @@ with st.container(key="barra_menu"):
 st.markdown('<div class="bloco-central">', unsafe_allow_html=True)
 with st.container(key="logo_chip"):
     st.image("assets/logo.png", width=100)
-st.markdown('<p class="marca">Verbo</p>', unsafe_allow_html=True)
 st.markdown("# Explore as Escrituras")
 st.markdown(
     "*Pesquise e descubra passagens biblicas com compreensao semantica "
