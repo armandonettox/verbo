@@ -47,6 +47,18 @@ st.markdown(
         border: 1px solid {cor_mutado};
     }}
 
+    .st-key-botao_tema button {{
+        background-color: transparent;
+        border: none;
+        box-shadow: none;
+        color: {cor_mutado};
+        padding: 0;
+    }}
+    .st-key-botao_tema button:hover {{
+        color: {cor_destaque};
+        background-color: transparent;
+    }}
+
     .bloco-central {{ text-align: center; margin-bottom: 1.5rem; }}
     .bloco-central h1 {{ font-size: 2.75rem; margin-bottom: 0.5rem; }}
     .bloco-central p {{ color: {cor_mutado} !important; font-style: italic; font-size: 1.05rem; }}
