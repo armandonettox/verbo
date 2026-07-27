@@ -40,7 +40,15 @@ st.markdown(
     .st-key-logo_center [data-testid="stElementToolbar"] {{ display: none; }}
     [data-testid="stMain"] {{ padding-top: 0 !important; }}
     [data-testid="stAppViewContainer"] {{ padding-top: 0 !important; }}
-    .block-container {{ padding-top: 5.5rem !important; padding-bottom: 1rem !important; }}
+    .block-container {{
+        padding-top: 5.5rem !important;
+        padding-bottom: 1rem !important;
+        min-height: 100vh !important;
+        box-sizing: border-box !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }}
+    .st-key-rodape_pagina {{ margin-top: auto; }}
 
     [data-testid="stAppViewContainer"] {{ background-color: {cor_fundo}; }}
     [data-testid="stSidebar"] {{ background-color: {cor_fundo}; }}
@@ -54,6 +62,36 @@ st.markdown(
         pointer-events: none !important;
     }}
     [data-testid="stSidebar"] * {{ color: {cor_texto}; }}
+
+    [data-testid="stSidebarUserContent"] {{ padding-top: 0.4rem !important; }}
+    [data-testid="stSidebarUserContent"] > div > [data-testid="stVerticalBlock"] {{
+        gap: 0.25rem !important;
+    }}
+    .st-key-sb_plano, .st-key-sb_semana_dia, .st-key-sb_leitura_atual, .st-key-sb_progresso {{
+        padding: 0.4rem !important;
+        gap: 0.2rem !important;
+    }}
+    [data-testid="stSidebar"] [data-testid="stCaptionContainer"] p {{
+        font-size: 0.7rem !important;
+        line-height: 1.25 !important;
+    }}
+    [data-testid="stSidebar"] .stButton button,
+    [data-testid="stSidebar"] .stTextInput input,
+    [data-testid="stSidebar"] [data-baseweb="select"] > div {{
+        min-height: 1.6rem !important;
+        padding-top: 0.1rem !important;
+        padding-bottom: 0.1rem !important;
+    }}
+    [data-testid="stSidebar"] .stButton button p,
+    [data-testid="stSidebar"] .stTextInput input,
+    [data-testid="stSidebar"] [data-baseweb="select"] * {{
+        font-size: 0.76rem !important;
+    }}
+    [data-testid="stSidebar"] .stCheckbox {{ min-height: 1.2rem !important; }}
+    [data-testid="stSidebar"] .stWidgetLabel {{ margin-bottom: 0.1rem !important; }}
+    [data-testid="stSidebar"] .stWidgetLabel p {{ font-size: 0.76rem !important; }}
+    [data-testid="stSidebar"] .stProgress {{ margin: 0 !important; }}
+    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] {{ gap: 0.4rem !important; }}
     h1, h2, h3, h4, p, span, label, li {{ color: {cor_texto}; }}
     .stTextInput input, .stNumberInput input, [data-baseweb="select"] > div {{
         background-color: {cor_fundo_2} !important;
@@ -255,7 +293,7 @@ else:
     semana_atual, dia_atual = semana_dia_de_indice(idx)
 
     with st.sidebar:
-        with st.container(border=True):
+        with st.container(border=True, key="sb_plano"):
             st.caption("PLANO DE LEITURA")
             st.selectbox("Plano", ["Sequencial - 1 capitulo/dia"], disabled=True)
             st.markdown("**Biblia Ave Maria - ordem canonica**")
@@ -265,7 +303,7 @@ else:
                 "plano cronologico)."
             )
 
-        with st.container(border=True):
+        with st.container(border=True, key="sb_semana_dia"):
             n_semanas = total_semanas(total)
             col_sem, col_dia = st.columns(2)
             with col_sem:
@@ -299,7 +337,7 @@ else:
                     st.session_state.offset_leitura = novo_offset
                     st.rerun()
 
-        with st.container(border=True):
+        with st.container(border=True, key="sb_leitura_atual"):
             st.text_input(
                 "Leitura atual",
                 value=f"{capitulo['livro']} {capitulo['capitulo']}",
@@ -343,7 +381,7 @@ else:
                 st.session_state.nav = "Busca Semantica"
                 st.rerun()
 
-        with st.container(border=True):
+        with st.container(border=True, key="sb_progresso"):
             st.markdown("**Progresso**")
             st.progress((idx + 1) / total)
             st.caption(f"{idx + 1} / {total} dias ({total - idx - 1} faltam)")
@@ -364,12 +402,13 @@ else:
             st.session_state.offset_leitura += 1
             st.rerun()
 
-st.markdown(
-    f"""
-    <hr style="margin-top: 3rem; border-color: {cor_mutado}; width: 100vw; max-width: 100vw; margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%);">
-    <p style="text-align: center; color: {cor_mutado}; font-size: 0.85rem;">
-        Feito por armandonettox &middot; texto: Biblia Catolica Ave Maria
-    </p>
-    """,
-    unsafe_allow_html=True,
-)
+with st.container(key="rodape_pagina"):
+    st.markdown(
+        f"""
+        <hr style="margin-top: 3rem; border-color: {cor_mutado}; width: 100vw; max-width: 100vw; margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%);">
+        <p style="text-align: center; color: {cor_mutado}; font-size: 0.85rem;">
+            Feito por armandonettox &middot; texto: Biblia Catolica Ave Maria
+        </p>
+        """,
+        unsafe_allow_html=True,
+    )
