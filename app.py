@@ -39,9 +39,9 @@ st.markdown(
         color: {cor_texto} !important;
     }}
     .stButton button, .stFormSubmitButton button {{
-        background-color: {cor_fundo_2};
+        background-color: {cor_fundo};
         color: {cor_texto};
-        border-color: {cor_borda};
+        border: 1px solid {cor_mutado};
     }}
 
     .bloco-central {{ text-align: center; margin-bottom: 1.5rem; }}
@@ -63,6 +63,13 @@ st.markdown(
         padding: 0.75rem calc(50vw - 50% + 1rem);
         box-sizing: border-box;
         border-bottom: 1px solid {cor_borda};
+    }}
+
+    .st-key-logo_chip {{
+        background-color: #FBF6EC;
+        display: inline-block;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
     }}
     </style>
     """,
@@ -100,7 +107,8 @@ with st.container(key="barra_menu"):
             st.rerun()
 
 st.markdown('<div class="bloco-central">', unsafe_allow_html=True)
-st.image("assets/logo.png", width=100)
+with st.container(key="logo_chip"):
+    st.image("assets/logo.png", width=100)
 st.markdown('<p class="marca">Verbo</p>', unsafe_allow_html=True)
 st.markdown("# Explore as Escrituras")
 st.markdown(
