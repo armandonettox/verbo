@@ -40,7 +40,7 @@ st.markdown(
     .st-key-logo_center [data-testid="stElementToolbar"] {{ display: none; }}
     [data-testid="stMain"] {{ padding-top: 0 !important; }}
     [data-testid="stAppViewContainer"] {{ padding-top: 0 !important; }}
-    .block-container {{ padding-top: 0 !important; padding-bottom: 1rem !important; }}
+    .block-container {{ padding-top: 5.5rem !important; padding-bottom: 1rem !important; }}
 
     [data-testid="stAppViewContainer"] {{ background-color: {cor_fundo}; }}
     [data-testid="stSidebar"] {{ background-color: {cor_fundo}; }}
@@ -79,13 +79,11 @@ st.markdown(
     .barra-topo a:hover {{ color: {cor_destaque}; }}
 
     .st-key-barra_menu {{
-        position: relative;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
         z-index: 1000000;
-        width: 100vw;
-        max-width: 100vw;
-        margin-left: calc(-50vw + 50%);
-        margin-right: calc(-50vw + 50%);
-        margin-bottom: 2rem;
         padding: 0.75rem 1.5rem 1rem;
         box-sizing: border-box;
         background-color: {cor_fundo};
