@@ -27,6 +27,8 @@ st.markdown(
     [data-testid="stHeader"] {{ display: none; }}
     [data-testid="stToolbar"] {{ display: none; }}
     [data-testid="stBottom"] {{ display: none; }}
+    .st-key-logo_center [data-testid="StyledFullScreenButton"] {{ display: none; }}
+    .st-key-logo_center [data-testid="stElementToolbar"] {{ display: none; }}
     [data-testid="stMain"] {{ padding-top: 0 !important; }}
     [data-testid="stAppViewContainer"] {{ padding-top: 0 !important; }}
     .block-container {{ padding-top: 0 !important; padding-bottom: 1rem !important; }}
