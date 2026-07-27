@@ -96,15 +96,17 @@ st.markdown(
         border-radius: 0.4rem;
     }}
 
-    [data-testid="stSidebarCollapseButton"] button,
+    [data-testid="stSidebarCollapseButton"],
     [data-testid="stExpandSidebarButton"] {{
-        opacity: 1 !important;
-        visibility: visible !important;
+        display: none !important;
     }}
     #slot-sidebar-toggle {{ display: flex; align-items: center; height: 100%; }}
     #slot-sidebar-toggle [data-testid="stSidebarCollapseButton"],
     #slot-sidebar-toggle [data-testid="stExpandSidebarButton"] {{
+        display: flex !important;
         position: static !important;
+        opacity: 1 !important;
+        visibility: visible !important;
     }}
     #slot-sidebar-toggle button svg {{
         color: {cor_mutado} !important;
