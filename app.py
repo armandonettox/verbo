@@ -8,20 +8,81 @@ from modules.leitura import (
 
 st.set_page_config(page_title="Verbo", page_icon="assets/favicon.png", layout="centered")
 
+if "tema_escuro" not in st.session_state:
+    st.session_state.tema_escuro = False
+
+if st.session_state.tema_escuro:
+    cor_fundo, cor_fundo_2, cor_texto, cor_mutado, cor_borda = (
+        "#221A12", "#33281B", "#F1E8D8", "#C9B79E", "#4A3B28"
+    )
+else:
+    cor_fundo, cor_fundo_2, cor_texto, cor_mutado, cor_borda = (
+        "#FBF6EC", "#F1E8D8", "#3B2A1E", "#6B4F3A", "#F1E8D8"
+    )
+cor_destaque = "#B8860B"
+
 st.markdown(
-    """
+    f"""
     <style>
-    [data-testid="stHeader"] { display: none; }
-    [data-testid="stToolbar"] { display: none; }
-    .block-container { padding-top: 2.5rem; }
-    .bloco-central { text-align: center; margin-bottom: 1.5rem; }
-    .bloco-central .marca { font-size: 1.1rem; color: #6B4F3A; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.5rem; }
-    .bloco-central h1 { font-size: 2.75rem; margin-bottom: 0.5rem; }
-    .bloco-central p { color: #6B4F3A; font-style: italic; font-size: 1.05rem; }
+    [data-testid="stHeader"] {{ display: none; }}
+    [data-testid="stToolbar"] {{ display: none; }}
+    .block-container {{ padding-top: 1.5rem; }}
+
+    [data-testid="stAppViewContainer"] {{ background-color: {cor_fundo}; }}
+    [data-testid="stSidebar"] {{ background-color: {cor_fundo_2}; }}
+    [data-testid="stSidebar"] * {{ color: {cor_texto}; }}
+    h1, h2, h3, h4, p, span, label, li {{ color: {cor_texto}; }}
+    .stTextInput input, .stNumberInput input, [data-baseweb="select"] > div {{
+        background-color: {cor_fundo_2} !important;
+        color: {cor_texto} !important;
+    }}
+    .stButton button, .stFormSubmitButton button {{
+        background-color: {cor_fundo_2};
+        color: {cor_texto};
+        border-color: {cor_borda};
+    }}
+
+    .bloco-central {{ text-align: center; margin-bottom: 1.5rem; }}
+    .bloco-central .marca {{ font-size: 1.1rem; color: {cor_mutado}; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.5rem; }}
+    .bloco-central h1 {{ font-size: 2.75rem; margin-bottom: 0.5rem; }}
+    .bloco-central p {{ color: {cor_mutado} !important; font-style: italic; font-size: 1.05rem; }}
+
+    .barra-topo {{ display: flex; align-items: center; gap: 0.5rem; height: 100%; }}
+    .barra-topo a {{ color: {cor_mutado}; }}
+    .barra-topo a:hover {{ color: {cor_destaque}; }}
     </style>
     """,
     unsafe_allow_html=True,
 )
+
+col_nav, col_git, col_tema = st.columns([6, 1, 1])
+with col_nav:
+    pagina = st.segmented_control(
+        "Navegacao",
+        ["Busca Semantica", "Plano de Leitura"],
+        default="Busca Semantica",
+        label_visibility="collapsed",
+        key="nav",
+    )
+with col_git:
+    st.markdown(
+        '<div class="barra-topo">'
+        '<a href="https://github.com/armandonettox/verbo" target="_blank" title="Ver codigo no GitHub">'
+        '<svg height="22" viewBox="0 0 16 16" width="22" fill="currentColor">'
+        '<path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 '
+        '0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 '
+        '1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 '
+        '0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 '
+        '1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 '
+        '3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">'
+        '</path></svg></a></div>',
+        unsafe_allow_html=True,
+    )
+with col_tema:
+    rotulo_tema = "Escuro" if not st.session_state.tema_escuro else "Claro"
+    if st.button(rotulo_tema, key="botao_tema", use_container_width=True):
+        st.session_state.tema_escuro = not st.session_state.tema_escuro
+        st.rerun()
 
 st.markdown('<div class="bloco-central">', unsafe_allow_html=True)
 st.image("assets/logo.png", width=100)
@@ -32,14 +93,6 @@ st.markdown(
     "e insights contextuais.*"
 )
 st.markdown("</div>", unsafe_allow_html=True)
-
-pagina = st.segmented_control(
-    "Navegacao",
-    ["Busca Semantica", "Plano de Leitura"],
-    default="Busca Semantica",
-    label_visibility="collapsed",
-    key="nav",
-)
 
 if pagina == "Busca Semantica":
     with st.form("busca_form"):
