@@ -44,6 +44,15 @@ st.markdown(
 
     [data-testid="stAppViewContainer"] {{ background-color: {cor_fundo}; }}
     [data-testid="stSidebar"] {{ background-color: {cor_fundo}; }}
+    [data-testid="stSidebar"][aria-expanded="true"] {{
+        width: 380px !important;
+        min-width: 380px !important;
+        max-width: 380px !important;
+    }}
+    [data-testid="stSidebar"] div[style*="cursor: col-resize"] {{
+        display: none !important;
+        pointer-events: none !important;
+    }}
     [data-testid="stSidebar"] * {{ color: {cor_texto}; }}
     h1, h2, h3, h4, p, span, label, li {{ color: {cor_texto}; }}
     .stTextInput input, .stNumberInput input, [data-baseweb="select"] > div {{
