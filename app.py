@@ -8,6 +8,9 @@ st.set_page_config(page_title="Verbo", page_icon="assets/favicon.png", layout="c
 st.markdown(
     """
     <style>
+    [data-testid="stHeader"] { display: none; }
+    [data-testid="stToolbar"] { display: none; }
+    .block-container { padding-top: 2.5rem; }
     .bloco-central { text-align: center; margin-bottom: 1.5rem; }
     .bloco-central .marca { font-size: 1.1rem; color: #6B4F3A; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.5rem; }
     .bloco-central h1 { font-size: 2.75rem; margin-bottom: 0.5rem; }
