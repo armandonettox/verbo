@@ -86,6 +86,11 @@ with st.container(key="barra_menu"):
             default="Busca Semantica",
             label_visibility="collapsed",
             key="nav",
+            format_func=lambda opcao: (
+                ":material/search: Busca Semantica"
+                if opcao == "Busca Semantica"
+                else ":material/menu_book: Plano de Leitura"
+            ),
         )
     with col_logo:
         with st.container(key="logo_center"):
@@ -105,8 +110,8 @@ with st.container(key="barra_menu"):
             unsafe_allow_html=True,
         )
     with col_tema:
-        rotulo_tema = "Escuro" if not st.session_state.tema_escuro else "Claro"
-        if st.button(rotulo_tema, key="botao_tema", use_container_width=True):
+        icone_tema = ":material/dark_mode:" if not st.session_state.tema_escuro else ":material/light_mode:"
+        if st.button(icone_tema, key="botao_tema", use_container_width=True):
             st.session_state.tema_escuro = not st.session_state.tema_escuro
             st.rerun()
 
