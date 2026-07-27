@@ -43,7 +43,7 @@ st.markdown(
     .block-container {{ padding-top: 0 !important; padding-bottom: 1rem !important; }}
 
     [data-testid="stAppViewContainer"] {{ background-color: {cor_fundo}; }}
-    [data-testid="stSidebar"] {{ background-color: {cor_fundo_2}; }}
+    [data-testid="stSidebar"] {{ background-color: {cor_fundo}; }}
     [data-testid="stSidebar"] * {{ color: {cor_texto}; }}
     h1, h2, h3, h4, p, span, label, li {{ color: {cor_texto}; }}
     .stTextInput input, .stNumberInput input, [data-baseweb="select"] > div {{
@@ -79,6 +79,8 @@ st.markdown(
     .barra-topo a:hover {{ color: {cor_destaque}; }}
 
     .st-key-barra_menu {{
+        position: relative;
+        z-index: 1000000;
         width: 100vw;
         max-width: 100vw;
         margin-left: calc(-50vw + 50%);
@@ -86,6 +88,7 @@ st.markdown(
         margin-bottom: 2rem;
         padding: 0.75rem 1.5rem 1rem;
         box-sizing: border-box;
+        background-color: {cor_fundo};
         border-bottom: 1px solid {cor_mutado};
     }}
 
