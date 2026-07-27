@@ -24,8 +24,16 @@ cor_destaque = "#B8860B"
 st.markdown(
     f"""
     <style>
-    [data-testid="stHeader"] {{ display: none; }}
-    [data-testid="stToolbar"] {{ display: none; }}
+    [data-testid="stHeader"] {{
+        background: transparent !important;
+        box-shadow: none !important;
+        height: 0 !important;
+        min-height: 0 !important;
+    }}
+    [data-testid="stToolbarActions"] {{ display: none !important; }}
+    [data-testid="stMainMenu"] {{ display: none !important; }}
+    [data-testid="stAppDeployButton"] {{ display: none !important; }}
+    [data-testid="stExpandSidebarButton"] {{ z-index: 999999 !important; }}
     [data-testid="stBottom"] {{ display: none; }}
     .st-key-logo_center [data-testid="StyledFullScreenButton"] {{ display: none; }}
     .st-key-logo_center [data-testid="stElementToolbar"] {{ display: none; }}
@@ -86,13 +94,26 @@ st.markdown(
         padding: 0.35rem;
         border-radius: 0.4rem;
     }}
+
+    [data-testid="stSidebarCollapseButton"] {{
+        position: fixed !important;
+        top: 14px !important;
+        right: 9.5% !important;
+        left: auto !important;
+        z-index: 999999 !important;
+    }}
+    [data-testid="stSidebarCollapseButton"] button svg {{
+        color: {cor_mutado} !important;
+        width: 20px !important;
+        height: 20px !important;
+    }}
     </style>
     """,
     unsafe_allow_html=True,
 )
 
 with st.container(key="barra_menu"):
-    col_nav, col_logo, col_acoes = st.columns([1.4, 2, 1.4])
+    col_nav, col_logo, col_acoes = st.columns([1.8, 2, 1.8])
     with col_nav:
         pagina = st.segmented_control(
             "Navegacao",
@@ -110,7 +131,7 @@ with st.container(key="barra_menu"):
         with st.container(key="logo_center"):
             st.image("assets/logo.png", width=44)
     with col_acoes:
-        col_git, col_tema = st.columns([1, 1], gap="small")
+        col_sidebar, col_git, col_tema = st.columns([1, 1, 1], gap="small")
         with col_git:
             st.markdown(
                 '<div class="barra-topo">'
