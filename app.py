@@ -54,15 +54,14 @@ st.markdown(
     .barra-topo a:hover {{ color: {cor_destaque}; }}
 
     .st-key-barra_menu {{
-        background-color: {cor_fundo_2};
         width: 100vw;
         max-width: 100vw;
         margin-left: calc(-50vw + 50%);
         margin-right: calc(-50vw + 50%);
         margin-bottom: 2rem;
-        padding: 0.75rem calc(50vw - 50% + 1rem);
+        padding: 0.75rem calc(50vw - 50% + 1rem) 1rem;
         box-sizing: border-box;
-        border-bottom: 1px solid {cor_borda};
+        border-bottom: 1px solid {cor_mutado};
     }}
 
     .st-key-logo_chip {{
