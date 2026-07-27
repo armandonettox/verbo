@@ -5,6 +5,13 @@ load_dotenv()
 
 NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
 
+if not NVIDIA_API_KEY:
+    try:
+        import streamlit as st
+        NVIDIA_API_KEY = st.secrets.get("NVIDIA_API_KEY")
+    except Exception:
+        pass
+
 # Caminhos
 BIBLE_JSON_PATH = "data/biblia-ave-maria.json"
 CHROMA_DB_PATH = "chroma-db"
