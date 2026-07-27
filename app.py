@@ -26,7 +26,9 @@ st.markdown(
     <style>
     [data-testid="stHeader"] {{ display: none; }}
     [data-testid="stToolbar"] {{ display: none; }}
-    .block-container {{ padding-top: 1.5rem; }}
+    [data-testid="stMain"] {{ padding-top: 0 !important; }}
+    [data-testid="stAppViewContainer"] {{ padding-top: 0 !important; }}
+    .block-container {{ padding-top: 0 !important; }}
 
     [data-testid="stAppViewContainer"] {{ background-color: {cor_fundo}; }}
     [data-testid="stSidebar"] {{ background-color: {cor_fundo_2}; }}
@@ -53,16 +55,21 @@ st.markdown(
 
     .st-key-barra_menu {{
         background-color: {cor_fundo_2};
-        border-radius: 0.5rem;
-        padding: 0.25rem 0.5rem;
-        margin-bottom: 1.5rem;
+        width: 100vw;
+        max-width: 100vw;
+        margin-left: calc(-50vw + 50%);
+        margin-right: calc(-50vw + 50%);
+        margin-bottom: 2rem;
+        padding: 0.75rem calc(50vw - 50% + 1rem);
+        box-sizing: border-box;
+        border-bottom: 1px solid {cor_borda};
     }}
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-with st.container(border=True, key="barra_menu"):
+with st.container(key="barra_menu"):
     col_nav, col_git, col_tema = st.columns([6, 1, 1])
     with col_nav:
         pagina = st.segmented_control(
