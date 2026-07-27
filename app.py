@@ -144,7 +144,7 @@ components.html(
 )
 
 with st.container(key="barra_menu"):
-    col_nav, col_logo, col_acoes = st.columns([1.8, 2, 1.8])
+    col_nav, col_logo, col_espaco, col_acoes = st.columns([1.8, 2, 0.2, 1.6])
     with col_nav:
         pagina = st.segmented_control(
             "Navegacao",
