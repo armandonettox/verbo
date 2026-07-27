@@ -26,9 +26,10 @@ st.markdown(
     <style>
     [data-testid="stHeader"] {{ display: none; }}
     [data-testid="stToolbar"] {{ display: none; }}
+    [data-testid="stBottom"] {{ display: none; }}
     [data-testid="stMain"] {{ padding-top: 0 !important; }}
     [data-testid="stAppViewContainer"] {{ padding-top: 0 !important; }}
-    .block-container {{ padding-top: 0 !important; }}
+    .block-container {{ padding-top: 0 !important; padding-bottom: 1rem !important; }}
 
     [data-testid="stAppViewContainer"] {{ background-color: {cor_fundo}; }}
     [data-testid="stSidebar"] {{ background-color: {cor_fundo_2}; }}
