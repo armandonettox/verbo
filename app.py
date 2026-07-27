@@ -98,9 +98,14 @@ st.markdown(
     [data-testid="stSidebarCollapseButton"] {{
         position: fixed !important;
         top: 14px !important;
-        right: 9.5% !important;
+        right: 16.5% !important;
         left: auto !important;
         z-index: 999999 !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }}
+    [data-testid="stSidebarCollapseButton"] button {{
+        opacity: 1 !important;
     }}
     [data-testid="stSidebarCollapseButton"] button svg {{
         color: {cor_mutado} !important;
