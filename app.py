@@ -270,7 +270,7 @@ else:
 
 st.markdown(
     f"""
-    <hr style="margin-top: 3rem; border-color: {cor_mutado};">
+    <hr style="margin-top: 3rem; border-color: {cor_mutado}; width: 100vw; max-width: 100vw; margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%);">
     <p style="text-align: center; color: {cor_mutado}; font-size: 0.85rem;">
         Feito por armandonettox &middot; texto: Biblia Catolica Ave Maria
     </p>
