@@ -68,7 +68,7 @@ st.markdown(
         color: {cor_destaque};
         background-color: transparent;
     }}
-    .st-key-botao_tema [data-testid="stIconMaterial"] {{ font-size: 22px; }}
+    .st-key-botao_tema span[role="img"] {{ font-size: 22px !important; }}
 
     .bloco-central {{ text-align: center; margin-bottom: 1.5rem; }}
     .bloco-central h1 {{ font-size: 2.75rem; margin-bottom: 0.5rem; }}
