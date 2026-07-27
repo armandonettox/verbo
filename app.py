@@ -30,9 +30,14 @@ st.markdown(
 )
 st.markdown("</div>", unsafe_allow_html=True)
 
-aba_busca, aba_leitura = st.tabs(["Busca Semantica", "Plano de Leitura"])
+pagina = st.segmented_control(
+    "Navegacao",
+    ["Busca Semantica", "Plano de Leitura"],
+    default="Busca Semantica",
+    label_visibility="collapsed",
+)
 
-with aba_busca:
+if pagina == "Busca Semantica":
     with st.form("busca_form"):
         col_campo, col_botao = st.columns([5, 1])
         with col_campo:
@@ -58,24 +63,43 @@ with aba_busca:
         for v in versiculos:
             st.markdown(f"**{v['referencia']}** — {v['texto']}")
 
-with aba_leitura:
+else:
     if "offset_leitura" not in st.session_state:
         st.session_state.offset_leitura = 0
 
     idx, total, capitulo = capitulo_do_dia(st.session_state.offset_leitura)
 
-    st.caption(f"Dia {idx + 1} de {total} — um capitulo por dia")
+    with st.sidebar:
+        st.markdown("### Plano de Leitura")
+        st.caption(
+            "Um capitulo por dia, na ordem canonica da Biblia Ave Maria "
+            "(nao e um plano cronologico)."
+        )
+
+        dia_escolhido = st.number_input(
+            "Ir para o dia", min_value=1, max_value=total, value=idx + 1
+        )
+        if dia_escolhido != idx + 1:
+            st.session_state.offset_leitura += dia_escolhido - (idx + 1)
+            st.rerun()
+
+        if st.button("Hoje", use_container_width=True):
+            st.session_state.offset_leitura = 0
+            st.rerun()
+
+        st.text_input("Leitura de hoje", value=f"{capitulo['livro']} {capitulo['capitulo']}", disabled=True)
+
+        st.progress((idx + 1) / total)
+        st.caption(f"{idx + 1} / {total} dias")
+
+    st.caption(f"Dia {idx + 1} de {total}")
     st.markdown(f"### {capitulo['livro']} {capitulo['capitulo']}")
     st.markdown(capitulo["texto"])
 
-    col_anterior, col_hoje, col_proximo = st.columns(3)
+    col_anterior, col_proximo = st.columns(2)
     with col_anterior:
         if st.button("Anterior", use_container_width=True):
             st.session_state.offset_leitura -= 1
-            st.rerun()
-    with col_hoje:
-        if st.button("Hoje", use_container_width=True):
-            st.session_state.offset_leitura = 0
             st.rerun()
     with col_proximo:
         if st.button("Proximo", use_container_width=True):
