@@ -269,9 +269,9 @@ else:
             st.rerun()
 
 st.markdown(
-    """
-    <hr style="margin-top: 3rem; border-color: #F1E8D8;">
-    <p style="text-align: center; color: #6B4F3A; font-size: 0.85rem;">
+    f"""
+    <hr style="margin-top: 3rem; border-color: {cor_mutado};">
+    <p style="text-align: center; color: {cor_mutado}; font-size: 0.85rem;">
         Feito por armandonettox &middot; texto: Biblia Catolica Ave Maria
     </p>
     """,
