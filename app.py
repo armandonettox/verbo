@@ -64,11 +64,11 @@ st.markdown(
         border-bottom: 1px solid {cor_mutado};
     }}
 
-    .st-key-logo_chip {{
+    .st-key-logo_center {{ display: flex; justify-content: center; align-items: center; height: 100%; }}
+    .st-key-logo_center img {{
         background-color: #FBF6EC;
-        display: inline-block;
-        padding: 0.75rem;
-        border-radius: 0.5rem;
+        padding: 0.35rem;
+        border-radius: 0.4rem;
     }}
     </style>
     """,
@@ -76,7 +76,7 @@ st.markdown(
 )
 
 with st.container(key="barra_menu"):
-    col_nav, col_git, col_tema = st.columns([6, 1, 1])
+    col_nav, col_logo, col_git, col_tema = st.columns([1.4, 2, 0.6, 0.8])
     with col_nav:
         pagina = st.segmented_control(
             "Navegacao",
@@ -85,6 +85,9 @@ with st.container(key="barra_menu"):
             label_visibility="collapsed",
             key="nav",
         )
+    with col_logo:
+        with st.container(key="logo_center"):
+            st.image("assets/logo.png", width=44)
     with col_git:
         st.markdown(
             '<div class="barra-topo">'
@@ -106,8 +109,6 @@ with st.container(key="barra_menu"):
             st.rerun()
 
 st.markdown('<div class="bloco-central">', unsafe_allow_html=True)
-with st.container(key="logo_chip"):
-    st.image("assets/logo.png", width=100)
 st.markdown("# Explore as Escrituras")
 st.markdown(
     "*Pesquise e descubra passagens biblicas com compreensao semantica "
