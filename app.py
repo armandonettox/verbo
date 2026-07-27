@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 from modules.busca import buscar_versiculos
 from modules.resposta import gerar_resposta
 from modules.leitura import (
@@ -95,19 +96,17 @@ st.markdown(
         border-radius: 0.4rem;
     }}
 
-    [data-testid="stSidebarCollapseButton"] {{
-        position: fixed !important;
-        top: 14px !important;
-        right: 16.5% !important;
-        left: auto !important;
-        z-index: 999999 !important;
+    [data-testid="stSidebarCollapseButton"] button,
+    [data-testid="stExpandSidebarButton"] {{
         opacity: 1 !important;
         visibility: visible !important;
     }}
-    [data-testid="stSidebarCollapseButton"] button {{
-        opacity: 1 !important;
+    #slot-sidebar-toggle {{ display: flex; align-items: center; height: 100%; }}
+    #slot-sidebar-toggle [data-testid="stSidebarCollapseButton"],
+    #slot-sidebar-toggle [data-testid="stExpandSidebarButton"] {{
+        position: static !important;
     }}
-    [data-testid="stSidebarCollapseButton"] button svg {{
+    #slot-sidebar-toggle button svg {{
         color: {cor_mutado} !important;
         width: 20px !important;
         height: 20px !important;
@@ -115,6 +114,31 @@ st.markdown(
     </style>
     """,
     unsafe_allow_html=True,
+)
+
+components.html(
+    """
+    <script>
+    (function() {
+        var doc = window.parent.document;
+        function moverBotaoSidebar() {
+            var slot = doc.getElementById('slot-sidebar-toggle');
+            if (!slot) return;
+            var btn = doc.querySelector('[data-testid="stSidebarCollapseButton"]')
+                || doc.querySelector('[data-testid="stExpandSidebarButton"]');
+            if (btn && btn.parentElement !== slot) {
+                slot.appendChild(btn);
+            }
+        }
+        moverBotaoSidebar();
+        var obs = new MutationObserver(function() {
+            try { moverBotaoSidebar(); } catch (e) {}
+        });
+        obs.observe(doc.body, {childList: true, subtree: true});
+    })();
+    </script>
+    """,
+    height=0,
 )
 
 with st.container(key="barra_menu"):
@@ -137,6 +161,9 @@ with st.container(key="barra_menu"):
             st.image("assets/logo.png", width=44)
     with col_acoes:
         col_sidebar, col_git, col_tema = st.columns([1, 1, 1], gap="small")
+        with col_sidebar:
+            if pagina == "Plano de Leitura":
+                st.markdown('<div id="slot-sidebar-toggle"></div>', unsafe_allow_html=True)
         with col_git:
             st.markdown(
                 '<div class="barra-topo">'
