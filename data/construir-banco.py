@@ -3,7 +3,12 @@ Le biblia-ave-maria.json, gera embeddings via NVIDIA NIM
 e popula o banco vetorial Chroma. Executar uma unica vez.
 """
 import json
+import sys
 import time
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import chromadb
 from openai import OpenAI
 from config import (

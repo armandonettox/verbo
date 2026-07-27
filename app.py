@@ -2,6 +2,9 @@ import streamlit as st
 from modules.busca import buscar_versiculos
 from modules.resposta import gerar_resposta
 
+st.set_page_config(page_title="Verbo", page_icon="assets/favicon.png")
+
+st.image("assets/logo.png", width=150)
 st.title("Verbo")
 st.caption("Respostas baseadas exclusivamente na Biblia Catolica Ave Maria")
 
