@@ -1,7 +1,10 @@
 import streamlit as st
 from modules.busca import buscar_versiculos
 from modules.resposta import gerar_resposta
-from modules.leitura import capitulo_do_dia
+from modules.leitura import (
+    capitulo_do_dia, carregar_capitulos, carregar_capitulos_busca, sem_acento,
+    total_semanas, dias_na_semana, semana_dia_de_indice, indice_de_semana_dia,
+)
 
 st.set_page_config(page_title="Verbo", page_icon="assets/favicon.png", layout="centered")
 
@@ -35,6 +38,7 @@ pagina = st.segmented_control(
     ["Busca Semantica", "Plano de Leitura"],
     default="Busca Semantica",
     label_visibility="collapsed",
+    key="nav",
 )
 
 if pagina == "Busca Semantica":
@@ -66,31 +70,112 @@ if pagina == "Busca Semantica":
 else:
     if "offset_leitura" not in st.session_state:
         st.session_state.offset_leitura = 0
+    if "auto_hoje" not in st.session_state:
+        st.session_state.auto_hoje = True
+    if "dias_concluidos" not in st.session_state:
+        st.session_state.dias_concluidos = set()
+
+    idx_hoje, total, _ = capitulo_do_dia(0)
+
+    if st.session_state.auto_hoje:
+        st.session_state.offset_leitura = 0
 
     idx, total, capitulo = capitulo_do_dia(st.session_state.offset_leitura)
+    semana_atual, dia_atual = semana_dia_de_indice(idx)
 
     with st.sidebar:
-        st.markdown("### Plano de Leitura")
-        st.caption(
-            "Um capitulo por dia, na ordem canonica da Biblia Ave Maria "
-            "(nao e um plano cronologico)."
-        )
+        with st.container(border=True):
+            st.caption("PLANO DE LEITURA")
+            st.selectbox("Plano", ["Sequencial - 1 capitulo/dia"], disabled=True)
+            st.markdown("**Biblia Ave Maria - ordem canonica**")
+            st.caption(
+                "Um capitulo por dia, do Genesis ao Apocalipse, seguindo a "
+                "ordem dos livros da Biblia Catolica Ave Maria (nao e um "
+                "plano cronologico)."
+            )
 
-        dia_escolhido = st.number_input(
-            "Ir para o dia", min_value=1, max_value=total, value=idx + 1
-        )
-        if dia_escolhido != idx + 1:
-            st.session_state.offset_leitura += dia_escolhido - (idx + 1)
-            st.rerun()
+        with st.container(border=True):
+            n_semanas = total_semanas(total)
+            col_sem, col_dia = st.columns(2)
+            with col_sem:
+                semana_sel = st.selectbox(
+                    "Semana", list(range(1, n_semanas + 1)),
+                    index=semana_atual - 1, disabled=st.session_state.auto_hoje,
+                )
+            with col_dia:
+                n_dias = dias_na_semana(semana_sel, total)
+                dia_sel = st.selectbox(
+                    "Dia", list(range(1, n_dias + 1)),
+                    index=min(dia_atual, n_dias) - 1, disabled=st.session_state.auto_hoje,
+                )
 
-        if st.button("Hoje", use_container_width=True):
-            st.session_state.offset_leitura = 0
-            st.rerun()
+            col_hoje, col_auto = st.columns(2)
+            with col_hoje:
+                if st.button("Hoje", use_container_width=True):
+                    st.session_state.auto_hoje = True
+                    st.session_state.offset_leitura = 0
+                    st.rerun()
+            with col_auto:
+                auto = st.checkbox("Auto hoje", value=st.session_state.auto_hoje)
+                if auto != st.session_state.auto_hoje:
+                    st.session_state.auto_hoje = auto
+                    st.rerun()
 
-        st.text_input("Leitura de hoje", value=f"{capitulo['livro']} {capitulo['capitulo']}", disabled=True)
+            if not st.session_state.auto_hoje:
+                novo_idx = indice_de_semana_dia(semana_sel, dia_sel)
+                novo_offset = novo_idx - idx_hoje
+                if novo_offset != st.session_state.offset_leitura:
+                    st.session_state.offset_leitura = novo_offset
+                    st.rerun()
 
-        st.progress((idx + 1) / total)
-        st.caption(f"{idx + 1} / {total} dias")
+        with st.container(border=True):
+            st.text_input(
+                "Leitura atual",
+                value=f"{capitulo['livro']} {capitulo['capitulo']}",
+                disabled=True,
+                label_visibility="collapsed",
+            )
+
+            concluido = idx in st.session_state.dias_concluidos
+            rotulo = "Concluido nesta sessao" if concluido else "Marcar como concluido"
+            if st.button(rotulo, use_container_width=True):
+                if concluido:
+                    st.session_state.dias_concluidos.discard(idx)
+                else:
+                    st.session_state.dias_concluidos.add(idx)
+                st.rerun()
+            st.caption("Progresso salvo so nesta sessao — some ao recarregar a pagina.")
+
+            st.checkbox("Audio (em breve)", disabled=True)
+            st.checkbox("Comentarios dos Padres da Igreja (em breve)", disabled=True)
+
+            palavra_chave = st.text_input("Buscar palavra-chave", placeholder="ex: misericordia")
+            if palavra_chave:
+                capitulos_todos = carregar_capitulos()
+                textos_normalizados = carregar_capitulos_busca()
+                termo = sem_acento(palavra_chave)
+                achou = False
+                for i, texto_norm in enumerate(textos_normalizados):
+                    if termo in texto_norm:
+                        achou = True
+                        c = capitulos_todos[i]
+                        st.caption(f"Encontrado em {c['livro']} {c['capitulo']}")
+                        if st.button(f"Ir para {c['livro']} {c['capitulo']}", key=f"ir_{i}"):
+                            st.session_state.auto_hoje = False
+                            st.session_state.offset_leitura = i - idx_hoje
+                            st.rerun()
+                        break
+                if not achou:
+                    st.caption("Nenhum capitulo encontrado.")
+
+            if st.button("Tentar Busca Semantica", use_container_width=True):
+                st.session_state.nav = "Busca Semantica"
+                st.rerun()
+
+        with st.container(border=True):
+            st.markdown("**Progresso**")
+            st.progress((idx + 1) / total)
+            st.caption(f"{idx + 1} / {total} dias ({total - idx - 1} faltam)")
 
     st.caption(f"Dia {idx + 1} de {total}")
     st.markdown(f"### {capitulo['livro']} {capitulo['capitulo']}")
@@ -99,10 +184,12 @@ else:
     col_anterior, col_proximo = st.columns(2)
     with col_anterior:
         if st.button("Anterior", use_container_width=True):
+            st.session_state.auto_hoje = False
             st.session_state.offset_leitura -= 1
             st.rerun()
     with col_proximo:
         if st.button("Proximo", use_container_width=True):
+            st.session_state.auto_hoje = False
             st.session_state.offset_leitura += 1
             st.rerun()
 

@@ -1,4 +1,6 @@
 import json
+import math
+import unicodedata
 from datetime import date
 
 import streamlit as st
@@ -6,6 +8,11 @@ import streamlit as st
 from config import BIBLE_JSON_PATH
 
 EPOCA = date(2026, 1, 1)
+
+
+def sem_acento(texto):
+    normalizado = unicodedata.normalize("NFKD", texto)
+    return "".join(c for c in normalizado if not unicodedata.combining(c)).lower()
 
 
 @st.cache_data
@@ -34,3 +41,26 @@ def capitulo_do_dia(offset=0):
     indice_dia = (date.today() - EPOCA).days + offset
     idx = indice_dia % total
     return idx, total, capitulos[idx]
+
+
+def total_semanas(total_capitulos):
+    return math.ceil(total_capitulos / 7)
+
+
+def dias_na_semana(semana, total_capitulos):
+    inicio = (semana - 1) * 7
+    fim = min(inicio + 7, total_capitulos)
+    return fim - inicio
+
+
+def semana_dia_de_indice(idx):
+    return idx // 7 + 1, idx % 7 + 1
+
+
+def indice_de_semana_dia(semana, dia):
+    return (semana - 1) * 7 + (dia - 1)
+
+
+@st.cache_data
+def carregar_capitulos_busca():
+    return [sem_acento(c["texto"]) for c in carregar_capitulos()]
