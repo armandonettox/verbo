@@ -59,7 +59,7 @@ st.markdown(
         margin-left: calc(-50vw + 50%);
         margin-right: calc(-50vw + 50%);
         margin-bottom: 2rem;
-        padding: 0.75rem calc(50vw - 50% + 1rem) 1rem;
+        padding: 0.75rem 1.5rem 1rem;
         box-sizing: border-box;
         border-bottom: 1px solid {cor_mutado};
     }}
