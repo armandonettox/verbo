@@ -19,15 +19,22 @@ RAG fechado sobre a Biblia Catolica Ave Maria, em portugues. Responde perguntas 
 verbo/
     data/
         biblia-ave-maria.json    fonte (73 livros, 35.450 versiculos)
-        construir-banco.py       gera embeddings e popula o Chroma
+        construir-banco.py       gera embeddings e popula o Chroma (chunking por capitulo)
+    chroma-db/                   banco vetorial pre-construido (versionado)
     modules/
-        busca.py                 consulta o Chroma, retorna versiculos proximos
+        busca.py                 consulta o Chroma, retorna trechos proximos
         resposta.py              monta prompt e chama NVIDIA NIM chat completions
     assets/                      logo e favicon
     app.py                       interface Streamlit
     config.py                    configuracoes, nomes de modelo, paths
     teste-conexao.py             script de diagnostico da API NVIDIA NIM
 ```
+
+O chunking agrupa os versiculos por capitulo (quebrando em pedacos de ate 1500
+caracteres quando o capitulo e muito longo), em vez de indexar cada versiculo
+isolado. Isso da mais contexto pra busca semantica e mantem o indice pequeno
+o bastante para versionar no git (~13MB). Estrategia inspirada no projeto
+[biblos](https://github.com/dssjon/biblos).
 
 ## Como rodar localmente
 
@@ -39,7 +46,8 @@ pip install -r requirements.txt
 
 Copie `.env.example` para `.env` e preencha a `NVIDIA_API_KEY` (gratis em https://build.nvidia.com).
 
-Construa o banco vetorial uma unica vez:
+O `chroma-db/` ja vem pronto no repositorio. So reconstrua se mudar a fonte,
+o modelo de embedding ou a estrategia de chunking:
 
 ```bash
 python data/construir-banco.py
@@ -50,7 +58,3 @@ Rode o app:
 ```bash
 streamlit run app.py
 ```
-
-## Limitacoes conhecidas
-
-A busca por similaridade (top-k=8) funciona bem para perguntas diretas ("quem foi X", "o que aconteceu em Y"), mas pode nao encontrar o versiculo mais classico para perguntas conceituais amplas (ex.: "o que Jesus disse sobre o amor ao proximo" nem sempre traz Marcos 12:31). Melhorar isso passa por trocar o modelo de embedding ou mudar a estrategia de chunking (por capitulo em vez de versiculo isolado) — ainda nao feito.
