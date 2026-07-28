@@ -558,6 +558,10 @@ components.html(
         }
         var estado = win.__rolarAutomatico;
 
+        function obterContainerRolagem() {
+            return doc.querySelector('[data-testid="stMain"]') || doc.scrollingElement || doc.documentElement;
+        }
+
         function pararRolagem(btn) {
             if (estado.intervalo) {
                 win.clearInterval(estado.intervalo);
@@ -574,10 +578,10 @@ components.html(
             }
             estado.rolando = true;
             btn.textContent = 'Parar';
+            var container = obterContainerRolagem();
             estado.intervalo = win.setInterval(function() {
-                win.scrollBy(0, 1);
-                var alturaTotal = win.document.documentElement.scrollHeight;
-                if (win.scrollY + win.innerHeight >= alturaTotal - 2) {
+                container.scrollBy(0, 1);
+                if (container.scrollTop + container.clientHeight >= container.scrollHeight - 2) {
                     pararRolagem(btn);
                 }
             }, 40);
