@@ -4,7 +4,7 @@ from datetime import date
 import streamlit as st
 import streamlit.components.v1 as components
 from modules.busca import buscar_versiculos
-from modules.resposta import gerar_resposta
+from modules.resposta import gerar_resposta, continuar_conversa
 from modules.leitura import carregar_capitulos, texto_para_audio
 from modules.plano_livre import listar_livros, _renderizar_lista_livros, _renderizar_grade_capitulos
 from modules.plano_versiculo_dia import obter_versiculo_do_dia
@@ -76,8 +76,9 @@ def _renderizar_busca_semantica(capitulos_leitura):
         resposta = gerar_resposta(pergunta, versiculos)
 
         st.session_state.busca_pendente = False
-        st.session_state.ultima_busca = {"resposta": resposta, "versiculos": versiculos}
+        st.session_state.ultima_busca = {"pergunta": pergunta, "resposta": resposta, "versiculos": versiculos}
         st.session_state.versiculos_visiveis = QUANTIDADE_VERSICULOS_POR_PAGINA
+        st.session_state.historico_chat = []
         st.rerun()
     elif st.session_state.busca_pendente:
         st.session_state.busca_pendente = False
@@ -162,6 +163,31 @@ def _renderizar_busca_semantica(capitulos_leitura):
         if st.session_state.versiculos_visiveis < total_versiculos:
             if st.button("Mostrar mais resultados", use_container_width=True, key="btn_mostrar_mais"):
                 st.session_state.versiculos_visiveis += QUANTIDADE_VERSICULOS_POR_PAGINA
+                st.rerun(scope="fragment")
+
+        if "historico_chat" not in st.session_state:
+            st.session_state.historico_chat = []
+
+        with st.container(border=True, key="chat_conversa"):
+            for turno in st.session_state.historico_chat:
+                with st.chat_message(turno["role"]):
+                    st.write(turno["content"])
+
+            pergunta_seguimento = st.chat_input(
+                "Faca uma pergunta de acompanhamento...",
+                key="chat_input_seguimento",
+            )
+            if pergunta_seguimento:
+                with st.spinner("Pensando..."):
+                    resposta_seguimento = continuar_conversa(
+                        ultima_busca["pergunta"],
+                        ultima_busca["resposta"],
+                        ultima_busca["versiculos"],
+                        st.session_state.historico_chat,
+                        pergunta_seguimento,
+                    )
+                st.session_state.historico_chat.append({"role": "user", "content": pergunta_seguimento})
+                st.session_state.historico_chat.append({"role": "assistant", "content": resposta_seguimento})
                 st.rerun(scope="fragment")
 
     else:
