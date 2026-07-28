@@ -568,7 +568,7 @@ elif pagina == "Busca Semantica":
             f'<span class="tag-versiculo">{v["referencia"]}</span>'
             for v in ultima_busca["versiculos"]
         )
-        with st.container(border=True, key="insights_busca"):
+        with st.container(border=False, key="insights_busca"):
             st.markdown(
                 f'<p class="insights-texto">Busca concluida &middot; '
                 f"{total_versiculos} versiculos semelhantes encontrados</p>"
