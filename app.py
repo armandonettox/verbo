@@ -141,7 +141,12 @@ def _renderizar_busca_semantica(capitulos_leitura):
         versiculos_visiveis = ultima_busca["versiculos"][: st.session_state.versiculos_visiveis]
         for i, v in enumerate(versiculos_visiveis):
             with st.container(border=True, key=f"versiculo_card_{i}"):
-                st.markdown(f"**{v['referencia']}**")
+                st.markdown(
+                    f"**{v['referencia']}**"
+                    f"<style>.st-key-versiculo_btn_ver_{i} button::before "
+                    f'{{ content: "{v["similaridade"]}% similar"; }}</style>',
+                    unsafe_allow_html=True,
+                )
                 if st.button(
                     "Ver versiculo",
                     icon=":material/open_in_new:",
@@ -380,6 +385,23 @@ st.markdown(
     [class*="st-key-versiculo_btn_ver_"] button p {{
         white-space: nowrap !important;
         font-size: 0.72rem !important;
+    }}
+    [class*="st-key-versiculo_btn_ver_"] button {{
+        position: relative !important;
+    }}
+    [class*="st-key-versiculo_btn_ver_"] button::before {{
+        position: absolute;
+        top: 50%;
+        right: 100%;
+        transform: translateY(-50%);
+        margin-right: 0.5rem;
+        background-color: {cor_fundo_2};
+        border: 1px solid {cor_mutado};
+        border-radius: 999px;
+        padding: 0.15rem 0.6rem;
+        font-size: 0.7rem;
+        white-space: nowrap;
+        color: {cor_mutado};
     }}
 
     .bloco-central {{ text-align: center; margin-bottom: 1.5rem; }}

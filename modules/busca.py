@@ -33,7 +33,16 @@ def buscar_versiculos(pergunta: str) -> list[dict]:
     resultados = _colecao.query(query_embeddings=[vetor], n_results=TOP_K)
 
     versiculos = []
-    for texto, meta in zip(resultados["documents"][0], resultados["metadatas"][0]):
-        versiculos.append({"texto": texto, "referencia": meta["referencia"]})
+    for texto, meta, distancia in zip(
+        resultados["documents"][0], resultados["metadatas"][0], resultados["distances"][0]
+    ):
+        # colecao usa distancia L2 sobre embeddings normalizados, entao
+        # equivale a similaridade de cosseno: cos = 1 - distancia/2
+        similaridade = max(0.0, min(1.0, 1 - distancia / 2)) * 100
+        versiculos.append({
+            "texto": texto,
+            "referencia": meta["referencia"],
+            "similaridade": round(similaridade),
+        })
 
     return versiculos
