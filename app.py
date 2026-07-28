@@ -295,7 +295,7 @@ components.html(
                 btn.type = 'button';
                 btn.textContent = 'Rolar';
                 btn.style.position = 'fixed';
-                btn.style.bottom = '20px';
+                btn.style.bottom = '90px';
                 btn.style.right = '20px';
                 btn.style.zIndex = '999999';
                 btn.style.padding = '0.5rem 1rem';
