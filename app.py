@@ -122,7 +122,6 @@ st.markdown(
     .bloco-central h1 {{ font-size: 2.75rem; margin-bottom: 0.5rem; }}
     .bloco-central p {{ color: {cor_mutado} !important; font-style: italic; font-size: 1.05rem; }}
     .bloco-central [data-testid="stHeaderActionElements"] {{ display: none; }}
-    .bloco-central [data-testid="stHeaderActionElements"] {{ display: none; }}
 
     .barra-topo {{ display: flex; align-items: center; gap: 0.5rem; height: 100%; }}
     .barra-topo a {{ color: {cor_mutado}; }}
