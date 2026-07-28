@@ -129,18 +129,18 @@ st.markdown(
     }}
     .st-key-botao_tema span[role="img"] {{ font-size: 22px !important; }}
 
-    .st-key-busca_botao_carregando button {{
+    .st-key-busca_botao button:disabled {{
         white-space: nowrap !important;
         padding-left: 0.4rem !important;
         padding-right: 0.4rem !important;
     }}
-    .st-key-busca_botao_carregando button p {{
+    .st-key-busca_botao button:disabled p {{
         white-space: nowrap !important;
         font-size: 0.85rem !important;
     }}
-    .st-key-busca_botao_carregando span[role="img"],
-    .st-key-busca_botao_carregando [data-testid="stIconMaterial"],
-    .st-key-busca_botao_carregando svg {{
+    .st-key-busca_botao button:disabled span[role="img"],
+    .st-key-busca_botao button:disabled [data-testid="stIconMaterial"],
+    .st-key-busca_botao button:disabled svg {{
         display: inline-block !important;
         animation: girar 0.9s linear infinite !important;
     }}
@@ -393,21 +393,15 @@ if pagina == "Busca Semantica":
                 placeholder="O que Jesus disse sobre o amor ao proximo?",
             )
         with col_botao:
-            if st.session_state.busca_pendente:
-                st.form_submit_button(
-                    "Buscando",
-                    icon=":material/progress_activity:",
-                    use_container_width=True,
-                    disabled=True,
-                    key="busca_botao_carregando",
-                )
-            else:
-                st.form_submit_button(
-                    "Buscar",
-                    icon=":material/search:",
-                    use_container_width=True,
-                    on_click=_marcar_busca_pendente,
-                )
+            esta_buscando = st.session_state.busca_pendente
+            st.form_submit_button(
+                "Buscando" if esta_buscando else "Buscar",
+                icon=":material/progress_activity:" if esta_buscando else ":material/search:",
+                use_container_width=True,
+                disabled=esta_buscando,
+                key="busca_botao",
+                on_click=_marcar_busca_pendente,
+            )
 
     if st.session_state.busca_pendente and pergunta:
         with st.spinner("Buscando versiculos..."):
