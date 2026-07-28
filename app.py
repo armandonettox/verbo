@@ -1,13 +1,10 @@
-import json
-
 import streamlit as st
 import streamlit.components.v1 as components
 from modules.busca import buscar_versiculos
 from modules.resposta import gerar_resposta
-from modules.leitura import (
-    capitulo_do_dia, total_semanas, dias_na_semana,
-    semana_dia_de_indice, indice_de_semana_dia, texto_para_audio,
-)
+from modules.plano_versiculo_dia import renderizar as renderizar_versiculo_dia
+from modules.plano_ano import renderizar as renderizar_ano
+from modules.plano_livre import renderizar as renderizar_livre
 
 st.set_page_config(page_title="Verbo", page_icon="assets/favicon.png", layout="centered")
 
@@ -124,6 +121,7 @@ st.markdown(
     .bloco-central {{ text-align: center; margin-bottom: 1.5rem; }}
     .bloco-central h1 {{ font-size: 2.75rem; margin-bottom: 0.5rem; }}
     .bloco-central p {{ color: {cor_mutado} !important; font-style: italic; font-size: 1.05rem; }}
+    .bloco-central [data-testid="stHeaderActionElements"] {{ display: none; }}
 
     .barra-topo {{ display: flex; align-items: center; gap: 0.5rem; height: 100%; }}
     .barra-topo a {{ color: {cor_mutado}; }}
@@ -173,12 +171,12 @@ st.markdown(
         min-height: 0 !important;
         line-height: 0 !important;
     }}
-    .st-key-sb_audio div[data-testid="stElementContainer"]:has(> iframe) {{
+    [class*="st-key-sb_audio"] div[data-testid="stElementContainer"]:has(> iframe) {{
         height: 40px !important;
         min-height: 40px !important;
         line-height: normal !important;
     }}
-    .st-key-sb_audio iframe {{ height: 40px !important; }}
+    [class*="st-key-sb_audio"] iframe {{ height: 40px !important; }}
     </style>
     """,
     unsafe_allow_html=True,
@@ -365,148 +363,21 @@ if pagina == "Busca Semantica":
             st.markdown(f"**{v['referencia']}** — {v['texto']}")
 
 else:
-    if "offset_leitura" not in st.session_state:
-        st.session_state.offset_leitura = 0
-    if "auto_hoje" not in st.session_state:
-        st.session_state.auto_hoje = True
-
-    idx_hoje, total, _ = capitulo_do_dia(0)
-
-    if st.session_state.auto_hoje:
-        st.session_state.offset_leitura = 0
-
-    idx, total, capitulo = capitulo_do_dia(st.session_state.offset_leitura)
-    semana_atual, dia_atual = semana_dia_de_indice(idx)
-
     with st.sidebar:
         with st.container(border=True, key="sb_plano"):
             st.caption("PLANO DE LEITURA")
-            st.selectbox("Plano", ["Sequencial - 1 capitulo/dia"], disabled=True)
-            st.markdown("**Biblia Ave Maria - ordem canonica**")
-            st.caption(
-                "Um capitulo por dia, do Genesis ao Apocalipse, seguindo a "
-                "ordem dos livros da Biblia Catolica Ave Maria (nao e um "
-                "plano cronologico)."
+            plano_selecionado = st.selectbox(
+                "Plano",
+                ["Versiculo do Dia", "Biblia em 1 Ano", "Leitura Livre"],
+                key="plano_selecionado",
             )
 
-        with st.container(border=True, key="sb_semana_dia"):
-            n_semanas = total_semanas(total)
-            col_sem, col_dia = st.columns(2)
-            with col_sem:
-                semana_sel = st.selectbox(
-                    "Semana", list(range(1, n_semanas + 1)),
-                    index=semana_atual - 1, disabled=st.session_state.auto_hoje,
-                )
-            with col_dia:
-                n_dias = dias_na_semana(semana_sel, total)
-                dia_sel = st.selectbox(
-                    "Dia", list(range(1, n_dias + 1)),
-                    index=min(dia_atual, n_dias) - 1, disabled=st.session_state.auto_hoje,
-                )
-
-            col_hoje, col_auto = st.columns(2)
-            with col_hoje:
-                if st.button("Hoje", use_container_width=True):
-                    st.session_state.auto_hoje = True
-                    st.session_state.offset_leitura = 0
-                    st.rerun()
-            with col_auto:
-                auto = st.checkbox("Auto hoje", value=st.session_state.auto_hoje)
-                if auto != st.session_state.auto_hoje:
-                    st.session_state.auto_hoje = auto
-                    st.rerun()
-
-            if not st.session_state.auto_hoje:
-                novo_idx = indice_de_semana_dia(semana_sel, dia_sel)
-                novo_offset = novo_idx - idx_hoje
-                if novo_offset != st.session_state.offset_leitura:
-                    st.session_state.offset_leitura = novo_offset
-                    st.rerun()
-
-        with st.container(border=True, key="sb_leitura_atual"):
-            st.text_input(
-                "Leitura atual",
-                value=f"{capitulo['livro']} {capitulo['capitulo']}",
-                disabled=True,
-                label_visibility="collapsed",
-            )
-
-            with st.container(key="sb_audio"):
-                texto_audio_js = json.dumps(texto_para_audio(capitulo))
-                components.html(
-                    """
-                    <style>
-                    html, body { margin: 0; padding: 0; overflow: hidden; }
-                    #btn-audio-capitulo {
-                        width: 100%;
-                        min-height: 1.6rem;
-                        padding: 0.1rem 0.5rem;
-                        font-size: 0.76rem;
-                        font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                        background-color: COR_FUNDO;
-                        color: COR_TEXTO;
-                        border: 1px solid COR_MUTADO;
-                        border-radius: 0.5rem;
-                        cursor: pointer;
-                    }
-                    #btn-audio-capitulo:hover {
-                        border-color: COR_DESTAQUE;
-                        color: COR_DESTAQUE;
-                    }
-                    </style>
-                    <button id="btn-audio-capitulo" type="button">Ouvir capitulo</button>
-                    <script>
-                    (function() {
-                        var btn = document.getElementById('btn-audio-capitulo');
-                        var texto = TEXTO_JSON;
-                        var ROTULO_OUVIR = 'Ouvir capitulo';
-                        var ROTULO_PARAR = 'Parar audio';
-                        btn.textContent = ROTULO_OUVIR;
-
-                        btn.addEventListener('click', function() {
-                            if (window.speechSynthesis.speaking) {
-                                window.speechSynthesis.cancel();
-                                btn.textContent = ROTULO_OUVIR;
-                                return;
-                            }
-                            var utterance = new SpeechSynthesisUtterance(texto);
-                            utterance.lang = 'pt-BR';
-                            utterance.rate = 0.95;
-                            utterance.onend = function() { btn.textContent = ROTULO_OUVIR; };
-                            utterance.onerror = function() { btn.textContent = ROTULO_OUVIR; };
-                            window.speechSynthesis.speak(utterance);
-                            btn.textContent = ROTULO_PARAR;
-                        });
-                    })();
-                    </script>
-                    """
-                    .replace("TEXTO_JSON", texto_audio_js)
-                    .replace("COR_FUNDO", cor_fundo)
-                    .replace("COR_TEXTO", cor_texto)
-                    .replace("COR_MUTADO", cor_mutado)
-                    .replace("COR_DESTAQUE", cor_destaque),
-                    height=40,
-                )
-        with st.container(border=True, key="sb_progresso"):
-            st.markdown("**Progresso**")
-            st.progress((idx + 1) / total)
-            st.caption(f"{idx + 1} / {total} dias ({total - idx - 1} faltam)")
-
-    st.caption(f"Dia {idx + 1} de {total}")
-    st.markdown(f"### {capitulo['livro']} {capitulo['capitulo']}")
-    st.markdown(capitulo["texto"])
-
-    col_anterior, col_proximo = st.columns(2)
-    with col_anterior:
-        if st.button("Anterior", use_container_width=True):
-            st.session_state.auto_hoje = False
-            st.session_state.offset_leitura -= 1
-            st.rerun()
-    with col_proximo:
-        if st.button("Proximo", use_container_width=True):
-            st.session_state.auto_hoje = False
-            st.session_state.offset_leitura += 1
-            st.rerun()
+    if plano_selecionado == "Versiculo do Dia":
+        renderizar_versiculo_dia(cor_fundo, cor_texto, cor_mutado, cor_destaque)
+    elif plano_selecionado == "Biblia em 1 Ano":
+        renderizar_ano(cor_fundo, cor_texto, cor_mutado, cor_destaque)
+    else:
+        renderizar_livre(cor_fundo, cor_texto, cor_mutado, cor_destaque)
 
 with st.container(key="rodape_pagina"):
     st.markdown(

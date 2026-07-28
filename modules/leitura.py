@@ -30,14 +30,6 @@ def carregar_capitulos():
     return capitulos
 
 
-def capitulo_do_dia(offset=0):
-    capitulos = carregar_capitulos()
-    total = len(capitulos)
-    indice_dia = (date.today() - EPOCA).days + offset
-    idx = indice_dia % total
-    return idx, total, capitulos[idx]
-
-
 def total_semanas(total_capitulos):
     return math.ceil(total_capitulos / 7)
 
