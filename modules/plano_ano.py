@@ -46,23 +46,33 @@ def _descricao_intervalo(capitulos_do_dia):
 def renderizar(cor_fundo, cor_texto, cor_mutado, cor_destaque):
     if "ano_offset_leitura" not in st.session_state:
         st.session_state.ano_offset_leitura = 0
-    if "ano_auto_hoje" not in st.session_state:
-        st.session_state.ano_auto_hoje = True
 
     todos_capitulos = carregar_capitulos()
     distribuicao = distribuir_capitulos(len(todos_capitulos), TOTAL_DIAS)
 
     idx_dia_hoje = (date.today() - EPOCA).days % TOTAL_DIAS
-
-    if st.session_state.ano_auto_hoje:
-        st.session_state.ano_offset_leitura = 0
-
     idx_dia = (idx_dia_hoje + st.session_state.ano_offset_leitura) % TOTAL_DIAS
 
     inicio, fim = distribuicao[idx_dia]
     capitulos_do_dia = todos_capitulos[inicio:fim]
 
     semana_atual, dia_atual = semana_dia_de_indice(idx_dia)
+
+    # sincroniza os selects com o offset atual antes de instancia-los --
+    # depois de criado, o widget nao aceita mais alteracao via session_state
+    st.session_state.ano_semana_sel = semana_atual
+    st.session_state.ano_dia_sel = dia_atual
+
+    def _semana_alterada():
+        semana_sel = st.session_state.ano_semana_sel
+        n_dias = dias_na_semana(semana_sel, TOTAL_DIAS)
+        dia_sel = min(st.session_state.ano_dia_sel, n_dias)
+        novo_idx = indice_de_semana_dia(semana_sel, dia_sel)
+        st.session_state.ano_offset_leitura = novo_idx - idx_dia_hoje
+
+    def _dia_alterado():
+        novo_idx = indice_de_semana_dia(st.session_state.ano_semana_sel, st.session_state.ano_dia_sel)
+        st.session_state.ano_offset_leitura = novo_idx - idx_dia_hoje
 
     with st.sidebar:
         with st.container(border=True, key="sb_semana_dia"):
@@ -71,34 +81,20 @@ def renderizar(cor_fundo, cor_texto, cor_mutado, cor_destaque):
             with col_sem:
                 semana_sel = st.selectbox(
                     "Semana", list(range(1, n_semanas + 1)),
-                    index=semana_atual - 1, disabled=st.session_state.ano_auto_hoje,
                     key="ano_semana_sel",
+                    on_change=_semana_alterada,
                 )
             with col_dia:
                 n_dias = dias_na_semana(semana_sel, TOTAL_DIAS)
-                dia_sel = st.selectbox(
+                st.selectbox(
                     "Dia", list(range(1, n_dias + 1)),
-                    index=min(dia_atual, n_dias) - 1, disabled=st.session_state.ano_auto_hoje,
                     key="ano_dia_sel",
+                    on_change=_dia_alterado,
                 )
 
-            col_hoje, col_auto = st.columns(2)
-            with col_hoje:
-                if st.button("Hoje", use_container_width=True, key="ano_btn_hoje"):
-                    st.session_state.ano_auto_hoje = True
+            if st.session_state.ano_offset_leitura != 0:
+                if st.button("Ir para Hoje", use_container_width=True, key="ano_btn_hoje"):
                     st.session_state.ano_offset_leitura = 0
-                    st.rerun()
-            with col_auto:
-                auto = st.checkbox("Auto hoje", value=st.session_state.ano_auto_hoje, key="ano_check_auto")
-                if auto != st.session_state.ano_auto_hoje:
-                    st.session_state.ano_auto_hoje = auto
-                    st.rerun()
-
-            if not st.session_state.ano_auto_hoje:
-                novo_idx = indice_de_semana_dia(semana_sel, dia_sel)
-                novo_offset = novo_idx - idx_dia_hoje
-                if novo_offset != st.session_state.ano_offset_leitura:
-                    st.session_state.ano_offset_leitura = novo_offset
                     st.rerun()
 
         with st.container(border=True, key="sb_leitura_atual"):
@@ -135,11 +131,9 @@ def renderizar(cor_fundo, cor_texto, cor_mutado, cor_destaque):
     col_anterior, col_proximo = st.columns(2)
     with col_anterior:
         if st.button("Anterior", use_container_width=True, key="ano_btn_anterior"):
-            st.session_state.ano_auto_hoje = False
             st.session_state.ano_offset_leitura -= 1
             st.rerun()
     with col_proximo:
         if st.button("Proximo", use_container_width=True, key="ano_btn_proximo"):
-            st.session_state.ano_auto_hoje = False
             st.session_state.ano_offset_leitura += 1
             st.rerun()
