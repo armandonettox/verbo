@@ -379,13 +379,14 @@ else:
     else:
         renderizar_livre(cor_fundo, cor_texto, cor_mutado, cor_destaque)
 
-with st.container(key="rodape_pagina"):
-    st.markdown(
-        f"""
-        <hr style="margin-top: 3rem; border-color: {cor_mutado}; width: 100vw; max-width: 100vw; margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%);">
-        <p style="text-align: center; color: {cor_mutado}; font-size: 0.85rem;">
-            Feito por armandonettox &middot; texto: Biblia Catolica Ave Maria
-        </p>
-        """,
-        unsafe_allow_html=True,
-    )
+if pagina == "Busca Semantica":
+    with st.container(key="rodape_pagina"):
+        st.markdown(
+            f"""
+            <hr style="margin-top: 3rem; border-color: {cor_mutado}; width: 100vw; max-width: 100vw; margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%);">
+            <p style="text-align: center; color: {cor_mutado}; font-size: 0.85rem;">
+                Feito por armandonettox &middot; texto: Biblia Catolica Ave Maria
+            </p>
+            """,
+            unsafe_allow_html=True,
+        )
