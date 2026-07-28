@@ -122,6 +122,8 @@ def _renderizar_busca_semantica(capitulos_leitura):
         for i, turno in enumerate(st.session_state.historico_chat):
             _renderizar_mensagem_chat(turno["role"], turno["content"], turno["quando"], i)
 
+        st.markdown('<div class="espaco_chat_fixo"></div>', unsafe_allow_html=True)
+
         with st.container(key="chat_conversa"):
             pergunta_seguimento = st.chat_input(
                 "Faca uma pergunta de acompanhamento...",
@@ -180,6 +182,22 @@ st.markdown(
     .st-key-logo_center [data-testid="stElementToolbar"] {{ display: none; }}
     [data-testid="stMain"] {{ padding-top: 0 !important; }}
     .espaco_rodape {{ height: 6rem; }}
+    .espaco_chat_fixo {{ height: 5rem; }}
+    .st-key-chat_conversa {{
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 999;
+        background-color: {cor_fundo};
+        padding: 0.75rem 1.5rem;
+        box-sizing: border-box;
+        border-top: 1px solid {cor_mutado};
+    }}
+    .st-key-chat_conversa [data-testid="stChatInput"] {{
+        max-width: 900px;
+        margin: 0 auto;
+    }}
     [data-testid="stAppViewContainer"] {{ padding-top: 0 !important; }}
     .block-container {{
         padding-top: 5.5rem !important;
@@ -676,22 +694,24 @@ with st.container(key="conteudo_pagina"):
     else:
         _renderizar_busca_semantica(capitulos_leitura)
 
-    st.markdown('<div class="espaco_rodape"></div>', unsafe_allow_html=True)
+    if not ultima_busca:
+        st.markdown('<div class="espaco_rodape"></div>', unsafe_allow_html=True)
 
-with st.container(key="rodape_pagina"):
-    st.markdown(
-        f"""
-        <style>
-        [data-testid="stMarkdownContainer"] a.rodape-link {{ color: {cor_destaque} !important; text-decoration: none !important; }}
-        [data-testid="stMarkdownContainer"] a.rodape-link:hover {{ text-decoration: underline !important; }}
-        </style>
-        <p style="text-align: center; color: {cor_mutado}; font-size: 0.85rem; margin-bottom: 0.25rem;">
-            Feito por <a class="rodape-link" href="https://armandonetto.com/" target="_blank">Armando Netto</a>
-            &middot; Fonte: <a class="rodape-link" href="https://github.com/fidalgobr/bibliaAveMariaJSON" target="_blank">Biblia Catolica Ave Maria</a>
-        </p>
-        <p style="text-align: center; color: {cor_mutado}; font-size: 0.75rem;">
-            Codigo sob licenca <a class="rodape-link" href="https://github.com/armandonettox/verbo/blob/main/LICENSE" target="_blank">PolyForm Noncommercial 1.0.0</a>
-        </p>
-        """,
-        unsafe_allow_html=True,
-    )
+if not ultima_busca:
+    with st.container(key="rodape_pagina"):
+        st.markdown(
+            f"""
+            <style>
+            [data-testid="stMarkdownContainer"] a.rodape-link {{ color: {cor_destaque} !important; text-decoration: none !important; }}
+            [data-testid="stMarkdownContainer"] a.rodape-link:hover {{ text-decoration: underline !important; }}
+            </style>
+            <p style="text-align: center; color: {cor_mutado}; font-size: 0.85rem; margin-bottom: 0.25rem;">
+                Feito por <a class="rodape-link" href="https://armandonetto.com/" target="_blank">Armando Netto</a>
+                &middot; Fonte: <a class="rodape-link" href="https://github.com/fidalgobr/bibliaAveMariaJSON" target="_blank">Biblia Catolica Ave Maria</a>
+            </p>
+            <p style="text-align: center; color: {cor_mutado}; font-size: 0.75rem;">
+                Codigo sob licenca <a class="rodape-link" href="https://github.com/armandonettox/verbo/blob/main/LICENSE" target="_blank">PolyForm Noncommercial 1.0.0</a>
+            </p>
+            """,
+            unsafe_allow_html=True,
+        )
