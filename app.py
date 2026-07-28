@@ -61,6 +61,7 @@ st.markdown(
         width: 380px !important;
         min-width: 380px !important;
         max-width: 380px !important;
+        border-right: 1px solid {cor_mutado};
     }}
     [data-testid="stSidebar"] div[style*="cursor: col-resize"] {{
         display: none !important;
