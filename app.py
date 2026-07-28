@@ -327,9 +327,9 @@ components.html(
 )
 
 st.markdown('<div class="bloco-central">', unsafe_allow_html=True)
-st.markdown("# Explore as Escrituras")
+st.markdown("# Explore a Biblia")
 st.markdown(
-    "*Pesquise e descubra passagens biblicas com compreensao semantica "
+    "*Pergunte e descubra passagens biblicas com compreensao semantica "
     "e insights contextuais.*"
 )
 st.markdown("</div>", unsafe_allow_html=True)
