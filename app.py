@@ -76,7 +76,7 @@ def _renderizar_busca_semantica(capitulos_leitura):
         st.session_state.busca_pendente = False
         st.session_state.ultima_busca = {"resposta": resposta, "versiculos": versiculos}
         st.session_state.versiculos_visiveis = QUANTIDADE_VERSICULOS_POR_PAGINA
-        st.rerun(scope="fragment")
+        st.rerun()
     elif st.session_state.busca_pendente:
         st.session_state.busca_pendente = False
 
@@ -646,10 +646,34 @@ components.html(
 if "livro_selecionado" not in st.session_state:
     st.session_state.livro_selecionado = None
 
+ultima_busca = st.session_state.get("ultima_busca")
+
+
+def _iniciar_nova_busca():
+    st.session_state.ultima_busca = None
+    st.session_state.historico_chat = []
+    st.session_state.versiculos_visiveis = QUANTIDADE_VERSICULOS_POR_PAGINA
+    st.session_state.capitulo_aberto = None
+    st.session_state.livro_selecionado = None
+
+
 with st.sidebar:
-    with st.container(border=True, key="sb_livros"):
-        st.caption("ESCOLHA O LIVRO")
-        _renderizar_lista_livros(listar_livros(capitulos_leitura), prefixo_key="painel_livro")
+    if ultima_busca:
+        with st.container(border=True, key="sb_fontes"):
+            st.caption("VERSICULOS ENCONTRADOS")
+            if st.button("Nova busca", icon=":material/refresh:", use_container_width=True, key="btn_nova_busca"):
+                _iniciar_nova_busca()
+                st.rerun()
+            for i, v in enumerate(ultima_busca["versiculos"]):
+                if st.button(v["referencia"], key=f"fonte_{i}", use_container_width=True):
+                    idx_capitulo = _localizar_capitulo(capitulos_leitura, v["referencia"])
+                    if idx_capitulo is not None:
+                        st.session_state.capitulo_aberto = idx_capitulo
+                        st.rerun()
+    else:
+        with st.container(border=True, key="sb_livros"):
+            st.caption("ESCOLHA O LIVRO")
+            _renderizar_lista_livros(listar_livros(capitulos_leitura), prefixo_key="painel_livro")
 
 with st.container(key="conteudo_pagina"):
     col_centro, col_direita = st.columns([2.2, 1])
@@ -701,7 +725,13 @@ with st.container(key="conteudo_pagina"):
     with col_direita:
         with st.container(border=True, key="painel_direito"):
             livro_selecionado = st.session_state.livro_selecionado
-            if livro_selecionado:
+            if ultima_busca:
+                st.caption("CONTINUE A CONVERSA")
+                st.markdown(
+                    "Depois da resposta, faca perguntas de acompanhamento "
+                    "sobre os mesmos versiculos encontrados."
+                )
+            elif livro_selecionado:
                 if st.button("Voltar aos livros", icon=":material/arrow_back:", key="btn_voltar_livros"):
                     st.session_state.livro_selecionado = None
                     st.rerun()
