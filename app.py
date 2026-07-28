@@ -129,8 +129,8 @@ st.markdown(
         font-size: 0.85rem !important;
     }}
     .st-key-busca_botao_carregando span[role="img"] {{
-        display: inline-block;
-        animation: girar 0.9s linear infinite;
+        display: inline-block !important;
+        animation: girar 0.9s linear infinite !important;
     }}
     @keyframes girar {{
         from {{ transform: rotate(0deg); }}
