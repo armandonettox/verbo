@@ -231,9 +231,9 @@ st.markdown(
     }}
 
     [class*="st-key-versiculo_btn_ver_"] {{
-        display: flex;
-        justify-content: flex-end;
-        margin-right: -0.7rem;
+        display: flex !important;
+        justify-content: flex-end !important;
+        margin-right: -1.2rem !important;
     }}
     [class*="st-key-versiculo_btn_ver_"] button {{
         white-space: nowrap !important;
