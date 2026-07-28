@@ -587,6 +587,10 @@ components.html(
             }, 40);
         }
 
+        function temConteudoRolavel(container) {
+            return container.scrollHeight > container.clientHeight + 4;
+        }
+
         function garantirBotao() {
             var antigos = doc.querySelectorAll('#btn-rolar-automatico');
             for (var i = 0; i < antigos.length; i++) {
@@ -610,13 +614,24 @@ components.html(
             btn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.25)';
             btn.style.pointerEvents = 'auto';
             btn.textContent = estado.rolando ? 'Parar' : 'Rolar';
-            btn.style.display = mostrar ? 'block' : 'none';
             btn.onclick = function() { alternarRolagem(btn); };
             doc.body.appendChild(btn);
 
-            if (!mostrar) {
-                pararRolagem(btn);
+            var container = obterContainerRolagem();
+
+            function atualizarVisibilidade() {
+                var visivel = mostrar && temConteudoRolavel(container);
+                btn.style.display = visivel ? 'block' : 'none';
+                if (!visivel) {
+                    pararRolagem(btn);
+                }
             }
+
+            atualizarVisibilidade();
+            win.addEventListener('resize', atualizarVisibilidade);
+
+            var observador = new MutationObserver(atualizarVisibilidade);
+            observador.observe(container, {childList: true, subtree: true, characterData: true});
         }
 
         garantirBotao();
