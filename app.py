@@ -144,7 +144,7 @@ def _renderizar_busca_semantica(capitulos_leitura):
                 st.markdown(
                     f"**{v['referencia']}**"
                     f"<style>.st-key-versiculo_btn_ver_{i} button::before "
-                    f'{{ content: "{v.get("similaridade", 0)}% similar"; }}</style>',
+                    f'{{ content: "{v.get("similaridade", 0):.2f}% similar"; }}</style>',
                     unsafe_allow_html=True,
                 )
                 if st.button(

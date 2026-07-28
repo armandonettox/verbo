@@ -42,7 +42,7 @@ def buscar_versiculos(pergunta: str) -> list[dict]:
         versiculos.append({
             "texto": texto,
             "referencia": meta["referencia"],
-            "similaridade": round(similaridade),
+            "similaridade": round(similaridade, 2),
         })
 
     return versiculos
