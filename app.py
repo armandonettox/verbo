@@ -219,6 +219,16 @@ st.markdown(
         border-color: {cor_destaque};
     }}
 
+    [class*="st-key-versiculo_btn_ver_"] button {{
+        white-space: nowrap !important;
+        padding-left: 0.4rem !important;
+        padding-right: 0.4rem !important;
+    }}
+    [class*="st-key-versiculo_btn_ver_"] button p {{
+        white-space: nowrap !important;
+        font-size: 0.8rem !important;
+    }}
+
     .bloco-central {{ text-align: center; margin-bottom: 1.5rem; }}
     .bloco-central h1 {{ font-size: 2.75rem; margin-bottom: 0.5rem; }}
     .bloco-central p {{ color: {cor_mutado} !important; font-style: italic; font-size: 1.05rem; }}
@@ -578,12 +588,12 @@ elif pagina == "Busca Semantica":
 
         for i, v in enumerate(ultima_busca["versiculos"]):
             with st.container(border=True, key=f"versiculo_card_{i}"):
-                col_referencia, col_ver = st.columns([5, 1])
+                col_referencia, col_ver = st.columns([4, 2])
                 with col_referencia:
                     st.markdown(f"**{v['referencia']}**")
                 with col_ver:
                     if st.button(
-                        "Ver capitulo",
+                        "Ver versiculo",
                         icon=":material/open_in_new:",
                         use_container_width=True,
                         key=f"versiculo_btn_ver_{i}",
