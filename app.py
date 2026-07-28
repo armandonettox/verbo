@@ -428,29 +428,32 @@ components.html(
         }
 
         function garantirBotao() {
-            var btn = doc.getElementById('btn-rolar-automatico');
-            if (!btn) {
-                btn = doc.createElement('button');
-                btn.id = 'btn-rolar-automatico';
-                btn.type = 'button';
-                btn.style.position = 'fixed';
-                btn.style.bottom = '90px';
-                btn.style.right = '20px';
-                btn.style.zIndex = '2147483647';
-                btn.style.padding = '0.5rem 1rem';
-                btn.style.borderRadius = '999px';
-                btn.style.border = '1px solid COR_MUTADO';
-                btn.style.backgroundColor = 'COR_FUNDO';
-                btn.style.color = 'COR_TEXTO';
-                btn.style.cursor = 'pointer';
-                btn.style.fontSize = '0.85rem';
-                btn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.25)';
-                btn.style.pointerEvents = 'auto';
-                doc.body.appendChild(btn);
+            var antigos = doc.querySelectorAll('#btn-rolar-automatico');
+            for (var i = 0; i < antigos.length; i++) {
+                antigos[i].parentNode.removeChild(antigos[i]);
             }
+
+            var btn = doc.createElement('button');
+            btn.id = 'btn-rolar-automatico';
+            btn.type = 'button';
+            btn.style.position = 'fixed';
+            btn.style.bottom = '90px';
+            btn.style.right = '20px';
+            btn.style.zIndex = '2147483647';
+            btn.style.padding = '0.5rem 1rem';
+            btn.style.borderRadius = '999px';
+            btn.style.border = '1px solid COR_MUTADO';
+            btn.style.backgroundColor = 'COR_FUNDO';
+            btn.style.color = 'COR_TEXTO';
+            btn.style.cursor = 'pointer';
+            btn.style.fontSize = '0.85rem';
+            btn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.25)';
+            btn.style.pointerEvents = 'auto';
             btn.textContent = estado.rolando ? 'Parar' : 'Rolar';
-            btn.onclick = function() { alternarRolagem(btn); };
             btn.style.display = mostrar ? 'block' : 'none';
+            btn.onclick = function() { alternarRolagem(btn); };
+            doc.body.appendChild(btn);
+
             if (!mostrar) {
                 pararRolagem(btn);
             }
