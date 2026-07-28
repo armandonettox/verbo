@@ -446,8 +446,16 @@ if pagina == "Busca Semantica":
         st.markdown(
             f"""
             <hr style="margin-top: 3rem; border-color: {cor_mutado}; width: 100vw; max-width: 100vw; margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%);">
-            <p style="text-align: center; color: {cor_mutado}; font-size: 0.85rem;">
-                Feito por armandonettox &middot; texto: Biblia Catolica Ave Maria
+            <style>
+            [data-testid="stMarkdownContainer"] a.rodape-link {{ color: {cor_destaque} !important; text-decoration: none !important; }}
+            [data-testid="stMarkdownContainer"] a.rodape-link:hover {{ text-decoration: underline !important; }}
+            </style>
+            <p style="text-align: center; color: {cor_mutado}; font-size: 0.85rem; margin-bottom: 0.25rem;">
+                Feito por <a class="rodape-link" href="https://armandonetto.com/" target="_blank">Armando Netto</a>
+                &middot; Fonte: <a class="rodape-link" href="https://github.com/fidalgobr/bibliaAveMariaJSON" target="_blank">Biblia Catolica Ave Maria</a>
+            </p>
+            <p style="text-align: center; color: {cor_mutado}; font-size: 0.75rem;">
+                Codigo sob licenca <a class="rodape-link" href="https://github.com/armandonettox/verbo/blob/main/LICENSE" target="_blank">PolyForm Noncommercial 1.0.0</a>
             </p>
             """,
             unsafe_allow_html=True,
