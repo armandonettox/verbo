@@ -295,9 +295,9 @@ components.html(
                 btn.id = 'btn-rolar-automatico';
                 btn.type = 'button';
                 btn.style.position = 'fixed';
-                btn.style.bottom = '90px';
-                btn.style.right = '20px';
-                btn.style.zIndex = '999999';
+                btn.style.bottom = '20px';
+                btn.style.left = '20px';
+                btn.style.zIndex = '2147483647';
                 btn.style.padding = '0.5rem 1rem';
                 btn.style.borderRadius = '999px';
                 btn.style.border = '1px solid COR_MUTADO';
@@ -306,6 +306,7 @@ components.html(
                 btn.style.cursor = 'pointer';
                 btn.style.fontSize = '0.85rem';
                 btn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.25)';
+                btn.style.pointerEvents = 'auto';
                 doc.body.appendChild(btn);
             }
             btn.textContent = estado.rolando ? 'Parar' : 'Rolar';
