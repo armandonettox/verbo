@@ -230,10 +230,12 @@ st.markdown(
         border-color: {cor_destaque};
     }}
 
+    [class*="st-key-versiculo_card_"] {{
+        padding-right: 0.6rem !important;
+    }}
     [class*="st-key-versiculo_btn_ver_"] {{
         display: flex !important;
         justify-content: flex-end !important;
-        margin-right: -1.2rem !important;
     }}
     [class*="st-key-versiculo_btn_ver_"] button {{
         white-space: nowrap !important;
