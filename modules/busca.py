@@ -2,7 +2,7 @@ import chromadb
 from openai import OpenAI
 from config import (
     NVIDIA_API_KEY, CHROMA_DB_PATH, COLLECTION_NAME,
-    EMBEDDING_MODEL, TOP_K
+    EMBEDDING_MODEL, TOP_K, SIMILARIDADE_MINIMA
 )
 
 _client = None
@@ -39,6 +39,10 @@ def buscar_versiculos(pergunta: str) -> list[dict]:
         # colecao usa distancia L2 sobre embeddings normalizados, entao
         # equivale a similaridade de cosseno: cos = 1 - distancia/2
         similaridade = max(0.0, min(1.0, 1 - distancia / 2)) * 100
+        # resultados vem ordenados por distancia crescente, entao o
+        # primeiro abaixo do limiar garante que os seguintes tambem estao
+        if similaridade < SIMILARIDADE_MINIMA:
+            break
         versiculos.append({
             "texto": texto,
             "referencia": meta["referencia"],

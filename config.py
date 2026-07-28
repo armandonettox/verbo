@@ -23,3 +23,4 @@ CHAT_MODEL = "meta/llama-3.1-8b-instruct"
 
 # Parametros de busca
 TOP_K = 8
+SIMILARIDADE_MINIMA = 40
