@@ -231,11 +231,16 @@ st.markdown(
     }}
 
     [class*="st-key-versiculo_card_"] {{
-        padding-right: 0.6rem !important;
+        position: relative !important;
     }}
     [class*="st-key-versiculo_btn_ver_"] {{
-        display: flex !important;
-        justify-content: flex-end !important;
+        position: absolute !important;
+        top: 0.7rem !important;
+        right: 0.7rem !important;
+        left: auto !important;
+        width: auto !important;
+        margin: 0 !important;
+        z-index: 2;
     }}
     [class*="st-key-versiculo_btn_ver_"] button {{
         white-space: nowrap !important;
@@ -610,19 +615,16 @@ elif pagina == "Busca Semantica":
 
         for i, v in enumerate(ultima_busca["versiculos"]):
             with st.container(border=True, key=f"versiculo_card_{i}"):
-                col_referencia, col_ver = st.columns([4, 2])
-                with col_referencia:
-                    st.markdown(f"**{v['referencia']}**")
-                with col_ver:
-                    if st.button(
-                        "Ver versiculo",
-                        icon=":material/open_in_new:",
-                        key=f"versiculo_btn_ver_{i}",
-                    ):
-                        idx_capitulo = _localizar_capitulo(capitulos_leitura, v["referencia"])
-                        if idx_capitulo is not None:
-                            st.session_state.capitulo_aberto = idx_capitulo
-                            st.rerun()
+                st.markdown(f"**{v['referencia']}**")
+                if st.button(
+                    "Ver versiculo",
+                    icon=":material/open_in_new:",
+                    key=f"versiculo_btn_ver_{i}",
+                ):
+                    idx_capitulo = _localizar_capitulo(capitulos_leitura, v["referencia"])
+                    if idx_capitulo is not None:
+                        st.session_state.capitulo_aberto = idx_capitulo
+                        st.rerun()
                 st.write(_resumir_texto(v["texto"]))
 
 else:
