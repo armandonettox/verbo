@@ -34,14 +34,7 @@ def _localizar_capitulo(capitulos, referencia):
 
 @st.fragment
 def _renderizar_busca_semantica(capitulos_leitura):
-    st.markdown(
-        '<div class="bloco-central">'
-        "<h1>Explore a Biblia</h1>"
-        "<p><em>Pergunte e descubra passagens biblicas com compreensao "
-        "semantica e insights contextuais.</em></p>"
-        "</div>",
-        unsafe_allow_html=True,
-    )
+    ultima_busca = st.session_state.get("ultima_busca")
 
     if "busca_pendente" not in st.session_state:
         st.session_state.busca_pendente = False
@@ -49,77 +42,87 @@ def _renderizar_busca_semantica(capitulos_leitura):
     def _marcar_busca_pendente():
         st.session_state.busca_pendente = True
 
-    with st.form("busca_form"):
-        col_campo, col_botao = st.columns([5, 1])
-        with col_campo:
-            pergunta = st.text_input(
-                "Qual e a sua pergunta?",
-                label_visibility="collapsed",
-                placeholder="O que Jesus disse sobre o amor ao proximo?",
-                key="busca_pergunta",
-            )
-        with col_botao:
-            esta_buscando = st.session_state.busca_pendente
-            st.form_submit_button(
-                "Buscando" if esta_buscando else "Buscar",
-                icon=":material/progress_activity:" if esta_buscando else ":material/search:",
-                use_container_width=True,
-                disabled=esta_buscando,
-                key="busca_botao",
-                on_click=_marcar_busca_pendente,
-            )
+    if not ultima_busca:
+        st.markdown(
+            '<div class="bloco-central">'
+            "<h1>Explore a Biblia</h1>"
+            "<p><em>Pergunte e descubra passagens biblicas com compreensao "
+            "semantica e insights contextuais.</em></p>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
 
-    if st.session_state.busca_pendente and pergunta:
-        with st.spinner("Buscando versiculos..."):
-            versiculos = buscar_versiculos(pergunta)
+        with st.form("busca_form"):
+            col_campo, col_botao = st.columns([5, 1])
+            with col_campo:
+                pergunta = st.text_input(
+                    "Qual e a sua pergunta?",
+                    label_visibility="collapsed",
+                    placeholder="O que Jesus disse sobre o amor ao proximo?",
+                    key="busca_pergunta",
+                )
+            with col_botao:
+                esta_buscando = st.session_state.busca_pendente
+                st.form_submit_button(
+                    "Buscando" if esta_buscando else "Buscar",
+                    icon=":material/progress_activity:" if esta_buscando else ":material/search:",
+                    use_container_width=True,
+                    disabled=esta_buscando,
+                    key="busca_botao",
+                    on_click=_marcar_busca_pendente,
+                )
 
-        resposta = gerar_resposta(pergunta, versiculos)
+        if st.session_state.busca_pendente and pergunta:
+            with st.spinner("Buscando versiculos..."):
+                versiculos = buscar_versiculos(pergunta)
 
-        st.session_state.busca_pendente = False
-        st.session_state.ultima_busca = {"pergunta": pergunta, "resposta": resposta, "versiculos": versiculos}
-        st.session_state.versiculos_visiveis = QUANTIDADE_VERSICULOS_POR_PAGINA
-        st.session_state.historico_chat = []
-        st.rerun()
-    elif st.session_state.busca_pendente:
-        st.session_state.busca_pendente = False
+            resposta = gerar_resposta(pergunta, versiculos)
 
-    ultima_busca = st.session_state.get("ultima_busca")
-    if ultima_busca:
-        with st.container(border=True, key="resposta_card"):
-            st.write(ultima_busca["resposta"])
-
-        if "historico_chat" not in st.session_state:
+            st.session_state.busca_pendente = False
+            st.session_state.ultima_busca = {"pergunta": pergunta, "resposta": resposta, "versiculos": versiculos}
+            st.session_state.versiculos_visiveis = QUANTIDADE_VERSICULOS_POR_PAGINA
             st.session_state.historico_chat = []
+            st.rerun()
+        elif st.session_state.busca_pendente:
+            st.session_state.busca_pendente = False
 
-        with st.container(border=True, key="chat_conversa"):
-            for turno in st.session_state.historico_chat:
-                with st.chat_message(turno["role"]):
-                    st.write(turno["content"])
-
-            pergunta_seguimento = st.chat_input(
-                "Faca uma pergunta de acompanhamento...",
-                key="chat_input_seguimento",
-            )
-            if pergunta_seguimento:
-                with st.spinner("Pensando..."):
-                    resposta_seguimento = continuar_conversa(
-                        ultima_busca["pergunta"],
-                        ultima_busca["resposta"],
-                        ultima_busca["versiculos"],
-                        st.session_state.historico_chat,
-                        pergunta_seguimento,
-                    )
-                st.session_state.historico_chat.append({"role": "user", "content": pergunta_seguimento})
-                st.session_state.historico_chat.append({"role": "assistant", "content": resposta_seguimento})
-                st.rerun(scope="fragment")
-
-    else:
         data_hoje = st.session_state.get("data_local_usuario", date.today())
         versiculo_dia = obter_versiculo_do_dia(data_hoje)
         with st.container(border=True, key="card_leitura_dia"):
             st.caption("LEITURA DO DIA")
             st.markdown(f"**{versiculo_dia['referencia']}**")
             st.write(versiculo_dia["texto"])
+
+    else:
+        with st.chat_message("user"):
+            st.write(ultima_busca["pergunta"])
+        with st.chat_message("assistant"):
+            st.write(ultima_busca["resposta"])
+
+        if "historico_chat" not in st.session_state:
+            st.session_state.historico_chat = []
+
+        for turno in st.session_state.historico_chat:
+            with st.chat_message(turno["role"]):
+                st.write(turno["content"])
+
+        with st.container(key="chat_conversa"):
+            pergunta_seguimento = st.chat_input(
+                "Faca uma pergunta de acompanhamento...",
+                key="chat_input_seguimento",
+            )
+        if pergunta_seguimento:
+            with st.spinner("Pensando..."):
+                resposta_seguimento = continuar_conversa(
+                    ultima_busca["pergunta"],
+                    ultima_busca["resposta"],
+                    ultima_busca["versiculos"],
+                    st.session_state.historico_chat,
+                    pergunta_seguimento,
+                )
+            st.session_state.historico_chat.append({"role": "user", "content": pergunta_seguimento})
+            st.session_state.historico_chat.append({"role": "assistant", "content": resposta_seguimento})
+            st.rerun(scope="fragment")
 
 st.set_page_config(page_title="Verbo", page_icon="assets/favicon.png", layout="wide")
 
