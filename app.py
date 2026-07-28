@@ -119,6 +119,15 @@ st.markdown(
     }}
     .st-key-botao_tema span[role="img"] {{ font-size: 22px !important; }}
 
+    .st-key-busca_botao_carregando span[role="img"] {{
+        display: inline-block;
+        animation: girar 0.9s linear infinite;
+    }}
+    @keyframes girar {{
+        from {{ transform: rotate(0deg); }}
+        to {{ transform: rotate(360deg); }}
+    }}
+
     .bloco-central {{ text-align: center; margin-bottom: 1.5rem; }}
     .bloco-central h1 {{ font-size: 2.75rem; margin-bottom: 0.5rem; }}
     .bloco-central p {{ color: {cor_mutado} !important; font-style: italic; font-size: 1.05rem; }}
@@ -339,6 +348,10 @@ if pagina == "Busca Semantica":
         unsafe_allow_html=True,
     )
 
+    if "busca_pendente" not in st.session_state:
+        st.session_state.busca_pendente = None
+
+    enviar = False
     with st.form("busca_form"):
         col_campo, col_botao = st.columns([5, 1])
         with col_campo:
@@ -348,20 +361,44 @@ if pagina == "Busca Semantica":
                 placeholder="O que Jesus disse sobre o amor ao proximo?",
             )
         with col_botao:
-            enviar = st.form_submit_button("Buscar", use_container_width=True)
+            if st.session_state.busca_pendente:
+                st.form_submit_button(
+                    "Buscando...",
+                    icon=":material/progress_activity:",
+                    use_container_width=True,
+                    disabled=True,
+                    key="busca_botao_carregando",
+                )
+            else:
+                enviar = st.form_submit_button(
+                    "Buscar",
+                    icon=":material/search:",
+                    use_container_width=True,
+                )
 
     if enviar and pergunta:
+        st.session_state.busca_pendente = pergunta
+        st.rerun()
+
+    if st.session_state.busca_pendente:
+        pergunta_busca = st.session_state.busca_pendente
         with st.spinner("Buscando versiculos..."):
-            versiculos = buscar_versiculos(pergunta)
+            versiculos = buscar_versiculos(pergunta_busca)
 
         with st.spinner("Gerando resposta..."):
-            resposta = gerar_resposta(pergunta, versiculos)
+            resposta = gerar_resposta(pergunta_busca, versiculos)
 
+        st.session_state.busca_pendente = None
+        st.session_state.ultima_busca = {"resposta": resposta, "versiculos": versiculos}
+        st.rerun()
+
+    ultima_busca = st.session_state.get("ultima_busca")
+    if ultima_busca:
         st.markdown("### Resposta")
-        st.write(resposta)
+        st.write(ultima_busca["resposta"])
 
         st.markdown("### Versiculos consultados")
-        for v in versiculos:
+        for v in ultima_busca["versiculos"]:
             st.markdown(f"**{v['referencia']}** — {v['texto']}")
 
 else:
