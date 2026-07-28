@@ -329,15 +329,16 @@ components.html(
     height=0,
 )
 
-st.markdown('<div class="bloco-central">', unsafe_allow_html=True)
-st.markdown("# Explore a Biblia")
-st.markdown(
-    "*Pergunte e descubra passagens biblicas com compreensao semantica "
-    "e insights contextuais.*"
-)
-st.markdown("</div>", unsafe_allow_html=True)
-
 if pagina == "Busca Semantica":
+    st.markdown(
+        '<div class="bloco-central">'
+        "<h1>Explore a Biblia</h1>"
+        "<p><em>Pergunte e descubra passagens biblicas com compreensao "
+        "semantica e insights contextuais.</em></p>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
     with st.form("busca_form"):
         col_campo, col_botao = st.columns([5, 1])
         with col_campo:
