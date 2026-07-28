@@ -772,7 +772,7 @@ with st.container(key="conteudo_pagina"):
                     st.session_state.livro_selecionado = None
                     st.rerun()
                 st.markdown(f"**{livro_selecionado['livro']}**")
-                _renderizar_grade_capitulos(livro_selecionado, capitulos_leitura, prefixo_key="painel_capitulo")
+                _renderizar_grade_capitulos(livro_selecionado, prefixo_key="painel_capitulo")
             else:
                 st.caption("COMO NAVEGAR")
                 st.markdown(
