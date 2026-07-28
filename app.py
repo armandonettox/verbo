@@ -295,8 +295,8 @@ components.html(
                 btn.id = 'btn-rolar-automatico';
                 btn.type = 'button';
                 btn.style.position = 'fixed';
-                btn.style.bottom = '20px';
-                btn.style.left = '20px';
+                btn.style.bottom = '90px';
+                btn.style.right = '20px';
                 btn.style.zIndex = '2147483647';
                 btn.style.padding = '0.5rem 1rem';
                 btn.style.borderRadius = '999px';
