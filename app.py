@@ -138,7 +138,9 @@ st.markdown(
         white-space: nowrap !important;
         font-size: 0.85rem !important;
     }}
-    .st-key-busca_botao_carregando span[role="img"] {{
+    .st-key-busca_botao_carregando span[role="img"],
+    .st-key-busca_botao_carregando [data-testid="stIconMaterial"],
+    .st-key-busca_botao_carregando svg {{
         display: inline-block !important;
         animation: girar 0.9s linear infinite !important;
     }}
@@ -377,9 +379,11 @@ if pagina == "Busca Semantica":
     )
 
     if "busca_pendente" not in st.session_state:
-        st.session_state.busca_pendente = None
+        st.session_state.busca_pendente = False
 
-    enviar = False
+    def _marcar_busca_pendente():
+        st.session_state.busca_pendente = True
+
     with st.form("busca_form"):
         col_campo, col_botao = st.columns([5, 1])
         with col_campo:
@@ -398,27 +402,24 @@ if pagina == "Busca Semantica":
                     key="busca_botao_carregando",
                 )
             else:
-                enviar = st.form_submit_button(
+                st.form_submit_button(
                     "Buscar",
                     icon=":material/search:",
                     use_container_width=True,
+                    on_click=_marcar_busca_pendente,
                 )
 
-    if enviar and pergunta:
-        st.session_state.busca_pendente = pergunta
-        st.rerun()
-
-    if st.session_state.busca_pendente:
-        pergunta_busca = st.session_state.busca_pendente
+    if st.session_state.busca_pendente and pergunta:
         with st.spinner("Buscando versiculos..."):
-            versiculos = buscar_versiculos(pergunta_busca)
+            versiculos = buscar_versiculos(pergunta)
 
-        with st.spinner("Gerando resposta..."):
-            resposta = gerar_resposta(pergunta_busca, versiculos)
+        resposta = gerar_resposta(pergunta, versiculos)
 
-        st.session_state.busca_pendente = None
+        st.session_state.busca_pendente = False
         st.session_state.ultima_busca = {"resposta": resposta, "versiculos": versiculos}
         st.rerun()
+    elif st.session_state.busca_pendente:
+        st.session_state.busca_pendente = False
 
     ultima_busca = st.session_state.get("ultima_busca")
     if ultima_busca:
