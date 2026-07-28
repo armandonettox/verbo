@@ -604,6 +604,7 @@ else:
                 "Plano",
                 ["Versiculo do Dia", "Biblia em 1 Ano", "Leitura Livre"],
                 key="plano_selecionado",
+                label_visibility="collapsed",
             )
 
     if plano_selecionado == "Versiculo do Dia":
