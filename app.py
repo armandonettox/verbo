@@ -417,12 +417,14 @@ if pagina == "Busca Semantica":
 
     ultima_busca = st.session_state.get("ultima_busca")
     if ultima_busca:
+        st.markdown("### Versiculos consultados")
+        for i, v in enumerate(ultima_busca["versiculos"]):
+            with st.container(border=True, key=f"versiculo_card_{i}"):
+                st.markdown(f"**{v['referencia']}**")
+                st.write(v["texto"])
+
         st.markdown("### Resposta")
         st.write(ultima_busca["resposta"])
-
-        st.markdown("### Versiculos consultados")
-        for v in ultima_busca["versiculos"]:
-            st.markdown(f"**{v['referencia']}** — {v['texto']}")
 
 else:
     with st.sidebar:
