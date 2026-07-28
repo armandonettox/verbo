@@ -17,12 +17,11 @@ def listar_livros(capitulos):
 
 
 def _renderizar_lista_livros(livros, prefixo_key):
-    colunas = st.columns(3)
+    colunas = st.columns(4)
     for posicao, livro in enumerate(livros):
-        coluna = colunas[posicao % 3]
+        coluna = colunas[posicao % 4]
         with coluna:
-            rotulo = f"{livro['livro']} ({livro['total_capitulos']} capitulos)"
-            if st.button(rotulo, key=f"{prefixo_key}_{livro['indice_inicial']}", use_container_width=True):
+            if st.button(livro["livro"], key=f"{prefixo_key}_{livro['indice_inicial']}", use_container_width=True):
                 st.session_state.livro_selecionado = livro
                 st.rerun()
 

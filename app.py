@@ -298,6 +298,24 @@ st.markdown(
     [data-testid="stSidebar"] .stWidgetLabel p {{ font-size: 0.76rem !important; }}
     [data-testid="stSidebar"] .stProgress {{ margin: 0 !important; }}
     [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] {{ gap: 0.4rem !important; }}
+    .st-key-sb_livros [data-testid="stHorizontalBlock"],
+    .st-key-sb_fontes [data-testid="stHorizontalBlock"] {{
+        gap: 0.3rem !important;
+    }}
+    .st-key-sb_livros .stButton button,
+    .st-key-sb_fontes .stButton button {{
+        min-height: 1.3rem !important;
+        padding: 0.05rem 0.2rem !important;
+    }}
+    .st-key-sb_livros .stButton button p,
+    .st-key-sb_fontes .stButton button p {{
+        font-size: 0.68rem !important;
+        line-height: 1.15 !important;
+    }}
+    .st-key-sb_livros [data-testid="stVerticalBlock"],
+    .st-key-sb_fontes [data-testid="stVerticalBlock"] {{
+        gap: 0.3rem !important;
+    }}
     [data-testid="stSidebar"] [data-baseweb="input"],
     [data-testid="stSidebar"] [data-testid="stSelectbox"] [role="group"],
     [data-testid="stSidebar"] .stButton button {{
