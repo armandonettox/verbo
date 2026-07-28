@@ -573,7 +573,6 @@ elif pagina == "Busca Semantica":
             height=0,
         )
 
-        st.markdown("### Resposta")
         with st.container(border=True, key="resposta_card"):
             st.write(ultima_busca["resposta"])
 
