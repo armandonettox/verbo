@@ -22,5 +22,5 @@ EMBEDDING_MODEL = "nvidia/nv-embedqa-e5-v5"
 CHAT_MODEL = "meta/llama-3.1-8b-instruct"
 
 # Parametros de busca
-TOP_K = 8
+TOP_K = 40
 SIMILARIDADE_MINIMA = 40
