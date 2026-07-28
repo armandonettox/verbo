@@ -48,10 +48,11 @@ def renderizar(cor_fundo, cor_texto, cor_mutado, cor_destaque):
     with st.sidebar:
         with st.container(border=True, key="sb_versiculo_data"):
             st.date_input("Data", key="versiculo_data_selecionada", format="DD/MM/YYYY")
-            st.button(
-                "Hoje", use_container_width=True, key="versiculo_btn_hoje",
-                on_click=_voltar_para_hoje,
-            )
+            if st.session_state.versiculo_data_selecionada != data_hoje:
+                st.button(
+                    "Hoje", use_container_width=True, key="versiculo_btn_hoje",
+                    on_click=_voltar_para_hoje,
+                )
 
     data_selecionada = st.session_state.versiculo_data_selecionada
 
