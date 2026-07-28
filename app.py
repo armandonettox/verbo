@@ -4,10 +4,9 @@ import streamlit as st
 import streamlit.components.v1 as components
 from modules.busca import buscar_versiculos
 from modules.resposta import gerar_resposta
-from modules.leitura import carregar_capitulos
-from modules.plano_versiculo_dia import renderizar as renderizar_versiculo_dia
-from modules.plano_ano import renderizar as renderizar_ano
-from modules.plano_livre import renderizar as renderizar_livre
+from modules.leitura import carregar_capitulos, texto_para_audio
+from modules.plano_livre import listar_livros, _renderizar_lista_livros, _renderizar_grade_capitulos
+from modules.audio_widget import renderizar_audio
 from modules.fuso_horario import garantir_data_local
 
 TAMANHO_RESUMO_VERSICULO = 220
@@ -163,7 +162,7 @@ def _renderizar_busca_semantica(capitulos_leitura):
                 st.session_state.versiculos_visiveis += QUANTIDADE_VERSICULOS_POR_PAGINA
                 st.rerun(scope="fragment")
 
-st.set_page_config(page_title="Verbo", page_icon="assets/favicon.png", layout="centered")
+st.set_page_config(page_title="Verbo", page_icon="assets/favicon.png", layout="wide")
 
 garantir_data_local()
 
@@ -209,6 +208,11 @@ st.markdown(
     }}
     [data-testid="stLayoutWrapper"]:has(> .st-key-rodape_pagina) {{
         margin-top: auto;
+    }}
+    .st-key-conteudo_pagina {{
+        max-width: 900px;
+        margin: 0 auto;
+        width: 100%;
     }}
 
     [data-testid="stAppViewContainer"] {{ background-color: {cor_fundo}; }}
@@ -297,12 +301,12 @@ st.markdown(
     }}
     .st-key-botao_tema span[role="img"] {{ font-size: 22px !important; }}
 
-    .st-key-busca_botao button:disabled {{
+    .st-key-busca_botao button {{
         white-space: nowrap !important;
         padding-left: 0.4rem !important;
         padding-right: 0.4rem !important;
     }}
-    .st-key-busca_botao button:disabled p {{
+    .st-key-busca_botao button p {{
         white-space: nowrap !important;
         font-size: 0.85rem !important;
     }}
@@ -466,12 +470,14 @@ st.markdown(
         min-height: 0 !important;
         line-height: 0 !important;
     }}
-    [class*="st-key-sb_audio"] div[data-testid="stElementContainer"]:has(> iframe) {{
+    [class*="st-key-sb_audio"] div[data-testid="stElementContainer"]:has(> iframe),
+    [class*="st-key-audio_"] div[data-testid="stElementContainer"]:has(> iframe) {{
         height: 40px !important;
         min-height: 40px !important;
         line-height: normal !important;
     }}
-    [class*="st-key-sb_audio"] iframe {{ height: 40px !important; }}
+    [class*="st-key-sb_audio"] iframe,
+    [class*="st-key-audio_"] iframe {{ height: 40px !important; }}
     </style>
     """,
     unsafe_allow_html=True,
@@ -503,28 +509,14 @@ components.html(
 )
 
 with st.container(key="barra_menu"):
-    col_nav, col_logo, col_espaco, col_acoes = st.columns([1.8, 2, 0.2, 1.6])
-    with col_nav:
-        pagina = st.segmented_control(
-            "Navegacao",
-            ["Busca Semantica", "Plano de Leitura"],
-            default="Busca Semantica",
-            label_visibility="collapsed",
-            key="nav",
-            format_func=lambda opcao: (
-                ":material/search: Busca Semantica"
-                if opcao == "Busca Semantica"
-                else ":material/menu_book: Plano de Leitura"
-            ),
-        )
+    col_vazio, col_logo, col_espaco, col_acoes = st.columns([1.8, 2, 0.2, 1.6])
     with col_logo:
         with st.container(key="logo_center"):
             st.image("assets/logo.png", width=44)
     with col_acoes:
         col_sidebar, col_git, col_tema = st.columns([1, 1, 1], gap="small")
         with col_sidebar:
-            if pagina == "Plano de Leitura":
-                st.markdown('<div id="slot-sidebar-toggle"></div>', unsafe_allow_html=True)
+            st.markdown('<div id="slot-sidebar-toggle"></div>', unsafe_allow_html=True)
         with col_git:
             st.markdown(
                 '<div class="barra-topo">'
@@ -544,6 +536,12 @@ with st.container(key="barra_menu"):
             if st.button(icone_tema, key="botao_tema"):
                 st.session_state.tema_escuro = not st.session_state.tema_escuro
                 st.rerun()
+
+if "capitulo_aberto" not in st.session_state:
+    st.session_state.capitulo_aberto = None
+
+capitulos_leitura = carregar_capitulos()
+idx_aberto = st.session_state.capitulo_aberto
 
 components.html(
     """
@@ -638,87 +636,99 @@ components.html(
     })();
     </script>
     """
-    .replace("MOSTRAR_FLAG", "true" if pagina == "Plano de Leitura" else "false")
+    .replace("MOSTRAR_FLAG", "true" if idx_aberto is not None else "false")
     .replace("COR_MUTADO", cor_mutado)
     .replace("COR_FUNDO", cor_fundo)
     .replace("COR_TEXTO", cor_texto),
     height=0,
 )
 
-if pagina == "Busca Semantica":
-    if "capitulo_aberto" not in st.session_state:
-        st.session_state.capitulo_aberto = None
+if "livro_selecionado" not in st.session_state:
+    st.session_state.livro_selecionado = None
 
-    capitulos_leitura = carregar_capitulos()
-    idx_aberto = st.session_state.capitulo_aberto
+with st.sidebar:
+    with st.container(border=True, key="sb_livros"):
+        st.caption("ESCOLHA O LIVRO")
+        _renderizar_lista_livros(listar_livros(capitulos_leitura), prefixo_key="painel_livro")
 
-if pagina == "Busca Semantica" and idx_aberto is not None:
-    capitulo = capitulos_leitura[idx_aberto]
+with st.container(key="conteudo_pagina"):
+    col_centro, col_direita = st.columns([2.2, 1])
 
-    if st.button("Voltar para busca", icon=":material/arrow_back:", key="capitulo_btn_voltar"):
-        st.session_state.capitulo_aberto = None
-        st.rerun()
+    with col_centro:
+        if idx_aberto is not None:
+            capitulo = capitulos_leitura[idx_aberto]
 
-    st.markdown(f"### {capitulo['livro']} {capitulo['capitulo']}")
-    st.write(capitulo["texto"])
+            if st.button("Voltar para busca", icon=":material/arrow_back:", key="capitulo_btn_voltar"):
+                st.session_state.capitulo_aberto = None
+                st.rerun()
 
-    col_anterior, col_proximo = st.columns(2)
-    with col_anterior:
-        if st.button(
-            "Capitulo Anterior",
-            use_container_width=True,
-            key="capitulo_btn_anterior",
-            disabled=idx_aberto == 0,
-        ):
-            st.session_state.capitulo_aberto = idx_aberto - 1
-            st.rerun()
-    with col_proximo:
-        if st.button(
-            "Proximo Capitulo",
-            use_container_width=True,
-            key="capitulo_btn_proximo",
-            disabled=idx_aberto == len(capitulos_leitura) - 1,
-        ):
-            st.session_state.capitulo_aberto = idx_aberto + 1
-            st.rerun()
+            st.markdown(f"### {capitulo['livro']} {capitulo['capitulo']}")
+            st.write(capitulo["texto"])
 
-elif pagina == "Busca Semantica":
-    _renderizar_busca_semantica(capitulos_leitura)
-
-else:
-    with st.sidebar:
-        with st.container(border=True, key="sb_plano"):
-            st.caption("PLANO DE LEITURA")
-            plano_selecionado = st.selectbox(
-                "Plano",
-                ["Versiculo do Dia", "Biblia em 1 Ano", "Leitura Livre"],
-                key="plano_selecionado",
-                label_visibility="collapsed",
+            renderizar_audio(
+                texto_para_audio(capitulo),
+                key="audio_capitulo",
+                cor_fundo=cor_fundo,
+                cor_texto=cor_texto,
+                cor_mutado=cor_mutado,
+                cor_destaque=cor_destaque,
+                rotulo="Ouvir capitulo",
             )
 
-    if plano_selecionado == "Versiculo do Dia":
-        renderizar_versiculo_dia(cor_fundo, cor_texto, cor_mutado, cor_destaque)
-    elif plano_selecionado == "Biblia em 1 Ano":
-        renderizar_ano(cor_fundo, cor_texto, cor_mutado, cor_destaque)
-    else:
-        renderizar_livre(cor_fundo, cor_texto, cor_mutado, cor_destaque)
+            col_anterior, col_proximo = st.columns(2)
+            with col_anterior:
+                if st.button(
+                    "Capitulo Anterior",
+                    use_container_width=True,
+                    key="capitulo_btn_anterior",
+                    disabled=idx_aberto == 0,
+                ):
+                    st.session_state.capitulo_aberto = idx_aberto - 1
+                    st.rerun()
+            with col_proximo:
+                if st.button(
+                    "Proximo Capitulo",
+                    use_container_width=True,
+                    key="capitulo_btn_proximo",
+                    disabled=idx_aberto == len(capitulos_leitura) - 1,
+                ):
+                    st.session_state.capitulo_aberto = idx_aberto + 1
+                    st.rerun()
 
-if pagina == "Busca Semantica":
-    with st.container(key="rodape_pagina"):
-        st.markdown(
-            f"""
-            <hr style="margin-top: 3rem; border-color: {cor_mutado}; width: 100vw; max-width: 100vw; margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%);">
-            <style>
-            [data-testid="stMarkdownContainer"] a.rodape-link {{ color: {cor_destaque} !important; text-decoration: none !important; }}
-            [data-testid="stMarkdownContainer"] a.rodape-link:hover {{ text-decoration: underline !important; }}
-            </style>
-            <p style="text-align: center; color: {cor_mutado}; font-size: 0.85rem; margin-bottom: 0.25rem;">
-                Feito por <a class="rodape-link" href="https://armandonetto.com/" target="_blank">Armando Netto</a>
-                &middot; Fonte: <a class="rodape-link" href="https://github.com/fidalgobr/bibliaAveMariaJSON" target="_blank">Biblia Catolica Ave Maria</a>
-            </p>
-            <p style="text-align: center; color: {cor_mutado}; font-size: 0.75rem;">
-                Codigo sob licenca <a class="rodape-link" href="https://github.com/armandonettox/verbo/blob/main/LICENSE" target="_blank">PolyForm Noncommercial 1.0.0</a>
-            </p>
-            """,
-            unsafe_allow_html=True,
-        )
+        else:
+            _renderizar_busca_semantica(capitulos_leitura)
+
+    with col_direita:
+        with st.container(border=True, key="painel_direito"):
+            livro_selecionado = st.session_state.livro_selecionado
+            if livro_selecionado:
+                if st.button("Voltar aos livros", icon=":material/arrow_back:", key="btn_voltar_livros"):
+                    st.session_state.livro_selecionado = None
+                    st.rerun()
+                st.markdown(f"**{livro_selecionado['livro']}**")
+                _renderizar_grade_capitulos(livro_selecionado, capitulos_leitura, prefixo_key="painel_capitulo")
+            else:
+                st.caption("COMO NAVEGAR")
+                st.markdown(
+                    "Escolha um livro na lateral ou digite uma pergunta na busca "
+                    "para explorar a Biblia."
+                )
+
+with st.container(key="rodape_pagina"):
+    st.markdown(
+        f"""
+        <hr style="margin-top: 3rem; border-color: {cor_mutado}; width: 100vw; max-width: 100vw; margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%);">
+        <style>
+        [data-testid="stMarkdownContainer"] a.rodape-link {{ color: {cor_destaque} !important; text-decoration: none !important; }}
+        [data-testid="stMarkdownContainer"] a.rodape-link:hover {{ text-decoration: underline !important; }}
+        </style>
+        <p style="text-align: center; color: {cor_mutado}; font-size: 0.85rem; margin-bottom: 0.25rem;">
+            Feito por <a class="rodape-link" href="https://armandonetto.com/" target="_blank">Armando Netto</a>
+            &middot; Fonte: <a class="rodape-link" href="https://github.com/fidalgobr/bibliaAveMariaJSON" target="_blank">Biblia Catolica Ave Maria</a>
+        </p>
+        <p style="text-align: center; color: {cor_mutado}; font-size: 0.75rem;">
+            Codigo sob licenca <a class="rodape-link" href="https://github.com/armandonettox/verbo/blob/main/LICENSE" target="_blank">PolyForm Noncommercial 1.0.0</a>
+        </p>
+        """,
+        unsafe_allow_html=True,
+    )

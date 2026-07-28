@@ -35,8 +35,18 @@ def _renderizar_lista_livros(livros, prefixo_key):
         with coluna:
             rotulo = f"{livro['livro']} ({livro['total_capitulos']} capitulos)"
             if st.button(rotulo, key=f"{prefixo_key}_{livro['indice_inicial']}", use_container_width=True):
-                st.session_state.livre_indice = livro["indice_inicial"]
-                st.session_state.livre_sumario = False
+                st.session_state.livro_selecionado = livro
+                st.rerun()
+
+
+def _renderizar_grade_capitulos(livro_selecionado, capitulos, prefixo_key):
+    colunas = st.columns(5)
+    for numero in range(1, livro_selecionado["total_capitulos"] + 1):
+        indice_absoluto = livro_selecionado["indice_inicial"] + (numero - 1)
+        coluna = colunas[(numero - 1) % 5]
+        with coluna:
+            if st.button(str(numero), key=f"{prefixo_key}_{indice_absoluto}", use_container_width=True):
+                st.session_state.capitulo_aberto = indice_absoluto
                 st.rerun()
 
 

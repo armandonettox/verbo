@@ -36,6 +36,20 @@ def data_por_extenso(data):
     return f"{data.day} de {MESES[data.month - 1]} de {data.year}"
 
 
+def obter_versiculo_do_dia(data=None):
+    if data is None:
+        data = date.today()
+
+    versiculos = carregar_versiculos()
+    total = len(versiculos)
+    idx = (data - EPOCA).days % total
+    item = versiculos[idx]
+
+    referencia = f"{item['livro']} {item['capitulo']},{item['versiculo']}"
+
+    return {"referencia": referencia, "texto": item["texto"], "data": data}
+
+
 def renderizar(cor_fundo, cor_texto, cor_mutado, cor_destaque):
     data_hoje = st.session_state.get("data_local_usuario", date.today())
 
