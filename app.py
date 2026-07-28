@@ -219,14 +219,19 @@ st.markdown(
         border-color: {cor_destaque};
     }}
 
+    [class*="st-key-versiculo_btn_ver_"] {{
+        display: flex;
+        justify-content: flex-end;
+    }}
     [class*="st-key-versiculo_btn_ver_"] button {{
         white-space: nowrap !important;
-        padding-left: 0.4rem !important;
-        padding-right: 0.4rem !important;
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+        min-height: 1.8rem !important;
     }}
     [class*="st-key-versiculo_btn_ver_"] button p {{
         white-space: nowrap !important;
-        font-size: 0.8rem !important;
+        font-size: 0.72rem !important;
     }}
 
     .bloco-central {{ text-align: center; margin-bottom: 1.5rem; }}
@@ -595,7 +600,6 @@ elif pagina == "Busca Semantica":
                     if st.button(
                         "Ver versiculo",
                         icon=":material/open_in_new:",
-                        use_container_width=True,
                         key=f"versiculo_btn_ver_{i}",
                     ):
                         idx_capitulo = _localizar_capitulo(capitulos_leitura, v["referencia"])
