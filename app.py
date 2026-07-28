@@ -1,4 +1,5 @@
 import re
+from datetime import date
 
 import streamlit as st
 import streamlit.components.v1 as components
@@ -6,6 +7,7 @@ from modules.busca import buscar_versiculos
 from modules.resposta import gerar_resposta
 from modules.leitura import carregar_capitulos, texto_para_audio
 from modules.plano_livre import listar_livros, _renderizar_lista_livros, _renderizar_grade_capitulos
+from modules.plano_versiculo_dia import obter_versiculo_do_dia
 from modules.audio_widget import renderizar_audio
 from modules.fuso_horario import garantir_data_local
 
@@ -161,6 +163,14 @@ def _renderizar_busca_semantica(capitulos_leitura):
             if st.button("Mostrar mais resultados", use_container_width=True, key="btn_mostrar_mais"):
                 st.session_state.versiculos_visiveis += QUANTIDADE_VERSICULOS_POR_PAGINA
                 st.rerun(scope="fragment")
+
+    else:
+        data_hoje = st.session_state.get("data_local_usuario", date.today())
+        versiculo_dia = obter_versiculo_do_dia(data_hoje)
+        with st.container(border=True, key="card_leitura_dia"):
+            st.caption("LEITURA DO DIA")
+            st.markdown(f"**{versiculo_dia['referencia']}**")
+            st.write(versiculo_dia["texto"])
 
 st.set_page_config(page_title="Verbo", page_icon="assets/favicon.png", layout="wide")
 
