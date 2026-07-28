@@ -30,6 +30,134 @@ def _localizar_capitulo(capitulos, referencia):
             return idx
     return None
 
+
+@st.fragment
+def _renderizar_busca_semantica(capitulos_leitura):
+    st.markdown(
+        '<div class="bloco-central">'
+        "<h1>Explore a Biblia</h1>"
+        "<p><em>Pergunte e descubra passagens biblicas com compreensao "
+        "semantica e insights contextuais.</em></p>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
+    if "busca_pendente" not in st.session_state:
+        st.session_state.busca_pendente = False
+
+    def _marcar_busca_pendente():
+        st.session_state.busca_pendente = True
+
+    with st.form("busca_form"):
+        col_campo, col_botao = st.columns([5, 1])
+        with col_campo:
+            pergunta = st.text_input(
+                "Qual e a sua pergunta?",
+                label_visibility="collapsed",
+                placeholder="O que Jesus disse sobre o amor ao proximo?",
+                key="busca_pergunta",
+            )
+        with col_botao:
+            esta_buscando = st.session_state.busca_pendente
+            st.form_submit_button(
+                "Buscando" if esta_buscando else "Buscar",
+                icon=":material/progress_activity:" if esta_buscando else ":material/search:",
+                use_container_width=True,
+                disabled=esta_buscando,
+                key="busca_botao",
+                on_click=_marcar_busca_pendente,
+            )
+
+    if st.session_state.busca_pendente and pergunta:
+        with st.spinner("Buscando versiculos..."):
+            versiculos = buscar_versiculos(pergunta)
+
+        resposta = gerar_resposta(pergunta, versiculos)
+
+        st.session_state.busca_pendente = False
+        st.session_state.ultima_busca = {"resposta": resposta, "versiculos": versiculos}
+        st.session_state.versiculos_visiveis = QUANTIDADE_VERSICULOS_POR_PAGINA
+        st.rerun(scope="fragment")
+    elif st.session_state.busca_pendente:
+        st.session_state.busca_pendente = False
+
+    ultima_busca = st.session_state.get("ultima_busca")
+    if ultima_busca:
+        total_versiculos = len(ultima_busca["versiculos"])
+        tags = "".join(
+            f'<span class="tag-versiculo">{v["referencia"]}</span>'
+            for v in ultima_busca["versiculos"]
+        )
+        with st.container(border=False, key="insights_busca"):
+            st.markdown(
+                f'<p class="insights-texto">Busca concluida &middot; '
+                f"{total_versiculos} versiculos semelhantes encontrados</p>"
+                '<div class="tags-scroll-wrapper">'
+                '<button type="button" class="tag-seta" id="tag_seta_esquerda" '
+                'aria-label="Ver tags anteriores">&#8249;</button>'
+                f'<div class="tags-versiculos" id="tags_versiculos_scroll">{tags}</div>'
+                '<button type="button" class="tag-seta" id="tag_seta_direita" '
+                'aria-label="Ver mais tags">&#8250;</button>'
+                "</div>",
+                unsafe_allow_html=True,
+            )
+
+        components.html(
+            """
+            <script>
+            (function() {
+                var doc = window.parent.document;
+                function configurar() {
+                    var scroller = doc.getElementById('tags_versiculos_scroll');
+                    var esquerda = doc.getElementById('tag_seta_esquerda');
+                    var direita = doc.getElementById('tag_seta_direita');
+                    if (!scroller || !esquerda || !direita) return;
+                    if (scroller.dataset.setasConfiguradas) return;
+                    scroller.dataset.setasConfiguradas = '1';
+                    esquerda.addEventListener('click', function() {
+                        scroller.scrollBy({left: -160, behavior: 'smooth'});
+                    });
+                    direita.addEventListener('click', function() {
+                        scroller.scrollBy({left: 160, behavior: 'smooth'});
+                    });
+                }
+                configurar();
+                var obs = new MutationObserver(function() {
+                    try { configurar(); } catch (e) {}
+                });
+                obs.observe(doc.body, {childList: true, subtree: true});
+            })();
+            </script>
+            """,
+            height=0,
+        )
+
+        with st.container(border=True, key="resposta_card"):
+            st.write(ultima_busca["resposta"])
+
+        if "versiculos_visiveis" not in st.session_state:
+            st.session_state.versiculos_visiveis = QUANTIDADE_VERSICULOS_POR_PAGINA
+
+        versiculos_visiveis = ultima_busca["versiculos"][: st.session_state.versiculos_visiveis]
+        for i, v in enumerate(versiculos_visiveis):
+            with st.container(border=True, key=f"versiculo_card_{i}"):
+                st.markdown(f"**{v['referencia']}**")
+                if st.button(
+                    "Ver versiculo",
+                    icon=":material/open_in_new:",
+                    key=f"versiculo_btn_ver_{i}",
+                ):
+                    idx_capitulo = _localizar_capitulo(capitulos_leitura, v["referencia"])
+                    if idx_capitulo is not None:
+                        st.session_state.capitulo_aberto = idx_capitulo
+                        st.rerun()
+                st.write(_resumir_texto(v["texto"]))
+
+        if st.session_state.versiculos_visiveis < total_versiculos:
+            if st.button("Mostrar mais resultados", use_container_width=True, key="btn_mostrar_mais"):
+                st.session_state.versiculos_visiveis += QUANTIDADE_VERSICULOS_POR_PAGINA
+                st.rerun(scope="fragment")
+
 st.set_page_config(page_title="Verbo", page_icon="assets/favicon.png", layout="centered")
 
 garantir_data_local()
@@ -514,130 +642,7 @@ if pagina == "Busca Semantica" and idx_aberto is not None:
             st.rerun()
 
 elif pagina == "Busca Semantica":
-    st.markdown(
-        '<div class="bloco-central">'
-        "<h1>Explore a Biblia</h1>"
-        "<p><em>Pergunte e descubra passagens biblicas com compreensao "
-        "semantica e insights contextuais.</em></p>"
-        "</div>",
-        unsafe_allow_html=True,
-    )
-
-    if "busca_pendente" not in st.session_state:
-        st.session_state.busca_pendente = False
-
-    def _marcar_busca_pendente():
-        st.session_state.busca_pendente = True
-
-    with st.form("busca_form"):
-        col_campo, col_botao = st.columns([5, 1])
-        with col_campo:
-            pergunta = st.text_input(
-                "Qual e a sua pergunta?",
-                label_visibility="collapsed",
-                placeholder="O que Jesus disse sobre o amor ao proximo?",
-                key="busca_pergunta",
-            )
-        with col_botao:
-            esta_buscando = st.session_state.busca_pendente
-            st.form_submit_button(
-                "Buscando" if esta_buscando else "Buscar",
-                icon=":material/progress_activity:" if esta_buscando else ":material/search:",
-                use_container_width=True,
-                disabled=esta_buscando,
-                key="busca_botao",
-                on_click=_marcar_busca_pendente,
-            )
-
-    if st.session_state.busca_pendente and pergunta:
-        with st.spinner("Buscando versiculos..."):
-            versiculos = buscar_versiculos(pergunta)
-
-        resposta = gerar_resposta(pergunta, versiculos)
-
-        st.session_state.busca_pendente = False
-        st.session_state.ultima_busca = {"resposta": resposta, "versiculos": versiculos}
-        st.session_state.versiculos_visiveis = QUANTIDADE_VERSICULOS_POR_PAGINA
-        st.rerun()
-    elif st.session_state.busca_pendente:
-        st.session_state.busca_pendente = False
-
-    ultima_busca = st.session_state.get("ultima_busca")
-    if ultima_busca:
-        total_versiculos = len(ultima_busca["versiculos"])
-        tags = "".join(
-            f'<span class="tag-versiculo">{v["referencia"]}</span>'
-            for v in ultima_busca["versiculos"]
-        )
-        with st.container(border=False, key="insights_busca"):
-            st.markdown(
-                f'<p class="insights-texto">Busca concluida &middot; '
-                f"{total_versiculos} versiculos semelhantes encontrados</p>"
-                '<div class="tags-scroll-wrapper">'
-                '<button type="button" class="tag-seta" id="tag_seta_esquerda" '
-                'aria-label="Ver tags anteriores">&#8249;</button>'
-                f'<div class="tags-versiculos" id="tags_versiculos_scroll">{tags}</div>'
-                '<button type="button" class="tag-seta" id="tag_seta_direita" '
-                'aria-label="Ver mais tags">&#8250;</button>'
-                "</div>",
-                unsafe_allow_html=True,
-            )
-
-        components.html(
-            """
-            <script>
-            (function() {
-                var doc = window.parent.document;
-                function configurar() {
-                    var scroller = doc.getElementById('tags_versiculos_scroll');
-                    var esquerda = doc.getElementById('tag_seta_esquerda');
-                    var direita = doc.getElementById('tag_seta_direita');
-                    if (!scroller || !esquerda || !direita) return;
-                    if (scroller.dataset.setasConfiguradas) return;
-                    scroller.dataset.setasConfiguradas = '1';
-                    esquerda.addEventListener('click', function() {
-                        scroller.scrollBy({left: -160, behavior: 'smooth'});
-                    });
-                    direita.addEventListener('click', function() {
-                        scroller.scrollBy({left: 160, behavior: 'smooth'});
-                    });
-                }
-                configurar();
-                var obs = new MutationObserver(function() {
-                    try { configurar(); } catch (e) {}
-                });
-                obs.observe(doc.body, {childList: true, subtree: true});
-            })();
-            </script>
-            """,
-            height=0,
-        )
-
-        with st.container(border=True, key="resposta_card"):
-            st.write(ultima_busca["resposta"])
-
-        if "versiculos_visiveis" not in st.session_state:
-            st.session_state.versiculos_visiveis = QUANTIDADE_VERSICULOS_POR_PAGINA
-
-        versiculos_visiveis = ultima_busca["versiculos"][: st.session_state.versiculos_visiveis]
-        for i, v in enumerate(versiculos_visiveis):
-            with st.container(border=True, key=f"versiculo_card_{i}"):
-                st.markdown(f"**{v['referencia']}**")
-                if st.button(
-                    "Ver versiculo",
-                    icon=":material/open_in_new:",
-                    key=f"versiculo_btn_ver_{i}",
-                ):
-                    idx_capitulo = _localizar_capitulo(capitulos_leitura, v["referencia"])
-                    if idx_capitulo is not None:
-                        st.session_state.capitulo_aberto = idx_capitulo
-                        st.rerun()
-                st.write(_resumir_texto(v["texto"]))
-
-        if st.session_state.versiculos_visiveis < total_versiculos:
-            if st.button("Mostrar mais resultados", use_container_width=True, key="btn_mostrar_mais"):
-                st.session_state.versiculos_visiveis += QUANTIDADE_VERSICULOS_POR_PAGINA
-                st.rerun()
+    _renderizar_busca_semantica(capitulos_leitura)
 
 else:
     with st.sidebar:
