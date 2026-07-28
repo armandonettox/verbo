@@ -137,34 +137,6 @@ def _renderizar_busca_semantica(capitulos_leitura):
         with st.container(border=True, key="resposta_card"):
             st.write(ultima_busca["resposta"])
 
-        if "versiculos_visiveis" not in st.session_state:
-            st.session_state.versiculos_visiveis = QUANTIDADE_VERSICULOS_POR_PAGINA
-
-        versiculos_visiveis = ultima_busca["versiculos"][: st.session_state.versiculos_visiveis]
-        for i, v in enumerate(versiculos_visiveis):
-            with st.container(border=True, key=f"versiculo_card_{i}"):
-                st.markdown(
-                    f"**{v['referencia']}**"
-                    f"<style>.st-key-versiculo_btn_ver_{i} button::before "
-                    f'{{ content: "{v.get("similaridade", 0):.2f}% similar"; }}</style>',
-                    unsafe_allow_html=True,
-                )
-                if st.button(
-                    "Ver versiculo",
-                    icon=":material/open_in_new:",
-                    key=f"versiculo_btn_ver_{i}",
-                ):
-                    idx_capitulo = _localizar_capitulo(capitulos_leitura, v["referencia"])
-                    if idx_capitulo is not None:
-                        st.session_state.capitulo_aberto = idx_capitulo
-                        st.rerun()
-                st.write(_resumir_texto(v["texto"]))
-
-        if st.session_state.versiculos_visiveis < total_versiculos:
-            if st.button("Mostrar mais resultados", use_container_width=True, key="btn_mostrar_mais"):
-                st.session_state.versiculos_visiveis += QUANTIDADE_VERSICULOS_POR_PAGINA
-                st.rerun(scope="fragment")
-
         if "historico_chat" not in st.session_state:
             st.session_state.historico_chat = []
 
@@ -298,19 +270,8 @@ st.markdown(
     [data-testid="stSidebar"] .stWidgetLabel p {{ font-size: 0.76rem !important; }}
     [data-testid="stSidebar"] .stProgress {{ margin: 0 !important; }}
     [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] {{ gap: 0.4rem !important; }}
-    .st-key-sb_fontes [data-testid="stHorizontalBlock"] {{
-        gap: 0.3rem !important;
-    }}
-    .st-key-sb_fontes .stButton button {{
-        min-height: 1.3rem !important;
-        padding: 0.05rem 0.2rem !important;
-    }}
-    .st-key-sb_fontes .stButton button p {{
-        font-size: 0.68rem !important;
-        line-height: 1.15 !important;
-    }}
     .st-key-sb_fontes [data-testid="stVerticalBlock"] {{
-        gap: 0.3rem !important;
+        gap: 0.5rem !important;
     }}
     [data-testid="stSidebar"] [data-baseweb="input"],
     [data-testid="stSidebar"] [data-testid="stSelectbox"] [role="group"],
@@ -415,44 +376,16 @@ st.markdown(
         border-color: {cor_destaque};
     }}
 
-    [class*="st-key-versiculo_card_"] {{
-        position: relative !important;
-    }}
-    [class*="st-key-versiculo_btn_ver_"] {{
-        position: absolute !important;
-        top: 0.7rem !important;
-        right: 0.7rem !important;
-        left: auto !important;
-        width: auto !important;
-        margin: 0 !important;
-        z-index: 2;
+    [class*="st-key-versiculo_card_"] .stCaptionContainer p {{
+        margin-bottom: 0 !important;
     }}
     [class*="st-key-versiculo_btn_ver_"] button {{
         white-space: nowrap !important;
-        padding-left: 0.5rem !important;
-        padding-right: 0.5rem !important;
         min-height: 1.8rem !important;
     }}
     [class*="st-key-versiculo_btn_ver_"] button p {{
         white-space: nowrap !important;
         font-size: 0.72rem !important;
-    }}
-    [class*="st-key-versiculo_btn_ver_"] button {{
-        position: relative !important;
-    }}
-    [class*="st-key-versiculo_btn_ver_"] button::before {{
-        position: absolute;
-        top: 50%;
-        right: 100%;
-        transform: translateY(-50%);
-        margin-right: 0.5rem;
-        background-color: {cor_fundo_2};
-        border: 1px solid {cor_mutado};
-        border-radius: 999px;
-        padding: 0.15rem 0.6rem;
-        font-size: 0.7rem;
-        white-space: nowrap;
-        color: {cor_mutado};
     }}
 
     .bloco-central {{ text-align: center; margin-bottom: 1.5rem; }}
@@ -718,12 +651,32 @@ with st.sidebar:
             if st.button("Nova busca", icon=":material/refresh:", use_container_width=True, key="btn_nova_busca"):
                 _iniciar_nova_busca()
                 st.rerun()
-            for i, v in enumerate(ultima_busca["versiculos"]):
-                if st.button(v["referencia"], key=f"fonte_{i}", use_container_width=True):
-                    idx_capitulo = _localizar_capitulo(capitulos_leitura, v["referencia"])
-                    if idx_capitulo is not None:
-                        st.session_state.capitulo_aberto = idx_capitulo
-                        st.rerun()
+
+            if "versiculos_visiveis" not in st.session_state:
+                st.session_state.versiculos_visiveis = QUANTIDADE_VERSICULOS_POR_PAGINA
+
+            total_versiculos = len(ultima_busca["versiculos"])
+            versiculos_visiveis = ultima_busca["versiculos"][: st.session_state.versiculos_visiveis]
+            for i, v in enumerate(versiculos_visiveis):
+                with st.container(border=True, key=f"versiculo_card_{i}"):
+                    st.markdown(f"**{v['referencia']}**")
+                    st.caption(f"{v.get('similaridade', 0):.2f}% similar")
+                    if st.button(
+                        "Ver versiculo",
+                        icon=":material/open_in_new:",
+                        key=f"versiculo_btn_ver_{i}",
+                        use_container_width=True,
+                    ):
+                        idx_capitulo = _localizar_capitulo(capitulos_leitura, v["referencia"])
+                        if idx_capitulo is not None:
+                            st.session_state.capitulo_aberto = idx_capitulo
+                            st.rerun()
+                    st.write(_resumir_texto(v["texto"]))
+
+            if st.session_state.versiculos_visiveis < total_versiculos:
+                if st.button("Mostrar mais resultados", use_container_width=True, key="btn_mostrar_mais"):
+                    st.session_state.versiculos_visiveis += QUANTIDADE_VERSICULOS_POR_PAGINA
+                    st.rerun()
     else:
         with st.container(border=True, key="sb_livros"):
             st.caption("ESCOLHA O LIVRO E CAPITULO")
