@@ -33,6 +33,7 @@ st.markdown(
     [data-testid="stToolbarActions"] {{ display: none !important; }}
     [data-testid="stMainMenu"] {{ display: none !important; }}
     [data-testid="stAppDeployButton"] {{ display: none !important; }}
+    [data-testid="InputInstructions"] {{ display: none !important; }}
     [data-testid="stExpandSidebarButton"] {{ z-index: 999999 !important; }}
     [data-testid="stBottom"] {{ display: none; }}
     .st-key-logo_center [data-testid="StyledFullScreenButton"] {{ display: none; }}
