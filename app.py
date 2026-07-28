@@ -119,6 +119,15 @@ st.markdown(
     }}
     .st-key-botao_tema span[role="img"] {{ font-size: 22px !important; }}
 
+    .st-key-busca_botao_carregando button {{
+        white-space: nowrap !important;
+        padding-left: 0.4rem !important;
+        padding-right: 0.4rem !important;
+    }}
+    .st-key-busca_botao_carregando button p {{
+        white-space: nowrap !important;
+        font-size: 0.85rem !important;
+    }}
     .st-key-busca_botao_carregando span[role="img"] {{
         display: inline-block;
         animation: girar 0.9s linear infinite;
@@ -363,7 +372,7 @@ if pagina == "Busca Semantica":
         with col_botao:
             if st.session_state.busca_pendente:
                 st.form_submit_button(
-                    "Buscando...",
+                    "Buscando",
                     icon=":material/progress_activity:",
                     use_container_width=True,
                     disabled=True,
