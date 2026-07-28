@@ -1,11 +1,33 @@
+import re
+
 import streamlit as st
 import streamlit.components.v1 as components
 from modules.busca import buscar_versiculos
 from modules.resposta import gerar_resposta
+from modules.leitura import carregar_capitulos
 from modules.plano_versiculo_dia import renderizar as renderizar_versiculo_dia
 from modules.plano_ano import renderizar as renderizar_ano
 from modules.plano_livre import renderizar as renderizar_livre
 from modules.fuso_horario import garantir_data_local
+
+TAMANHO_RESUMO_VERSICULO = 220
+
+
+def _resumir_texto(texto, tamanho=TAMANHO_RESUMO_VERSICULO):
+    if len(texto) <= tamanho:
+        return texto
+    return texto[:tamanho].rsplit(" ", 1)[0] + "..."
+
+
+def _localizar_capitulo(capitulos, referencia):
+    m = re.match(r"^(.+) (\d+):\d+(?:-\d+)?$", referencia)
+    if not m:
+        return None
+    livro, num_capitulo = m.group(1), int(m.group(2))
+    for idx, capitulo in enumerate(capitulos):
+        if capitulo["livro"] == livro and capitulo["capitulo"] == num_capitulo:
+            return idx
+    return None
 
 st.set_page_config(page_title="Verbo", page_icon="assets/favicon.png", layout="centered")
 
@@ -417,6 +439,43 @@ components.html(
 )
 
 if pagina == "Busca Semantica":
+    if "capitulo_aberto" not in st.session_state:
+        st.session_state.capitulo_aberto = None
+
+    capitulos_leitura = carregar_capitulos()
+    idx_aberto = st.session_state.capitulo_aberto
+
+if pagina == "Busca Semantica" and idx_aberto is not None:
+    capitulo = capitulos_leitura[idx_aberto]
+
+    if st.button("Voltar para busca", icon=":material/arrow_back:", key="capitulo_btn_voltar"):
+        st.session_state.capitulo_aberto = None
+        st.rerun()
+
+    st.markdown(f"### {capitulo['livro']} {capitulo['capitulo']}")
+    st.write(capitulo["texto"])
+
+    col_anterior, col_proximo = st.columns(2)
+    with col_anterior:
+        if st.button(
+            "Capitulo Anterior",
+            use_container_width=True,
+            key="capitulo_btn_anterior",
+            disabled=idx_aberto == 0,
+        ):
+            st.session_state.capitulo_aberto = idx_aberto - 1
+            st.rerun()
+    with col_proximo:
+        if st.button(
+            "Proximo Capitulo",
+            use_container_width=True,
+            key="capitulo_btn_proximo",
+            disabled=idx_aberto == len(capitulos_leitura) - 1,
+        ):
+            st.session_state.capitulo_aberto = idx_aberto + 1
+            st.rerun()
+
+elif pagina == "Busca Semantica":
     st.markdown(
         '<div class="bloco-central">'
         "<h1>Explore a Biblia</h1>"
@@ -521,8 +580,21 @@ if pagina == "Busca Semantica":
         st.markdown("### Versiculos consultados")
         for i, v in enumerate(ultima_busca["versiculos"]):
             with st.container(border=True, key=f"versiculo_card_{i}"):
-                st.markdown(f"**{v['referencia']}**")
-                st.write(v["texto"])
+                col_referencia, col_ver = st.columns([5, 1])
+                with col_referencia:
+                    st.markdown(f"**{v['referencia']}**")
+                with col_ver:
+                    if st.button(
+                        "Ver capitulo",
+                        icon=":material/open_in_new:",
+                        use_container_width=True,
+                        key=f"versiculo_btn_ver_{i}",
+                    ):
+                        idx_capitulo = _localizar_capitulo(capitulos_leitura, v["referencia"])
+                        if idx_capitulo is not None:
+                            st.session_state.capitulo_aberto = idx_capitulo
+                            st.rerun()
+                st.write(_resumir_texto(v["texto"]))
 
 else:
     with st.sidebar:
