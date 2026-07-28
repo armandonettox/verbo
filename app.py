@@ -536,6 +536,7 @@ elif pagina == "Busca Semantica":
                 "Qual e a sua pergunta?",
                 label_visibility="collapsed",
                 placeholder="O que Jesus disse sobre o amor ao proximo?",
+                key="busca_pergunta",
             )
         with col_botao:
             esta_buscando = st.session_state.busca_pendente
