@@ -11,6 +11,7 @@ from modules.plano_livre import renderizar as renderizar_livre
 from modules.fuso_horario import garantir_data_local
 
 TAMANHO_RESUMO_VERSICULO = 220
+QUANTIDADE_VERSICULOS_POR_PAGINA = 4
 
 
 def _resumir_texto(texto, tamanho=TAMANHO_RESUMO_VERSICULO):
@@ -555,6 +556,7 @@ elif pagina == "Busca Semantica":
 
         st.session_state.busca_pendente = False
         st.session_state.ultima_busca = {"resposta": resposta, "versiculos": versiculos}
+        st.session_state.versiculos_visiveis = QUANTIDADE_VERSICULOS_POR_PAGINA
         st.rerun()
     elif st.session_state.busca_pendente:
         st.session_state.busca_pendente = False
@@ -613,7 +615,11 @@ elif pagina == "Busca Semantica":
         with st.container(border=True, key="resposta_card"):
             st.write(ultima_busca["resposta"])
 
-        for i, v in enumerate(ultima_busca["versiculos"]):
+        if "versiculos_visiveis" not in st.session_state:
+            st.session_state.versiculos_visiveis = QUANTIDADE_VERSICULOS_POR_PAGINA
+
+        versiculos_visiveis = ultima_busca["versiculos"][: st.session_state.versiculos_visiveis]
+        for i, v in enumerate(versiculos_visiveis):
             with st.container(border=True, key=f"versiculo_card_{i}"):
                 st.markdown(f"**{v['referencia']}**")
                 if st.button(
@@ -626,6 +632,11 @@ elif pagina == "Busca Semantica":
                         st.session_state.capitulo_aberto = idx_capitulo
                         st.rerun()
                 st.write(_resumir_texto(v["texto"]))
+
+        if st.session_state.versiculos_visiveis < total_versiculos:
+            if st.button("Mostrar mais resultados", use_container_width=True, key="btn_mostrar_mais"):
+                st.session_state.versiculos_visiveis += QUANTIDADE_VERSICULOS_POR_PAGINA
+                st.rerun()
 
 else:
     with st.sidebar:
