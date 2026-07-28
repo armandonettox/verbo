@@ -6,7 +6,7 @@ import streamlit.components.v1 as components
 from modules.busca import buscar_versiculos
 from modules.resposta import gerar_resposta, continuar_conversa
 from modules.leitura import carregar_capitulos, texto_para_audio
-from modules.plano_livre import listar_livros, _renderizar_lista_livros, _renderizar_grade_capitulos
+from modules.plano_livre import _renderizar_seletor_livro_capitulo
 from modules.plano_versiculo_dia import obter_versiculo_do_dia
 from modules.audio_widget import renderizar_audio
 from modules.fuso_horario import garantir_data_local
@@ -298,21 +298,17 @@ st.markdown(
     [data-testid="stSidebar"] .stWidgetLabel p {{ font-size: 0.76rem !important; }}
     [data-testid="stSidebar"] .stProgress {{ margin: 0 !important; }}
     [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] {{ gap: 0.4rem !important; }}
-    .st-key-sb_livros [data-testid="stHorizontalBlock"],
     .st-key-sb_fontes [data-testid="stHorizontalBlock"] {{
         gap: 0.3rem !important;
     }}
-    .st-key-sb_livros .stButton button,
     .st-key-sb_fontes .stButton button {{
         min-height: 1.3rem !important;
         padding: 0.05rem 0.2rem !important;
     }}
-    .st-key-sb_livros .stButton button p,
     .st-key-sb_fontes .stButton button p {{
         font-size: 0.68rem !important;
         line-height: 1.15 !important;
     }}
-    .st-key-sb_livros [data-testid="stVerticalBlock"],
     .st-key-sb_fontes [data-testid="stVerticalBlock"] {{
         gap: 0.3rem !important;
     }}
@@ -705,9 +701,6 @@ components.html(
     height=0,
 )
 
-if "livro_selecionado" not in st.session_state:
-    st.session_state.livro_selecionado = None
-
 ultima_busca = st.session_state.get("ultima_busca")
 
 
@@ -716,7 +709,6 @@ def _iniciar_nova_busca():
     st.session_state.historico_chat = []
     st.session_state.versiculos_visiveis = QUANTIDADE_VERSICULOS_POR_PAGINA
     st.session_state.capitulo_aberto = None
-    st.session_state.livro_selecionado = None
 
 
 with st.sidebar:
@@ -734,77 +726,52 @@ with st.sidebar:
                         st.rerun()
     else:
         with st.container(border=True, key="sb_livros"):
-            st.caption("ESCOLHA O LIVRO")
-            _renderizar_lista_livros(listar_livros(capitulos_leitura), prefixo_key="painel_livro")
+            st.caption("ESCOLHA O LIVRO E CAPITULO")
+            _renderizar_seletor_livro_capitulo(capitulos_leitura)
 
 with st.container(key="conteudo_pagina"):
-    col_centro, col_direita = st.columns([2.2, 1])
+    if idx_aberto is not None:
+        capitulo = capitulos_leitura[idx_aberto]
 
-    with col_centro:
-        if idx_aberto is not None:
-            capitulo = capitulos_leitura[idx_aberto]
+        if st.button("Voltar para busca", icon=":material/arrow_back:", key="capitulo_btn_voltar"):
+            st.session_state.capitulo_aberto = None
+            st.rerun()
 
-            if st.button("Voltar para busca", icon=":material/arrow_back:", key="capitulo_btn_voltar"):
-                st.session_state.capitulo_aberto = None
+        st.markdown(f"### {capitulo['livro']} {capitulo['capitulo']}")
+        st.write(capitulo["texto"])
+
+        renderizar_audio(
+            texto_para_audio(capitulo),
+            key="audio_capitulo",
+            cor_fundo=cor_fundo,
+            cor_texto=cor_texto,
+            cor_mutado=cor_mutado,
+            cor_destaque=cor_destaque,
+            rotulo="Ouvir capitulo",
+        )
+
+        col_anterior, col_proximo = st.columns(2)
+        with col_anterior:
+            if st.button(
+                "Capitulo Anterior",
+                use_container_width=True,
+                key="capitulo_btn_anterior",
+                disabled=idx_aberto == 0,
+            ):
+                st.session_state.capitulo_aberto = idx_aberto - 1
+                st.rerun()
+        with col_proximo:
+            if st.button(
+                "Proximo Capitulo",
+                use_container_width=True,
+                key="capitulo_btn_proximo",
+                disabled=idx_aberto == len(capitulos_leitura) - 1,
+            ):
+                st.session_state.capitulo_aberto = idx_aberto + 1
                 st.rerun()
 
-            st.markdown(f"### {capitulo['livro']} {capitulo['capitulo']}")
-            st.write(capitulo["texto"])
-
-            renderizar_audio(
-                texto_para_audio(capitulo),
-                key="audio_capitulo",
-                cor_fundo=cor_fundo,
-                cor_texto=cor_texto,
-                cor_mutado=cor_mutado,
-                cor_destaque=cor_destaque,
-                rotulo="Ouvir capitulo",
-            )
-
-            col_anterior, col_proximo = st.columns(2)
-            with col_anterior:
-                if st.button(
-                    "Capitulo Anterior",
-                    use_container_width=True,
-                    key="capitulo_btn_anterior",
-                    disabled=idx_aberto == 0,
-                ):
-                    st.session_state.capitulo_aberto = idx_aberto - 1
-                    st.rerun()
-            with col_proximo:
-                if st.button(
-                    "Proximo Capitulo",
-                    use_container_width=True,
-                    key="capitulo_btn_proximo",
-                    disabled=idx_aberto == len(capitulos_leitura) - 1,
-                ):
-                    st.session_state.capitulo_aberto = idx_aberto + 1
-                    st.rerun()
-
-        else:
-            _renderizar_busca_semantica(capitulos_leitura)
-
-    with col_direita:
-        with st.container(border=True, key="painel_direito"):
-            livro_selecionado = st.session_state.livro_selecionado
-            if ultima_busca:
-                st.caption("CONTINUE A CONVERSA")
-                st.markdown(
-                    "Depois da resposta, faca perguntas de acompanhamento "
-                    "sobre os mesmos versiculos encontrados."
-                )
-            elif livro_selecionado:
-                if st.button("Voltar aos livros", icon=":material/arrow_back:", key="btn_voltar_livros"):
-                    st.session_state.livro_selecionado = None
-                    st.rerun()
-                st.markdown(f"**{livro_selecionado['livro']}**")
-                _renderizar_grade_capitulos(livro_selecionado, prefixo_key="painel_capitulo")
-            else:
-                st.caption("COMO NAVEGAR")
-                st.markdown(
-                    "Escolha um livro na lateral ou digite uma pergunta na busca "
-                    "para explorar a Biblia."
-                )
+    else:
+        _renderizar_busca_semantica(capitulos_leitura)
 
     st.markdown('<div class="espaco_rodape"></div>', unsafe_allow_html=True)
 
