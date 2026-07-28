@@ -150,6 +150,26 @@ st.markdown(
         to {{ transform: rotate(360deg); }}
     }}
 
+    .insights-texto {{
+        text-align: center;
+        font-style: italic;
+        color: {cor_mutado};
+        margin-bottom: 0.6rem;
+    }}
+    .tags-versiculos {{
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.4rem;
+    }}
+    .tag-versiculo {{
+        background-color: {cor_fundo_2};
+        border: 1px solid {cor_mutado};
+        border-radius: 999px;
+        padding: 0.2rem 0.7rem;
+        font-size: 0.8rem;
+    }}
+
     .bloco-central {{ text-align: center; margin-bottom: 1.5rem; }}
     .bloco-central h1 {{ font-size: 2.75rem; margin-bottom: 0.5rem; }}
     .bloco-central p {{ color: {cor_mutado} !important; font-style: italic; font-size: 1.05rem; }}
@@ -418,6 +438,19 @@ if pagina == "Busca Semantica":
 
     ultima_busca = st.session_state.get("ultima_busca")
     if ultima_busca:
+        total_versiculos = len(ultima_busca["versiculos"])
+        tags = "".join(
+            f'<span class="tag-versiculo">{v["referencia"]}</span>'
+            for v in ultima_busca["versiculos"]
+        )
+        with st.container(border=True, key="insights_busca"):
+            st.markdown(
+                f'<p class="insights-texto">Busca concluida &middot; '
+                f"{total_versiculos} versiculos semelhantes encontrados</p>"
+                f'<div class="tags-versiculos">{tags}</div>',
+                unsafe_allow_html=True,
+            )
+
         st.markdown("### Resposta")
         with st.container(border=True, key="resposta_card"):
             st.write(ultima_busca["resposta"])
