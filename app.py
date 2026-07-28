@@ -1,5 +1,5 @@
 import re
-from datetime import date
+from datetime import date, datetime
 
 import streamlit as st
 import streamlit.components.v1 as components
@@ -30,6 +30,19 @@ def _localizar_capitulo(capitulos, referencia):
         if capitulo["livro"] == livro and capitulo["capitulo"] == num_capitulo:
             return idx
     return None
+
+
+def _formatar_quando(quando):
+    if quando.date() == date.today():
+        return f"Hoje {quando.strftime('%H:%M')}"
+    return quando.strftime("%d/%m/%Y %H:%M")
+
+
+def _renderizar_mensagem_chat(role, conteudo, quando, indice):
+    prefixo = "chat_msg_usuario" if role == "user" else "chat_msg_assistente"
+    with st.container(key=f"{prefixo}_{indice}"):
+        st.caption(_formatar_quando(quando))
+        st.write(conteudo)
 
 
 @st.fragment
@@ -79,7 +92,12 @@ def _renderizar_busca_semantica(capitulos_leitura):
             resposta = gerar_resposta(pergunta, versiculos)
 
             st.session_state.busca_pendente = False
-            st.session_state.ultima_busca = {"pergunta": pergunta, "resposta": resposta, "versiculos": versiculos}
+            st.session_state.ultima_busca = {
+                "pergunta": pergunta,
+                "resposta": resposta,
+                "versiculos": versiculos,
+                "quando": datetime.now(),
+            }
             st.session_state.versiculos_visiveis = QUANTIDADE_VERSICULOS_POR_PAGINA
             st.session_state.historico_chat = []
             st.rerun()
@@ -94,17 +112,15 @@ def _renderizar_busca_semantica(capitulos_leitura):
             st.write(versiculo_dia["texto"])
 
     else:
-        with st.chat_message("user"):
-            st.write(ultima_busca["pergunta"])
-        with st.chat_message("assistant"):
-            st.write(ultima_busca["resposta"])
+        quando_original = ultima_busca.get("quando", datetime.now())
+        _renderizar_mensagem_chat("user", ultima_busca["pergunta"], quando_original, "orig_pergunta")
+        _renderizar_mensagem_chat("assistant", ultima_busca["resposta"], quando_original, "orig_resposta")
 
         if "historico_chat" not in st.session_state:
             st.session_state.historico_chat = []
 
-        for turno in st.session_state.historico_chat:
-            with st.chat_message(turno["role"]):
-                st.write(turno["content"])
+        for i, turno in enumerate(st.session_state.historico_chat):
+            _renderizar_mensagem_chat(turno["role"], turno["content"], turno["quando"], i)
 
         with st.container(key="chat_conversa"):
             pergunta_seguimento = st.chat_input(
@@ -112,16 +128,20 @@ def _renderizar_busca_semantica(capitulos_leitura):
                 key="chat_input_seguimento",
             )
         if pergunta_seguimento:
+            historico_para_llm = [
+                {"role": t["role"], "content": t["content"]} for t in st.session_state.historico_chat
+            ]
             with st.spinner("Pensando..."):
                 resposta_seguimento = continuar_conversa(
                     ultima_busca["pergunta"],
                     ultima_busca["resposta"],
                     ultima_busca["versiculos"],
-                    st.session_state.historico_chat,
+                    historico_para_llm,
                     pergunta_seguimento,
                 )
-            st.session_state.historico_chat.append({"role": "user", "content": pergunta_seguimento})
-            st.session_state.historico_chat.append({"role": "assistant", "content": resposta_seguimento})
+            agora = datetime.now()
+            st.session_state.historico_chat.append({"role": "user", "content": pergunta_seguimento, "quando": agora})
+            st.session_state.historico_chat.append({"role": "assistant", "content": resposta_seguimento, "quando": agora})
             st.rerun(scope="fragment")
 
 st.set_page_config(page_title="Verbo", page_icon="assets/favicon.png", layout="wide")
@@ -299,6 +319,29 @@ st.markdown(
     .bloco-central h1 {{ font-size: 2.75rem; margin-bottom: 0.5rem; }}
     .bloco-central p {{ color: {cor_mutado} !important; font-style: italic; font-size: 1.05rem; }}
     .bloco-central [data-testid="stHeaderActionElements"] {{ display: none; }}
+
+    [class*="st-key-chat_msg_usuario_"] {{
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        margin-bottom: 1.2rem;
+    }}
+    [class*="st-key-chat_msg_usuario_"] [data-testid="stElementContainer"] {{
+        max-width: 75%;
+    }}
+    [class*="st-key-chat_msg_usuario_"] .stCaptionContainer {{
+        text-align: right;
+    }}
+    [class*="st-key-chat_msg_usuario_"] [data-testid="stElementContainer"]:not(:has(.stCaptionContainer)) [data-testid="stMarkdownContainer"] {{
+        background-color: {cor_fundo_2};
+        border: 1px solid {cor_mutado};
+        border-radius: 1rem;
+        padding: 0.6rem 1rem;
+        text-align: left;
+    }}
+    [class*="st-key-chat_msg_assistente_"] {{
+        margin-bottom: 1.2rem;
+    }}
 
     .barra-topo {{ display: flex; align-items: center; gap: 0.5rem; height: 100%; }}
     .barra-topo a {{ color: {cor_mutado}; }}
