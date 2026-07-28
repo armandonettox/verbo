@@ -37,15 +37,33 @@ def data_por_extenso(data):
 
 
 def renderizar(cor_fundo, cor_texto, cor_mutado, cor_destaque):
+    data_hoje = st.session_state.get("data_local_usuario", date.today())
+
+    if "versiculo_data_selecionada" not in st.session_state:
+        st.session_state.versiculo_data_selecionada = data_hoje
+
+    def _voltar_para_hoje():
+        st.session_state.versiculo_data_selecionada = data_hoje
+
+    with st.sidebar:
+        with st.container(border=True, key="sb_versiculo_data"):
+            st.date_input("Data", key="versiculo_data_selecionada", format="DD/MM/YYYY")
+            st.button(
+                "Hoje", use_container_width=True, key="versiculo_btn_hoje",
+                on_click=_voltar_para_hoje,
+            )
+
+    data_selecionada = st.session_state.versiculo_data_selecionada
+
     versiculos = carregar_versiculos()
     total = len(versiculos)
-    idx = (date.today() - EPOCA).days % total
+    idx = (data_selecionada - EPOCA).days % total
     item = versiculos[idx]
 
     referencia = f"{item['livro']} {item['capitulo']},{item['versiculo']}"
 
     with st.container(key="versiculo_dia"):
-        st.caption(data_por_extenso(date.today()))
+        st.caption(data_por_extenso(data_selecionada))
         st.subheader(referencia)
         st.markdown(
             f'<p style="font-size:1.3rem; font-style:italic;">{item["texto"]}</p>',

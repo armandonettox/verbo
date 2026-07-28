@@ -5,8 +5,11 @@ from modules.resposta import gerar_resposta
 from modules.plano_versiculo_dia import renderizar as renderizar_versiculo_dia
 from modules.plano_ano import renderizar as renderizar_ano
 from modules.plano_livre import renderizar as renderizar_livre
+from modules.fuso_horario import garantir_data_local
 
 st.set_page_config(page_title="Verbo", page_icon="assets/favicon.png", layout="centered")
+
+garantir_data_local()
 
 if "tema_escuro" not in st.session_state:
     st.session_state.tema_escuro = False
@@ -69,9 +72,16 @@ st.markdown(
     [data-testid="stSidebarUserContent"] > div > [data-testid="stVerticalBlock"] {{
         gap: 0.25rem !important;
     }}
-    .st-key-sb_plano, .st-key-sb_semana_dia, .st-key-sb_leitura_atual, .st-key-sb_progresso {{
+    .st-key-sb_plano, .st-key-sb_semana_dia, .st-key-sb_leitura_atual, .st-key-sb_progresso,
+    .st-key-sb_versiculo_data {{
         padding: 0.4rem !important;
         gap: 0.2rem !important;
+    }}
+    [data-testid="stSidebar"] .stDateInput input {{
+        min-height: 1.6rem !important;
+        padding-top: 0.1rem !important;
+        padding-bottom: 0.1rem !important;
+        font-size: 0.76rem !important;
     }}
     [data-testid="stSidebar"] [data-testid="stCaptionContainer"] p {{
         font-size: 0.7rem !important;
@@ -181,6 +191,15 @@ st.markdown(
         color: {cor_mutado} !important;
         width: 20px !important;
         height: 20px !important;
+    }}
+
+    .st-key-tz_detector {{
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        overflow: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
     }}
 
     div[data-testid="stElementContainer"]:has(> iframe) {{
