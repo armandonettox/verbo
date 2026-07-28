@@ -127,6 +127,17 @@ st.markdown(
     [data-testid="stSidebar"] .stWidgetLabel p {{ font-size: 0.76rem !important; }}
     [data-testid="stSidebar"] .stProgress {{ margin: 0 !important; }}
     [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] {{ gap: 0.4rem !important; }}
+    [data-testid="stSidebar"] [data-baseweb="input"],
+    [data-testid="stSidebar"] [data-testid="stSelectbox"] [role="group"],
+    [data-testid="stSidebar"] .stButton button {{
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }}
+    [data-testid="stSidebar"] [data-baseweb="input"]:hover,
+    [data-testid="stSidebar"] [data-testid="stSelectbox"] [role="group"]:hover,
+    [data-testid="stSidebar"] .stButton button:hover {{
+        border-color: {cor_destaque} !important;
+        box-shadow: 0 0 0 1px {cor_destaque};
+    }}
     h1, h2, h3, h4, p, span, label, li {{ color: {cor_texto}; }}
     .stTextInput input, .stNumberInput input, [data-baseweb="select"] > div {{
         background-color: {cor_fundo_2} !important;
