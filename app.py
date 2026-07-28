@@ -577,7 +577,6 @@ elif pagina == "Busca Semantica":
         with st.container(border=True, key="resposta_card"):
             st.write(ultima_busca["resposta"])
 
-        st.markdown("### Versiculos consultados")
         for i, v in enumerate(ultima_busca["versiculos"]):
             with st.container(border=True, key=f"versiculo_card_{i}"):
                 col_referencia, col_ver = st.columns([5, 1])
