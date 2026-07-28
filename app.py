@@ -233,17 +233,14 @@ st.markdown(
     .st-key-logo_center [data-testid="StyledFullScreenButton"] {{ display: none; }}
     .st-key-logo_center [data-testid="stElementToolbar"] {{ display: none; }}
     [data-testid="stMain"] {{ padding-top: 0 !important; }}
+    .espaco_rodape {{ height: 6rem; }}
     [data-testid="stAppViewContainer"] {{ padding-top: 0 !important; }}
     .block-container {{
         padding-top: 5.5rem !important;
-        padding-bottom: 1rem !important;
         min-height: 100vh !important;
         box-sizing: border-box !important;
         display: flex !important;
         flex-direction: column !important;
-    }}
-    [data-testid="stLayoutWrapper"]:has(> .st-key-rodape_pagina) {{
-        margin-top: auto;
     }}
     .st-key-conteudo_pagina {{
         max-width: 900px;
@@ -463,6 +460,17 @@ st.markdown(
         box-sizing: border-box;
         background-color: {cor_fundo};
         border-bottom: 1px solid {cor_mutado};
+    }}
+    .st-key-rodape_pagina {{
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000000;
+        padding: 0.5rem 1.5rem;
+        box-sizing: border-box;
+        background-color: {cor_fundo};
+        border-top: 1px solid {cor_mutado};
     }}
 
     .st-key-logo_center {{ display: flex; justify-content: center; align-items: center; height: 100%; }}
@@ -780,10 +788,11 @@ with st.container(key="conteudo_pagina"):
                     "para explorar a Biblia."
                 )
 
+    st.markdown('<div class="espaco_rodape"></div>', unsafe_allow_html=True)
+
 with st.container(key="rodape_pagina"):
     st.markdown(
         f"""
-        <hr style="margin-top: 3rem; border-color: {cor_mutado}; width: 100vw; max-width: 100vw; margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%);">
         <style>
         [data-testid="stMarkdownContainer"] a.rodape-link {{ color: {cor_destaque} !important; text-decoration: none !important; }}
         [data-testid="stMarkdownContainer"] a.rodape-link:hover {{ text-decoration: underline !important; }}
