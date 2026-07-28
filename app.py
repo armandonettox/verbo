@@ -257,28 +257,31 @@ components.html(
     <script>
     (function() {
         var doc = window.parent.document;
+        var win = window.parent;
         var mostrar = MOSTRAR_FLAG;
-        var rolando = false;
-        var intervalo = null;
+
+        if (!win.__rolarAutomatico) {
+            win.__rolarAutomatico = { rolando: false, intervalo: null };
+        }
+        var estado = win.__rolarAutomatico;
 
         function pararRolagem(btn) {
-            if (intervalo) {
-                clearInterval(intervalo);
-                intervalo = null;
+            if (estado.intervalo) {
+                win.clearInterval(estado.intervalo);
+                estado.intervalo = null;
             }
-            rolando = false;
+            estado.rolando = false;
             if (btn) btn.textContent = 'Rolar';
         }
 
         function alternarRolagem(btn) {
-            if (rolando) {
+            if (estado.rolando) {
                 pararRolagem(btn);
                 return;
             }
-            rolando = true;
+            estado.rolando = true;
             btn.textContent = 'Parar';
-            intervalo = setInterval(function() {
-                var win = window.parent;
+            estado.intervalo = win.setInterval(function() {
                 win.scrollBy(0, 1);
                 var alturaTotal = win.document.documentElement.scrollHeight;
                 if (win.scrollY + win.innerHeight >= alturaTotal - 2) {
@@ -293,7 +296,6 @@ components.html(
                 btn = doc.createElement('button');
                 btn.id = 'btn-rolar-automatico';
                 btn.type = 'button';
-                btn.textContent = 'Rolar';
                 btn.style.position = 'fixed';
                 btn.style.bottom = '90px';
                 btn.style.right = '20px';
@@ -306,9 +308,10 @@ components.html(
                 btn.style.cursor = 'pointer';
                 btn.style.fontSize = '0.85rem';
                 btn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.25)';
-                btn.addEventListener('click', function() { alternarRolagem(btn); });
                 doc.body.appendChild(btn);
             }
+            btn.textContent = estado.rolando ? 'Parar' : 'Rolar';
+            btn.onclick = function() { alternarRolagem(btn); };
             btn.style.display = mostrar ? 'block' : 'none';
             if (!mostrar) {
                 pararRolagem(btn);
