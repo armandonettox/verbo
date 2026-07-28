@@ -156,18 +156,45 @@ st.markdown(
         color: {cor_mutado};
         margin-bottom: 0.6rem;
     }}
-    .tags-versiculos {{
+    .tags-scroll-wrapper {{
         display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
+        align-items: center;
         gap: 0.4rem;
     }}
+    .tags-versiculos {{
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 0.4rem;
+        scroll-behavior: smooth;
+        scrollbar-width: none;
+    }}
+    .tags-versiculos::-webkit-scrollbar {{ display: none; }}
     .tag-versiculo {{
         background-color: {cor_fundo_2};
         border: 1px solid {cor_mutado};
         border-radius: 999px;
         padding: 0.2rem 0.7rem;
         font-size: 0.8rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }}
+    .tag-seta {{
+        background: none;
+        border: 1px solid {cor_mutado};
+        border-radius: 50%;
+        width: 1.8rem;
+        height: 1.8rem;
+        min-width: 1.8rem;
+        color: {cor_mutado};
+        cursor: pointer;
+        font-size: 1.1rem;
+        line-height: 1;
+        flex-shrink: 0;
+    }}
+    .tag-seta:hover {{
+        color: {cor_destaque};
+        border-color: {cor_destaque};
     }}
 
     .bloco-central {{ text-align: center; margin-bottom: 1.5rem; }}
@@ -447,9 +474,45 @@ if pagina == "Busca Semantica":
             st.markdown(
                 f'<p class="insights-texto">Busca concluida &middot; '
                 f"{total_versiculos} versiculos semelhantes encontrados</p>"
-                f'<div class="tags-versiculos">{tags}</div>',
+                '<div class="tags-scroll-wrapper">'
+                '<button type="button" class="tag-seta" id="tag_seta_esquerda" '
+                'aria-label="Ver tags anteriores">&#8249;</button>'
+                f'<div class="tags-versiculos" id="tags_versiculos_scroll">{tags}</div>'
+                '<button type="button" class="tag-seta" id="tag_seta_direita" '
+                'aria-label="Ver mais tags">&#8250;</button>'
+                "</div>",
                 unsafe_allow_html=True,
             )
+
+        components.html(
+            """
+            <script>
+            (function() {
+                var doc = window.parent.document;
+                function configurar() {
+                    var scroller = doc.getElementById('tags_versiculos_scroll');
+                    var esquerda = doc.getElementById('tag_seta_esquerda');
+                    var direita = doc.getElementById('tag_seta_direita');
+                    if (!scroller || !esquerda || !direita) return;
+                    if (scroller.dataset.setasConfiguradas) return;
+                    scroller.dataset.setasConfiguradas = '1';
+                    esquerda.addEventListener('click', function() {
+                        scroller.scrollBy({left: -160, behavior: 'smooth'});
+                    });
+                    direita.addEventListener('click', function() {
+                        scroller.scrollBy({left: 160, behavior: 'smooth'});
+                    });
+                }
+                configurar();
+                var obs = new MutationObserver(function() {
+                    try { configurar(); } catch (e) {}
+                });
+                obs.observe(doc.body, {childList: true, subtree: true});
+            })();
+            </script>
+            """,
+            height=0,
+        )
 
         st.markdown("### Resposta")
         with st.container(border=True, key="resposta_card"):
