@@ -297,7 +297,9 @@ st.markdown(
         opacity: 1 !important;
     }}
     .stTextInput [data-baseweb="input"],
-    .stTextInput [data-baseweb="input"] * {{
+    .stTextInput [data-baseweb="input"] *,
+    [data-testid="stTextInputRootElement"],
+    [data-testid="stTextInputRootElement"] * {{
         border-color: {cor_mutado} !important;
     }}
     .stButton button, .stFormSubmitButton button {{
