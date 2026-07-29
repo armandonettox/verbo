@@ -292,11 +292,11 @@ st.markdown(
         bottom: 0;
         left: 0;
         right: 0;
+        width: auto !important;
         z-index: 999;
         background-color: {cor_fundo};
         padding: 0.75rem 1.5rem;
         box-sizing: border-box;
-        border-top: 1px solid {cor_mutado};
     }}
     .st-key-chat_conversa [data-testid="stChatInput"] {{
         max-width: 900px;
