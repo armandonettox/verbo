@@ -8,7 +8,7 @@ from modules.resposta import gerar_resposta, continuar_conversa
 from modules.leitura import carregar_capitulos, texto_para_audio
 from modules.plano_livre import _renderizar_seletor_livro_capitulo
 from modules.plano_versiculo_dia import obter_versiculo_do_dia
-from modules.audio_widget import renderizar_audio
+from modules.audio_widget import renderizar_audio, renderizar_audio_com_progresso
 from modules.acoes_chat import renderizar_botao_copiar, renderizar_botao_compartilhar
 from modules.fuso_horario import garantir_data_local
 
@@ -479,10 +479,25 @@ st.markdown(
         right: 0.25rem;
     }}
 
+    div[data-testid="stVerticalBlock"].st-key-titulo_capitulo_bloco {{
+        position: relative !important;
+        width: fit-content !important;
+        align-self: flex-start !important;
+    }}
+    .st-key-audio_capitulo {{
+        position: absolute;
+        top: 50%;
+        left: 100%;
+        transform: translateY(-50%);
+        margin-left: 0.4rem;
+        width: 6.5rem;
+    }}
+    .st-key-audio_capitulo iframe {{ width: 100% !important; }}
+
     .bloco-central {{ text-align: center; margin-bottom: 1.5rem; }}
     .bloco-central h1 {{ font-size: 2.75rem; margin-bottom: 0.5rem; }}
     .bloco-central p {{ color: {cor_mutado} !important; font-style: italic; font-size: 1.05rem; }}
-    .bloco-central [data-testid="stHeaderActionElements"] {{ display: none; }}
+    [data-testid="stHeaderActionElements"] {{ display: none; }}
 
     [class*="st-key-chat_msg_usuario_"] {{
         display: flex;
@@ -753,18 +768,16 @@ with st.container(key="conteudo_pagina"):
             st.session_state.capitulo_aberto = None
             st.rerun()
 
-        st.markdown(f"### {capitulo['livro']} {capitulo['capitulo']}")
-        st.write(capitulo["texto"])
+        with st.container(key="titulo_capitulo_bloco"):
+            st.markdown(f"### {capitulo['livro']} {capitulo['capitulo']}")
+            renderizar_audio_com_progresso(
+                texto_para_audio(capitulo),
+                key="audio_capitulo",
+                cor_mutado=cor_mutado,
+                cor_destaque=cor_destaque,
+            )
 
-        renderizar_audio(
-            texto_para_audio(capitulo),
-            key="audio_capitulo",
-            cor_fundo=cor_fundo,
-            cor_texto=cor_texto,
-            cor_mutado=cor_mutado,
-            cor_destaque=cor_destaque,
-            rotulo="Ouvir capitulo",
-        )
+        st.write(capitulo["texto"])
 
         col_anterior, col_proximo = st.columns(2)
         with col_anterior:

@@ -21,6 +21,22 @@ def _icone_parar(tamanho_px):
     )
 
 
+def _icone_tocar(tamanho_px):
+    return (
+        f'<svg viewBox="0 0 24 24" width="{tamanho_px}" height="{tamanho_px}" fill="currentColor">'
+        '<path d="M8 5v14l11-7z"/>'
+        "</svg>"
+    )
+
+
+def _icone_pausar(tamanho_px):
+    return (
+        f'<svg viewBox="0 0 24 24" width="{tamanho_px}" height="{tamanho_px}" fill="currentColor">'
+        '<rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/>'
+        "</svg>"
+    )
+
+
 def renderizar_audio(
     texto,
     key,
@@ -126,4 +142,154 @@ def renderizar_audio(
             .replace("COR_MUTADO", cor_mutado)
             .replace("COR_DESTAQUE", cor_destaque),
             height=altura,
+        )
+
+
+def renderizar_audio_com_progresso(
+    texto,
+    key,
+    cor_mutado,
+    cor_destaque,
+    tamanho_icone_rem=1.5,
+    velocidade=0.95,
+):
+    with st.container(key=key):
+        texto_audio_js = json.dumps(texto)
+        botao_id = f"btn-audio-prog-{key}"
+        tempo_id = f"tempo-audio-prog-{key}"
+
+        palavras = max(len(texto.split()), 1)
+        palavras_por_minuto = 155 * velocidade
+        total_estimado = round(palavras / palavras_por_minuto * 60)
+
+        tamanho_svg = round(tamanho_icone_rem * 16 * 0.6)
+        icone_tocar = _icone_tocar(tamanho_svg)
+        icone_pausar = _icone_pausar(tamanho_svg)
+
+        components.html(
+            (
+                """
+            <style>
+            html, body { margin: 0; padding: 0; overflow: hidden; }
+            #ID_WRAP {
+                display: flex;
+                align-items: center;
+                gap: 0.35rem;
+                font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            }
+            #ID_BOTAO {
+                width: TAMANHO_ICONErem;
+                height: TAMANHO_ICONErem;
+                padding: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: transparent;
+                color: COR_MUTADO;
+                border: none;
+                border-radius: 50%;
+                cursor: pointer;
+                flex-shrink: 0;
+            }
+            #ID_BOTAO:hover { color: COR_DESTAQUE; }
+            #ID_TEMPO {
+                font-size: 0.72rem;
+                color: COR_MUTADO;
+                white-space: nowrap;
+            }
+            </style>
+            <div id="ID_WRAP">
+                <button id="ID_BOTAO" type="button" title="Ouvir capitulo">BOTAO_HTML_INICIAL</button>
+                <span id="ID_TEMPO"></span>
+            </div>
+            <script>
+            (function() {
+                var btn = document.getElementById('ID_BOTAO');
+                var tempoEl = document.getElementById('ID_TEMPO');
+                var texto = TEXTO_JSON;
+                var htmlTocar = JS_HTML_TOCAR;
+                var htmlPausar = JS_HTML_PAUSAR;
+                var totalEstimado = TOTAL_ESTIMADO;
+                var velocidade = VELOCIDADE;
+                var timerId = null;
+                var elapsed = 0;
+
+                function formatar(segundos) {
+                    var s = Math.max(0, Math.round(segundos));
+                    var m = Math.floor(s / 60);
+                    var r = s % 60;
+                    return m + ':' + (r < 10 ? '0' : '') + r;
+                }
+
+                function atualizarTempo() {
+                    tempoEl.textContent = formatar(elapsed) + ' / ' + formatar(totalEstimado);
+                }
+
+                function pararTimer() {
+                    if (timerId) {
+                        clearInterval(timerId);
+                        timerId = null;
+                    }
+                }
+
+                function iniciarTimer() {
+                    pararTimer();
+                    timerId = setInterval(function() {
+                        elapsed += 0.2;
+                        atualizarTempo();
+                    }, 200);
+                }
+
+                function resetar() {
+                    pararTimer();
+                    elapsed = 0;
+                    tempoEl.textContent = '';
+                    btn.innerHTML = htmlTocar;
+                    btn.title = 'Ouvir capitulo';
+                }
+
+                btn.addEventListener('click', function() {
+                    if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+                        window.speechSynthesis.pause();
+                        pararTimer();
+                        btn.innerHTML = htmlTocar;
+                        btn.title = 'Continuar';
+                        return;
+                    }
+                    if (window.speechSynthesis.paused) {
+                        window.speechSynthesis.resume();
+                        iniciarTimer();
+                        btn.innerHTML = htmlPausar;
+                        btn.title = 'Pausar';
+                        return;
+                    }
+                    var utterance = new SpeechSynthesisUtterance(texto);
+                    utterance.lang = 'pt-BR';
+                    utterance.rate = velocidade;
+                    utterance.onend = resetar;
+                    utterance.onerror = resetar;
+                    window.speechSynthesis.speak(utterance);
+                    elapsed = 0;
+                    atualizarTempo();
+                    iniciarTimer();
+                    btn.innerHTML = htmlPausar;
+                    btn.title = 'Pausar';
+                });
+            })();
+            </script>
+            """
+            )
+            .replace("ID_WRAP", f"wrap-{botao_id}")
+            .replace("ID_BOTAO", botao_id)
+            .replace("ID_TEMPO", tempo_id)
+            .replace("TEXTO_JSON", texto_audio_js)
+            .replace("BOTAO_HTML_INICIAL", icone_tocar)
+            .replace("JS_HTML_TOCAR", json.dumps(icone_tocar))
+            .replace("JS_HTML_PAUSAR", json.dumps(icone_pausar))
+            .replace("TOTAL_ESTIMADO", str(total_estimado))
+            .replace("VELOCIDADE", str(velocidade))
+            .replace("TAMANHO_ICONE", str(tamanho_icone_rem))
+            .replace("COR_MUTADO", cor_mutado)
+            .replace("COR_DESTAQUE", cor_destaque),
+            height=int(tamanho_icone_rem * 16) + 24,
         )
