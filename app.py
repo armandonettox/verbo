@@ -296,6 +296,7 @@ st.markdown(
         color: {cor_mutado} !important;
         opacity: 1 !important;
     }}
+    [data-baseweb="input"] {{ border-color: {cor_mutado} !important; }}
     .stButton button, .stFormSubmitButton button {{
         background-color: {cor_fundo};
         color: {cor_texto};
