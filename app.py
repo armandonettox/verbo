@@ -180,6 +180,13 @@ st.markdown(
     [data-testid="stAppDeployButton"] {{ display: none !important; }}
     [data-testid="InputInstructions"] {{ display: none !important; }}
     [data-testid="stExpandSidebarButton"] {{ z-index: 999999 !important; }}
+    [data-testid="stSidebarCollapseButton"] span[data-testid="stIconMaterial"],
+    [data-testid="stExpandSidebarButton"] span[data-testid="stIconMaterial"] {{
+        color: {cor_mutado} !important;
+    }}
+    [data-testid="stVerticalBlock"], [data-testid="stForm"] {{
+        border-color: {cor_mutado} !important;
+    }}
     [data-testid="stBottom"] {{ display: none; }}
     [data-testid="stMain"] {{ padding-top: 0 !important; }}
     .espaco_rodape {{ height: 6rem; }}
