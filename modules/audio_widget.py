@@ -5,13 +5,13 @@ import streamlit.components.v1 as components
 
 
 ICONE_ALTO_FALANTE = (
-    '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">'
+    '<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">'
     '<path d="M3 10v4h4l5 5V5L7 10H3z"/>'
     '<path d="M16.5 12c0-1.77-1-3.29-2.5-4.03v8.05c1.5-.73 2.5-2.25 2.5-4.02z"/>'
     "</svg>"
 )
 ICONE_PARAR = (
-    '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">'
+    '<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">'
     '<rect x="6" y="6" width="12" height="12"/>'
     "</svg>"
 )
@@ -26,9 +26,10 @@ def renderizar_audio(
 
         if icone_apenas:
             estilo_botao = """
+            html, body { display: flex; justify-content: flex-end; }
             #ID_BOTAO {
-                width: 2rem;
-                height: 2rem;
+                width: 2.75rem;
+                height: 2.75rem;
                 padding: 0;
                 display: flex;
                 align-items: center;
@@ -42,7 +43,7 @@ def renderizar_audio(
             """
             conteudo_ouvir = ICONE_ALTO_FALANTE
             conteudo_parar = ICONE_PARAR
-            altura = 34
+            altura = 44
         else:
             estilo_botao = """
             #ID_BOTAO {

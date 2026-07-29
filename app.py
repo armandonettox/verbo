@@ -110,19 +110,16 @@ def _renderizar_busca_semantica(capitulos_leitura):
         data_hoje = st.session_state.get("data_local_usuario", date.today())
         versiculo_dia = obter_versiculo_do_dia(data_hoje)
         with st.container(border=True, key="card_leitura_dia"):
-            col_titulo, col_audio = st.columns([5, 1])
-            with col_titulo:
-                st.caption("LEITURA DO DIA")
-            with col_audio:
-                renderizar_audio(
-                    versiculo_dia["texto"],
-                    key="audio_versiculo_dia",
-                    cor_fundo=cor_fundo,
-                    cor_texto=cor_texto,
-                    cor_mutado=cor_mutado,
-                    cor_destaque=cor_destaque,
-                    icone_apenas=True,
-                )
+            st.caption("LEITURA DO DIA")
+            renderizar_audio(
+                versiculo_dia["texto"],
+                key="audio_versiculo_dia",
+                cor_fundo=cor_fundo,
+                cor_texto=cor_texto,
+                cor_mutado=cor_mutado,
+                cor_destaque=cor_destaque,
+                icone_apenas=True,
+            )
             st.markdown(f"**{versiculo_dia['referencia']}**")
             st.write(versiculo_dia["texto"])
 
@@ -383,6 +380,13 @@ st.markdown(
     [class*="st-key-versiculo_btn_ver_"] button p {{
         white-space: nowrap !important;
         font-size: 0.72rem !important;
+    }}
+
+    .st-key-card_leitura_dia {{ position: relative; }}
+    .st-key-audio_versiculo_dia {{
+        position: absolute;
+        top: 0.25rem;
+        right: 0.25rem;
     }}
 
     .bloco-central {{ text-align: center; margin-bottom: 1.5rem; }}
