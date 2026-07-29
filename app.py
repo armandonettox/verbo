@@ -286,6 +286,9 @@ st.markdown(
         max-width: 900px;
         margin: 0 auto;
     }}
+    [data-testid="stAppViewContainer"]:has([data-testid="stSidebar"][aria-expanded="true"]) .st-key-chat_conversa {{
+        left: 380px;
+    }}
     [data-testid="stAppViewContainer"] {{ padding-top: 0 !important; }}
     .block-container {{
         padding-top: 2.5rem !important;
