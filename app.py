@@ -622,7 +622,7 @@ with st.sidebar:
                     st.rerun()
     else:
         st.markdown(
-            f"<p style='color: {cor_mutado}; font-size: 0.85rem;'>"
+            f"<p style='color: {cor_mutado}; font-size: 1.05rem; margin-top: 2rem;'>"
             "Escolha um livro e capitulo abaixo para ler o texto completo, "
             "ou use a busca ao lado para encontrar versiculos por tema."
             "</p>",
