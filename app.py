@@ -678,10 +678,10 @@ with st.container(key="conteudo_pagina"):
     else:
         _renderizar_busca_semantica(capitulos_leitura)
 
-    if not ultima_busca:
+    if not ultima_busca and idx_aberto is None:
         st.markdown('<div class="espaco_rodape"></div>', unsafe_allow_html=True)
 
-if not ultima_busca:
+if not ultima_busca and idx_aberto is None:
     with st.container(key="rodape_pagina"):
         st.markdown(
             f"""
