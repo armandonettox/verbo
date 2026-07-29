@@ -127,7 +127,7 @@ def _renderizar_busca_semantica(capitulos_leitura):
                 )
 
         if st.session_state.busca_pendente and pergunta:
-            with st.spinner("Buscando versiculos..."):
+            with st.spinner(""):
                 versiculos = buscar_versiculos(pergunta)
 
             resposta = gerar_resposta(pergunta, versiculos)
@@ -165,7 +165,7 @@ def _renderizar_busca_semantica(capitulos_leitura):
         quando_original = ultima_busca.get("quando", datetime.now())
 
         def _regenerar_original():
-            with st.spinner("Gerando novamente..."):
+            with st.spinner(""):
                 nova_resposta = gerar_resposta(ultima_busca["pergunta"], ultima_busca["versiculos"])
             st.session_state.ultima_busca["resposta"] = nova_resposta
             st.rerun(scope="fragment")
@@ -177,7 +177,7 @@ def _renderizar_busca_semantica(capitulos_leitura):
                 historico_para_llm = [
                     {"role": t["role"], "content": t["content"]} for t in historico[: indice - 1]
                 ]
-                with st.spinner("Gerando novamente..."):
+                with st.spinner(""):
                     nova_resposta = continuar_conversa(
                         ultima_busca["pergunta"],
                         ultima_busca["resposta"],
@@ -214,7 +214,7 @@ def _renderizar_busca_semantica(capitulos_leitura):
             historico_para_llm = [
                 {"role": t["role"], "content": t["content"]} for t in st.session_state.historico_chat
             ]
-            with st.spinner("Pensando..."):
+            with st.spinner(""):
                 resposta_seguimento = continuar_conversa(
                     ultima_busca["pergunta"],
                     ultima_busca["resposta"],
