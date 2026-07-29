@@ -377,7 +377,6 @@ st.markdown(
         padding: 0.5rem 1.5rem;
         box-sizing: border-box;
         background-color: {cor_fundo};
-        border-top: 1px solid {cor_mutado};
     }}
 
     .st-key-logo_sidebar {{ display: flex; justify-content: center; align-items: center; padding-bottom: 0.5rem; }}
