@@ -553,10 +553,14 @@ st.markdown(
         bottom: 0;
         left: 0;
         right: 0;
+        width: auto !important;
         z-index: 1000000;
         padding: 0.5rem 1.5rem;
         box-sizing: border-box;
         background-color: {cor_fundo};
+    }}
+    [data-testid="stAppViewContainer"]:has([data-testid="stSidebar"][aria-expanded="true"]) .st-key-rodape_pagina {{
+        left: 380px;
     }}
 
     .st-key-logo_central {{ display: flex; justify-content: center; align-items: center; margin-bottom: 0.5rem; }}
