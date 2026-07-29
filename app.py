@@ -621,6 +621,13 @@ with st.sidebar:
                     st.session_state.versiculos_visiveis += QUANTIDADE_VERSICULOS_POR_PAGINA
                     st.rerun()
     else:
+        st.markdown(
+            f"<p style='color: {cor_mutado}; font-size: 0.85rem;'>"
+            "Escolha um livro e capitulo abaixo para ler o texto completo, "
+            "ou use a busca ao lado para encontrar versiculos por tema."
+            "</p>",
+            unsafe_allow_html=True,
+        )
         with st.container(border=True, key="sb_livros"):
             st.caption("ESCOLHA O LIVRO E CAPITULO")
             _renderizar_seletor_livro_capitulo(capitulos_leitura)
