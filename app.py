@@ -281,11 +281,28 @@ st.markdown(
     .stTextInput input, .stNumberInput input, [data-baseweb="select"] > div {{
         background-color: {cor_fundo_2} !important;
         color: {cor_texto} !important;
+        border-color: {cor_mutado} !important;
+    }}
+    .stTextInput input::placeholder {{
+        color: {cor_mutado} !important;
+        opacity: 1 !important;
     }}
     .stButton button, .stFormSubmitButton button {{
         background-color: {cor_fundo};
         color: {cor_texto};
         border: 1px solid {cor_mutado};
+    }}
+    .st-key-botao_tema button:focus,
+    .st-key-botao_tema button:focus-visible,
+    .st-key-botao_tema button:active,
+    [data-testid="stSidebarCollapseButton"] button:focus,
+    [data-testid="stSidebarCollapseButton"] button:focus-visible,
+    [data-testid="stSidebarCollapseButton"] button:active,
+    [data-testid="stExpandSidebarButton"]:focus,
+    [data-testid="stExpandSidebarButton"]:focus-visible,
+    [data-testid="stExpandSidebarButton"]:active {{
+        outline: none !important;
+        box-shadow: none !important;
     }}
 
     .st-key-botao_tema {{
