@@ -4,7 +4,7 @@
 
 # Verbo
 
-RAG fechado sobre a Biblia Catolica Ave Maria, em portugues. Responde perguntas usando so o texto da Biblia como fonte, sem inventar com conhecimento geral do LLM.
+RAG fechado sobre a Biblia Catolica, em portugues. Responde perguntas usando so o texto da Biblia como fonte, sem inventar com conhecimento geral do LLM.
 
 ## Origem
 
@@ -12,7 +12,7 @@ O Verbo nasceu na crisma. Comecei a fazer a crisma na igreja catolica junto com 
 minha namorada, e ela comentou que sentia falta de uma IA pra aprimorar os
 conhecimentos biblicos dela. Aproveitei essa necessidade real pra criar o projeto e
 aprender, na pratica, todo o processo de um RAG — com uma regra clara: ele so
-responde com base na Biblia que ela escolheu, a Ave Maria, a mesma usada na crisma.
+responde com base na Biblia que ela escolheu, a mesma usada na crisma.
 
 ## Documentacao
 

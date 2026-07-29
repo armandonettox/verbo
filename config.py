@@ -13,7 +13,7 @@ if not NVIDIA_API_KEY:
         pass
 
 # Caminhos
-BIBLE_JSON_PATH = "data/biblia-ave-maria.json"
+BIBLE_JSON_PATH = "data/biblia.json"
 CHROMA_DB_PATH = "chroma-db"
 COLLECTION_NAME = "biblia"
 

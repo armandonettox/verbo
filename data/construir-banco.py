@@ -1,5 +1,5 @@
 """
-Le biblia-ave-maria.json, gera embeddings via NVIDIA NIM
+Le biblia.json, gera embeddings via NVIDIA NIM
 e popula o banco vetorial Chroma. Executar uma unica vez.
 """
 import json

@@ -2,15 +2,15 @@
 
 ## Contexto
 
-RAG fechado sobre a Biblia Catolica Ave Maria, em portugues.
+RAG fechado sobre a Biblia Catolica, em portugues.
 Responde perguntas usando so o texto da Biblia como fonte, sem inventar com conhecimento geral do LLM.
 Forma de entrega: aplicacao web via Streamlit, hospedada no Streamlit Community Cloud.
 
 ## Decisoes ja tomadas (nao reabrir sem motivo)
 
 1. Nome: Verbo (referencia a Joao 1:1, "no principio era o Verbo")
-2. Fonte: Biblia Ave Maria (catolica), repositorio `fidalgobr/bibliaAveMariaJSON`
-3. Arquivo validado: `biblia-ave-maria.json` — 35.450 versiculos, 73 livros, UTF-8 ok
+2. Fonte: traducao catolica em portugues (nao referenciada publicamente no repositorio)
+3. Arquivo validado: `biblia.json` — 35.450 versiculos, 73 livros, UTF-8 ok
 4. Banco vetorial: Chroma (local, gratuito)
 5. Embeddings: NVIDIA NIM (free tier)
 6. LLM de resposta: NVIDIA NIM (chat completions)

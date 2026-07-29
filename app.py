@@ -664,10 +664,9 @@ if not ultima_busca:
             </style>
             <p style="text-align: center; color: {cor_mutado}; font-size: 0.85rem; margin-bottom: 0.25rem;">
                 Feito por <a class="rodape-link" href="https://armandonetto.com/" target="_blank">Armando Netto</a>
-                &middot; Fonte: <a class="rodape-link" href="https://github.com/fidalgobr/bibliaAveMariaJSON" target="_blank">Biblia Catolica Ave Maria</a>
             </p>
             <p style="text-align: center; color: {cor_mutado}; font-size: 0.75rem;">
-                Codigo sob licenca <a class="rodape-link" href="https://github.com/armandonettox/verbo/blob/main/LICENSE" target="_blank">PolyForm Noncommercial 1.0.0</a>
+                Codigo sob licenca <a class="rodape-link" href="https://github.com/armandonettox/verbo/blob/main/LICENSE" target="_blank">Licenca Verbo 1.0</a>
             </p>
             """,
             unsafe_allow_html=True,
