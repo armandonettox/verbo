@@ -214,7 +214,7 @@ st.markdown(
     }}
 
     [data-testid="stAppViewContainer"] {{ background-color: {cor_fundo}; }}
-    [data-testid="stSidebar"] {{ background-color: {cor_fundo}; }}
+    [data-testid="stSidebar"] {{ background-color: {cor_fundo}; position: relative; z-index: 1000001; }}
     [data-testid="stSidebar"][aria-expanded="true"] {{
         width: 380px !important;
         min-width: 380px !important;
