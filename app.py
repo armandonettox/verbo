@@ -500,13 +500,13 @@ st.markdown(
     [data-testid="stHeaderActionElements"] {{ display: none; }}
 
     [class*="st-key-chat_msg_usuario_"] {{
-        display: flex;
+        display: flex !important;
         flex-direction: column;
         align-items: flex-end;
-        margin-bottom: 1.2rem;
-    }}
-    [class*="st-key-chat_msg_usuario_"] [data-testid="stElementContainer"] {{
+        align-self: flex-end !important;
+        width: fit-content !important;
         max-width: 75%;
+        margin-bottom: 1.2rem;
     }}
     [class*="st-key-chat_msg_usuario_"] .stCaptionContainer {{
         text-align: right;
@@ -519,6 +519,9 @@ st.markdown(
         text-align: left;
     }}
     [class*="st-key-chat_msg_assistente_"] {{
+        align-self: flex-start !important;
+        width: fit-content !important;
+        max-width: 75%;
         margin-bottom: 1.2rem;
     }}
     [class*="st-key-chat_msg_assistente_"] [data-stale="true"] {{
