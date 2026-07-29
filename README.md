@@ -21,7 +21,7 @@ Instalacao, configuracao e arquitetura estao no meu portfolio:
 
 ## Licenca
 
-Codigo sob [PolyForm Noncommercial 1.0.0](LICENSE): livre pra ver, estudar,
+Codigo sob [Licenca Verbo 1.0](LICENSE): livre pra ver, estudar,
 rodar e modificar sem fins lucrativos. Uso comercial de qualquer forma exige
 autorizacao previa por escrito — entre em contato antes de usar o Verbo (ou
 derivados) em algo que gere lucro.
