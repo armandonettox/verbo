@@ -243,29 +243,11 @@ st.markdown(
     }}
     [data-testid="stSidebar"] * {{ color: {cor_texto}; }}
 
-    [data-testid="stSidebarUserContent"] {{
-        padding-top: 0.4rem !important;
-        display: flex !important;
-        flex-direction: column !important;
-        height: 100% !important;
-        overflow: hidden !important;
-    }}
-    [data-testid="stSidebarUserContent"] > div,
-    [data-testid="stSidebarUserContent"] > div > [data-testid="stVerticalBlock"],
-    [data-testid="stSidebarUserContent"] > div > [data-testid="stVerticalBlock"] > [data-testid="stLayoutWrapper"] {{
-        flex: 1 !important;
-        display: flex !important;
-        flex-direction: column !important;
-    }}
+    [data-testid="stSidebarUserContent"] {{ padding-top: 0.4rem !important; }}
     [data-testid="stSidebarUserContent"] > div > [data-testid="stVerticalBlock"] {{
         gap: 0.25rem !important;
     }}
-    .st-key-sb_idle_bloco {{
-        flex: 1 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: center !important;
-    }}
+    .st-key-sb_idle_bloco {{ margin-top: 12rem !important; }}
     .st-key-sb_plano, .st-key-sb_semana_dia, .st-key-sb_leitura_atual, .st-key-sb_progresso,
     .st-key-sb_versiculo_data {{
         padding: 0.4rem !important;
