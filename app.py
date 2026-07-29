@@ -285,7 +285,9 @@ st.markdown(
         box-shadow: 0 0 0 1px {cor_destaque};
     }}
     h1, h2, h3, h4, p, span, label, li {{ color: {cor_texto}; }}
-    .stTextInput input, .stNumberInput input, [data-baseweb="select"] > div {{
+    .stTextInput input, .stNumberInput input,
+    [data-baseweb="select"] > div,
+    [data-testid="stSelectbox"] [role="group"] {{
         background-color: {cor_fundo_2} !important;
         color: {cor_texto} !important;
         border-color: {cor_mutado} !important;
