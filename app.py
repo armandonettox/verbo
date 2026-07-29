@@ -91,7 +91,8 @@ def _renderizar_busca_semantica(capitulos_leitura):
         st.session_state.busca_pendente = False
 
     def _marcar_busca_pendente():
-        st.session_state.busca_pendente = True
+        if st.session_state.get("busca_pergunta", "").strip():
+            st.session_state.busca_pendente = True
 
     if not ultima_busca:
         with st.container(key="logo_central"):
