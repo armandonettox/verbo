@@ -254,6 +254,7 @@ st.markdown(
         min-height: 2.75rem !important;
     }}
     [data-testid="stToolbarActions"] {{ display: none !important; }}
+    [data-testid="stStatusWidget"] {{ display: none !important; }}
     [data-testid="stMainMenu"] {{ display: none !important; }}
     [data-testid="stAppDeployButton"] {{ display: none !important; }}
     [data-testid="InputInstructions"] {{ display: none !important; }}
