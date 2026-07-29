@@ -247,7 +247,8 @@ st.markdown(
         padding-top: 0.4rem !important;
         display: flex;
         flex-direction: column;
-        min-height: 100vh;
+        height: 100%;
+        overflow: hidden;
     }}
     [data-testid="stSidebarUserContent"] > div,
     [data-testid="stSidebarUserContent"] > div > [data-testid="stVerticalBlock"],
@@ -641,7 +642,7 @@ with st.sidebar:
     else:
         with st.container(key="sb_idle_bloco"):
             st.markdown(
-                f"<p style='color: {cor_mutado}; font-size: 1.05rem; text-align: center;'>"
+                f"<p style='color: {cor_mutado}; font-size: 1.05rem; text-align: center; margin-bottom: 1.5rem;'>"
                 "Escolha um livro e capitulo abaixo para ler o texto completo, "
                 "ou use a busca ao lado para encontrar versiculos por tema."
                 "</p>",
