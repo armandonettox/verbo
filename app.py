@@ -39,11 +39,23 @@ def _formatar_quando(quando):
     return quando.strftime("%d/%m/%Y %H:%M")
 
 
+def _marcar_regenerando(alvo):
+    st.session_state.regenerando_alvo = alvo
+
+
 def _renderizar_mensagem_chat(role, conteudo, quando, indice, on_regenerar=None):
     prefixo = "chat_msg_usuario" if role == "user" else "chat_msg_assistente"
+    esta_regenerando = role == "assistant" and st.session_state.get("regenerando_alvo") == indice
     with st.container(key=f"{prefixo}_{indice}"):
         st.caption(_formatar_quando(quando))
-        st.write(conteudo)
+        conteudo_placeholder = st.empty()
+        if esta_regenerando:
+            with conteudo_placeholder.container():
+                with st.spinner(""):
+                    on_regenerar()
+            return
+        with conteudo_placeholder.container():
+            st.write(conteudo)
         if role == "assistant":
             with st.container(key=f"acoes_chat_{indice}"):
                 col_audio, col_copiar, col_compartilhar, col_regenerar = st.columns(4)
@@ -74,13 +86,14 @@ def _renderizar_mensagem_chat(role, conteudo, quando, indice, on_regenerar=None)
                     )
                 with col_regenerar:
                     if on_regenerar is not None:
-                        if st.button(
+                        st.button(
                             "",
                             icon=":material/refresh:",
                             key=f"regenerar_chat_{indice}",
                             help="Gerar novamente",
-                        ):
-                            on_regenerar()
+                            on_click=_marcar_regenerando,
+                            args=(indice,),
+                        )
 
 
 @st.fragment
@@ -89,6 +102,8 @@ def _renderizar_busca_semantica(capitulos_leitura):
 
     if "busca_pendente" not in st.session_state:
         st.session_state.busca_pendente = False
+    if "regenerando_alvo" not in st.session_state:
+        st.session_state.regenerando_alvo = None
 
     def _marcar_busca_pendente():
         if st.session_state.get("busca_pergunta", "").strip():
@@ -166,9 +181,9 @@ def _renderizar_busca_semantica(capitulos_leitura):
         quando_original = ultima_busca.get("quando", datetime.now())
 
         def _regenerar_original():
-            with st.spinner(""):
-                nova_resposta = gerar_resposta(ultima_busca["pergunta"], ultima_busca["versiculos"])
+            nova_resposta = gerar_resposta(ultima_busca["pergunta"], ultima_busca["versiculos"])
             st.session_state.ultima_busca["resposta"] = nova_resposta
+            st.session_state.regenerando_alvo = None
             st.rerun(scope="fragment")
 
         def _criar_regenerar_turno(indice):
@@ -178,15 +193,15 @@ def _renderizar_busca_semantica(capitulos_leitura):
                 historico_para_llm = [
                     {"role": t["role"], "content": t["content"]} for t in historico[: indice - 1]
                 ]
-                with st.spinner(""):
-                    nova_resposta = continuar_conversa(
-                        ultima_busca["pergunta"],
-                        ultima_busca["resposta"],
-                        ultima_busca["versiculos"],
-                        historico_para_llm,
-                        pergunta_usuario,
-                    )
+                nova_resposta = continuar_conversa(
+                    ultima_busca["pergunta"],
+                    ultima_busca["resposta"],
+                    ultima_busca["versiculos"],
+                    historico_para_llm,
+                    pergunta_usuario,
+                )
                 st.session_state.historico_chat[indice]["content"] = nova_resposta
+                st.session_state.regenerando_alvo = None
                 st.rerun(scope="fragment")
 
             return _regenerar
@@ -490,6 +505,9 @@ st.markdown(
     }}
     [class*="st-key-chat_msg_assistente_"] {{
         margin-bottom: 1.2rem;
+    }}
+    [class*="st-key-chat_msg_assistente_"] [data-stale="true"] {{
+        display: none !important;
     }}
     [class*="st-key-acoes_chat_"] {{
         max-width: 10rem;
