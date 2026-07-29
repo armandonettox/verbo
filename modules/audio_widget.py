@@ -4,32 +4,45 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 
-ICONE_ALTO_FALANTE = (
-    '<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">'
-    '<path d="M3 10v4h4l5 5V5L7 10H3z"/>'
-    '<path d="M16.5 12c0-1.77-1-3.29-2.5-4.03v8.05c1.5-.73 2.5-2.25 2.5-4.02z"/>'
-    "</svg>"
-)
-ICONE_PARAR = (
-    '<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">'
-    '<rect x="6" y="6" width="12" height="12"/>'
-    "</svg>"
-)
+def _icone_alto_falante(tamanho_px):
+    return (
+        f'<svg viewBox="0 0 24 24" width="{tamanho_px}" height="{tamanho_px}" fill="currentColor">'
+        '<path d="M3 10v4h4l5 5V5L7 10H3z"/>'
+        '<path d="M16.5 12c0-1.77-1-3.29-2.5-4.03v8.05c1.5-.73 2.5-2.25 2.5-4.02z"/>'
+        "</svg>"
+    )
+
+
+def _icone_parar(tamanho_px):
+    return (
+        f'<svg viewBox="0 0 24 24" width="{tamanho_px}" height="{tamanho_px}" fill="currentColor">'
+        '<rect x="6" y="6" width="12" height="12"/>'
+        "</svg>"
+    )
 
 
 def renderizar_audio(
-    texto, key, cor_fundo, cor_texto, cor_mutado, cor_destaque, rotulo="Ouvir capitulo", icone_apenas=False
+    texto,
+    key,
+    cor_fundo,
+    cor_texto,
+    cor_mutado,
+    cor_destaque,
+    rotulo="Ouvir capitulo",
+    icone_apenas=False,
+    tamanho_botao_rem=2.75,
 ):
     with st.container(key=key):
         texto_audio_js = json.dumps(texto)
         botao_id = f"btn-audio-{key}"
 
         if icone_apenas:
-            estilo_botao = """
-            html, body { display: flex; justify-content: flex-end; }
-            #ID_BOTAO {
-                width: 2.75rem;
-                height: 2.75rem;
+            altura = int(tamanho_botao_rem * 16)
+            estilo_botao = f"""
+            html, body {{ display: flex; justify-content: flex-end; }}
+            #ID_BOTAO {{
+                width: {tamanho_botao_rem}rem;
+                height: {tamanho_botao_rem}rem;
                 padding: 0;
                 display: flex;
                 align-items: center;
@@ -39,11 +52,11 @@ def renderizar_audio(
                 border: none;
                 border-radius: 50%;
                 cursor: pointer;
-            }
+            }}
             """
-            conteudo_ouvir = ICONE_ALTO_FALANTE
-            conteudo_parar = ICONE_PARAR
-            altura = 44
+            tamanho_svg = round(tamanho_botao_rem * 16 * 0.59)
+            conteudo_ouvir = _icone_alto_falante(tamanho_svg)
+            conteudo_parar = _icone_parar(tamanho_svg)
         else:
             estilo_botao = """
             #ID_BOTAO {

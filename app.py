@@ -9,6 +9,7 @@ from modules.leitura import carregar_capitulos, texto_para_audio
 from modules.plano_livre import _renderizar_seletor_livro_capitulo
 from modules.plano_versiculo_dia import obter_versiculo_do_dia
 from modules.audio_widget import renderizar_audio
+from modules.acoes_chat import renderizar_botao_copiar, renderizar_botao_compartilhar
 from modules.fuso_horario import garantir_data_local
 
 TAMANHO_RESUMO_VERSICULO = 220
@@ -38,11 +39,48 @@ def _formatar_quando(quando):
     return quando.strftime("%d/%m/%Y %H:%M")
 
 
-def _renderizar_mensagem_chat(role, conteudo, quando, indice):
+def _renderizar_mensagem_chat(role, conteudo, quando, indice, on_regenerar=None):
     prefixo = "chat_msg_usuario" if role == "user" else "chat_msg_assistente"
     with st.container(key=f"{prefixo}_{indice}"):
         st.caption(_formatar_quando(quando))
         st.write(conteudo)
+        if role == "assistant":
+            with st.container(key=f"acoes_chat_{indice}"):
+                col_audio, col_copiar, col_compartilhar, col_regenerar = st.columns(4)
+                with col_audio:
+                    renderizar_audio(
+                        conteudo,
+                        key=f"audio_chat_{indice}",
+                        cor_fundo=cor_fundo,
+                        cor_texto=cor_texto,
+                        cor_mutado=cor_mutado,
+                        cor_destaque=cor_destaque,
+                        icone_apenas=True,
+                        tamanho_botao_rem=2.0,
+                    )
+                with col_copiar:
+                    renderizar_botao_copiar(
+                        conteudo,
+                        key=f"copiar_chat_{indice}",
+                        cor_mutado=cor_mutado,
+                        cor_destaque=cor_destaque,
+                    )
+                with col_compartilhar:
+                    renderizar_botao_compartilhar(
+                        conteudo,
+                        key=f"compartilhar_chat_{indice}",
+                        cor_mutado=cor_mutado,
+                        cor_destaque=cor_destaque,
+                    )
+                with col_regenerar:
+                    if on_regenerar is not None:
+                        if st.button(
+                            "",
+                            icon=":material/refresh:",
+                            key=f"regenerar_chat_{indice}",
+                            help="Gerar novamente",
+                        ):
+                            on_regenerar()
 
 
 @st.fragment
@@ -125,14 +163,45 @@ def _renderizar_busca_semantica(capitulos_leitura):
 
     else:
         quando_original = ultima_busca.get("quando", datetime.now())
+
+        def _regenerar_original():
+            with st.spinner("Gerando novamente..."):
+                nova_resposta = gerar_resposta(ultima_busca["pergunta"], ultima_busca["versiculos"])
+            st.session_state.ultima_busca["resposta"] = nova_resposta
+            st.rerun(scope="fragment")
+
+        def _criar_regenerar_turno(indice):
+            def _regenerar():
+                historico = st.session_state.historico_chat
+                pergunta_usuario = historico[indice - 1]["content"]
+                historico_para_llm = [
+                    {"role": t["role"], "content": t["content"]} for t in historico[: indice - 1]
+                ]
+                with st.spinner("Gerando novamente..."):
+                    nova_resposta = continuar_conversa(
+                        ultima_busca["pergunta"],
+                        ultima_busca["resposta"],
+                        ultima_busca["versiculos"],
+                        historico_para_llm,
+                        pergunta_usuario,
+                    )
+                st.session_state.historico_chat[indice]["content"] = nova_resposta
+                st.rerun(scope="fragment")
+
+            return _regenerar
+
         _renderizar_mensagem_chat("user", ultima_busca["pergunta"], quando_original, "orig_pergunta")
-        _renderizar_mensagem_chat("assistant", ultima_busca["resposta"], quando_original, "orig_resposta")
+        _renderizar_mensagem_chat(
+            "assistant", ultima_busca["resposta"], quando_original, "orig_resposta",
+            on_regenerar=_regenerar_original,
+        )
 
         if "historico_chat" not in st.session_state:
             st.session_state.historico_chat = []
 
         for i, turno in enumerate(st.session_state.historico_chat):
-            _renderizar_mensagem_chat(turno["role"], turno["content"], turno["quando"], i)
+            on_regenerar = _criar_regenerar_turno(i) if turno["role"] == "assistant" else None
+            _renderizar_mensagem_chat(turno["role"], turno["content"], turno["quando"], i, on_regenerar=on_regenerar)
 
         st.markdown('<div class="espaco_chat_fixo"></div>', unsafe_allow_html=True)
 
@@ -416,6 +485,25 @@ st.markdown(
     }}
     [class*="st-key-chat_msg_assistente_"] {{
         margin-bottom: 1.2rem;
+    }}
+    [class*="st-key-acoes_chat_"] {{
+        max-width: 10rem;
+        margin-top: 0.25rem;
+    }}
+    [class*="st-key-acoes_chat_"] [data-testid="stHorizontalBlock"] {{
+        gap: 0 !important;
+    }}
+    [class*="st-key-regenerar_chat_"] button {{
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        color: {cor_mutado} !important;
+        padding: 0 !important;
+        min-height: 2rem !important;
+    }}
+    [class*="st-key-regenerar_chat_"] button:hover {{
+        color: {cor_destaque} !important;
+        background-color: transparent !important;
     }}
 
     .st-key-rodape_pagina {{
