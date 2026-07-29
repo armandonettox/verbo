@@ -56,6 +56,9 @@ def _renderizar_busca_semantica(capitulos_leitura):
         st.session_state.busca_pendente = True
 
     if not ultima_busca:
+        with st.container(key="logo_central"):
+            st.image("assets/logo.png", width=90)
+
         st.markdown(
             '<div class="bloco-central">'
             "<h1>Explore a Biblia</h1>"
@@ -178,8 +181,6 @@ st.markdown(
     [data-testid="InputInstructions"] {{ display: none !important; }}
     [data-testid="stExpandSidebarButton"] {{ z-index: 999999 !important; }}
     [data-testid="stBottom"] {{ display: none; }}
-    .st-key-logo_center [data-testid="StyledFullScreenButton"] {{ display: none; }}
-    .st-key-logo_center [data-testid="stElementToolbar"] {{ display: none; }}
     [data-testid="stMain"] {{ padding-top: 0 !important; }}
     .espaco_rodape {{ height: 6rem; }}
     .espaco_chat_fixo {{ height: 5rem; }}
@@ -379,12 +380,14 @@ st.markdown(
         background-color: {cor_fundo};
     }}
 
-    .st-key-logo_sidebar {{ display: flex; justify-content: center; align-items: center; padding-bottom: 0.5rem; }}
-    .st-key-logo_sidebar img {{
+    .st-key-logo_central {{ display: flex; justify-content: center; align-items: center; margin-bottom: 0.5rem; }}
+    .st-key-logo_central img {{
         background-color: #FBF6EC;
-        padding: 0.35rem;
-        border-radius: 0.4rem;
+        padding: 0.6rem;
+        border-radius: 0.75rem;
     }}
+    .st-key-logo_central [data-testid="StyledFullScreenButton"] {{ display: none; }}
+    .st-key-logo_central [data-testid="stElementToolbar"] {{ display: none; }}
 
     .st-key-tz_detector {{
         position: absolute !important;
@@ -537,9 +540,6 @@ def _iniciar_nova_busca():
 
 
 with st.sidebar:
-    with st.container(key="logo_sidebar"):
-        st.image("assets/logo.png", width=44)
-
     if ultima_busca:
         with st.container(border=True, key="sb_fontes"):
             st.caption("VERSICULOS ENCONTRADOS")
