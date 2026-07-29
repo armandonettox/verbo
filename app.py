@@ -260,6 +260,7 @@ else:
         "#FBF6EC", "#F1E8D8", "#3B2A1E", "#6B4F3A"
     )
 cor_destaque = "#B8860B"
+alvo_regenerando = st.session_state.get("regenerando_alvo")
 
 st.markdown(
     f"""
@@ -525,7 +526,7 @@ st.markdown(
         max-width: 75%;
         margin-bottom: 1.2rem;
     }}
-    [class*="st-key-chat_msg_assistente_"] [data-stale="true"] {{
+    .st-key-chat_msg_assistente_{alvo_regenerando} [data-stale="true"] {{
         display: none !important;
     }}
     [class*="st-key-acoes_chat_"] {{
