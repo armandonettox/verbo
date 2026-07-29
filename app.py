@@ -243,9 +243,27 @@ st.markdown(
     }}
     [data-testid="stSidebar"] * {{ color: {cor_texto}; }}
 
-    [data-testid="stSidebarUserContent"] {{ padding-top: 0.4rem !important; }}
+    [data-testid="stSidebarUserContent"] {{
+        padding-top: 0.4rem !important;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }}
+    [data-testid="stSidebarUserContent"] > div,
+    [data-testid="stSidebarUserContent"] > div > [data-testid="stVerticalBlock"],
+    [data-testid="stSidebarUserContent"] > div > [data-testid="stVerticalBlock"] > [data-testid="stLayoutWrapper"] {{
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }}
     [data-testid="stSidebarUserContent"] > div > [data-testid="stVerticalBlock"] {{
         gap: 0.25rem !important;
+    }}
+    .st-key-sb_idle_bloco {{
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }}
     .st-key-sb_plano, .st-key-sb_semana_dia, .st-key-sb_leitura_atual, .st-key-sb_progresso,
     .st-key-sb_versiculo_data {{
@@ -621,16 +639,17 @@ with st.sidebar:
                     st.session_state.versiculos_visiveis += QUANTIDADE_VERSICULOS_POR_PAGINA
                     st.rerun()
     else:
-        st.markdown(
-            f"<p style='color: {cor_mutado}; font-size: 1.05rem; margin-top: 2rem;'>"
-            "Escolha um livro e capitulo abaixo para ler o texto completo, "
-            "ou use a busca ao lado para encontrar versiculos por tema."
-            "</p>",
-            unsafe_allow_html=True,
-        )
-        with st.container(border=True, key="sb_livros"):
-            st.caption("ESCOLHA O LIVRO E CAPITULO")
-            _renderizar_seletor_livro_capitulo(capitulos_leitura)
+        with st.container(key="sb_idle_bloco"):
+            st.markdown(
+                f"<p style='color: {cor_mutado}; font-size: 1.05rem; text-align: center;'>"
+                "Escolha um livro e capitulo abaixo para ler o texto completo, "
+                "ou use a busca ao lado para encontrar versiculos por tema."
+                "</p>",
+                unsafe_allow_html=True,
+            )
+            with st.container(border=True, key="sb_livros"):
+                st.caption("ESCOLHA O LIVRO E CAPITULO")
+                _renderizar_seletor_livro_capitulo(capitulos_leitura)
 
 with st.container(key="conteudo_pagina"):
     if idx_aberto is not None:
