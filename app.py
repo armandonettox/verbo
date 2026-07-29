@@ -807,6 +807,8 @@ with st.container(key="conteudo_pagina"):
                 st.session_state.capitulo_aberto = idx_aberto + 1
                 st.rerun()
 
+        st.markdown('<div class="espaco_rodape"></div>', unsafe_allow_html=True)
+
     else:
         _renderizar_busca_semantica(capitulos_leitura)
 
