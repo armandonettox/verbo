@@ -1,5 +1,4 @@
 import json
-import math
 import re
 from datetime import date
 
@@ -28,24 +27,6 @@ def carregar_capitulos():
                     "texto": texto,
                 })
     return capitulos
-
-
-def total_semanas(total_capitulos):
-    return math.ceil(total_capitulos / 7)
-
-
-def dias_na_semana(semana, total_capitulos):
-    inicio = (semana - 1) * 7
-    fim = min(inicio + 7, total_capitulos)
-    return fim - inicio
-
-
-def semana_dia_de_indice(idx):
-    return idx // 7 + 1, idx % 7 + 1
-
-
-def indice_de_semana_dia(semana, dia):
-    return (semana - 1) * 7 + (dia - 1)
 
 
 def texto_para_audio(capitulo):

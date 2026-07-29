@@ -157,12 +157,12 @@ if "tema_escuro" not in st.session_state:
     st.session_state.tema_escuro = False
 
 if st.session_state.tema_escuro:
-    cor_fundo, cor_fundo_2, cor_texto, cor_mutado, cor_borda = (
-        "#221A12", "#33281B", "#F1E8D8", "#C9B79E", "#4A3B28"
+    cor_fundo, cor_fundo_2, cor_texto, cor_mutado = (
+        "#221A12", "#33281B", "#F1E8D8", "#C9B79E"
     )
 else:
-    cor_fundo, cor_fundo_2, cor_texto, cor_mutado, cor_borda = (
-        "#FBF6EC", "#F1E8D8", "#3B2A1E", "#6B4F3A", "#F1E8D8"
+    cor_fundo, cor_fundo_2, cor_texto, cor_mutado = (
+        "#FBF6EC", "#F1E8D8", "#3B2A1E", "#6B4F3A"
     )
 cor_destaque = "#B8860B"
 
