@@ -169,8 +169,8 @@ st.markdown(
     [data-testid="stHeader"] {{
         background: transparent !important;
         box-shadow: none !important;
-        height: 0 !important;
-        min-height: 0 !important;
+        height: 2.75rem !important;
+        min-height: 2.75rem !important;
     }}
     [data-testid="stToolbarActions"] {{ display: none !important; }}
     [data-testid="stMainMenu"] {{ display: none !important; }}
