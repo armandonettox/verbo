@@ -200,7 +200,7 @@ st.markdown(
     }}
     [data-testid="stAppViewContainer"] {{ padding-top: 0 !important; }}
     .block-container {{
-        padding-top: 5.5rem !important;
+        padding-top: 2.5rem !important;
         min-height: 100vh !important;
         box-sizing: border-box !important;
         display: flex !important;
@@ -287,7 +287,14 @@ st.markdown(
         border: 1px solid {cor_mutado};
     }}
 
-    .st-key-botao_tema {{ display: flex; align-items: center; height: 100%; }}
+    .st-key-botao_tema {{
+        position: fixed;
+        top: 0.75rem;
+        right: 1.5rem;
+        z-index: 1000000;
+        display: flex;
+        align-items: center;
+    }}
     .st-key-botao_tema button {{
         background-color: transparent;
         border: none;
@@ -361,21 +368,6 @@ st.markdown(
         margin-bottom: 1.2rem;
     }}
 
-    .barra-topo {{ display: flex; align-items: center; gap: 0.5rem; height: 100%; }}
-    .barra-topo a {{ color: {cor_mutado}; }}
-    .barra-topo a:hover {{ color: {cor_destaque}; }}
-
-    .st-key-barra_menu {{
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 1000000;
-        padding: 0.75rem 1.5rem 1rem;
-        box-sizing: border-box;
-        background-color: {cor_fundo};
-        border-bottom: 1px solid {cor_mutado};
-    }}
     .st-key-rodape_pagina {{
         position: fixed;
         bottom: 0;
@@ -388,29 +380,11 @@ st.markdown(
         border-top: 1px solid {cor_mutado};
     }}
 
-    .st-key-logo_center {{ display: flex; justify-content: center; align-items: center; height: 100%; }}
-    .st-key-logo_center img {{
+    .st-key-logo_sidebar {{ display: flex; justify-content: center; align-items: center; padding-bottom: 0.5rem; }}
+    .st-key-logo_sidebar img {{
         background-color: #FBF6EC;
         padding: 0.35rem;
         border-radius: 0.4rem;
-    }}
-
-    [data-testid="stSidebarCollapseButton"],
-    [data-testid="stExpandSidebarButton"] {{
-        display: none !important;
-    }}
-    #slot-sidebar-toggle {{ display: flex; align-items: center; height: 100%; }}
-    #slot-sidebar-toggle [data-testid="stSidebarCollapseButton"],
-    #slot-sidebar-toggle [data-testid="stExpandSidebarButton"] {{
-        display: flex !important;
-        position: static !important;
-        opacity: 1 !important;
-        visibility: visible !important;
-    }}
-    #slot-sidebar-toggle button svg {{
-        color: {cor_mutado} !important;
-        width: 20px !important;
-        height: 20px !important;
     }}
 
     .st-key-tz_detector {{
@@ -442,59 +416,10 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-components.html(
-    """
-    <script>
-    (function() {
-        var doc = window.parent.document;
-        function moverBotaoSidebar() {
-            var slot = doc.getElementById('slot-sidebar-toggle');
-            if (!slot) return;
-            var btn = doc.querySelector('[data-testid="stSidebarCollapseButton"]')
-                || doc.querySelector('[data-testid="stExpandSidebarButton"]');
-            if (btn && btn.parentElement !== slot) {
-                slot.appendChild(btn);
-            }
-        }
-        moverBotaoSidebar();
-        var obs = new MutationObserver(function() {
-            try { moverBotaoSidebar(); } catch (e) {}
-        });
-        obs.observe(doc.body, {childList: true, subtree: true});
-    })();
-    </script>
-    """,
-    height=0,
-)
-
-with st.container(key="barra_menu"):
-    col_vazio, col_logo, col_espaco, col_acoes = st.columns([1.8, 2, 0.2, 1.6])
-    with col_logo:
-        with st.container(key="logo_center"):
-            st.image("assets/logo.png", width=44)
-    with col_acoes:
-        col_sidebar, col_git, col_tema = st.columns([1, 1, 1], gap="small")
-        with col_sidebar:
-            st.markdown('<div id="slot-sidebar-toggle"></div>', unsafe_allow_html=True)
-        with col_git:
-            st.markdown(
-                '<div class="barra-topo">'
-                '<a href="https://github.com/armandonettox/verbo" target="_blank" title="Ver codigo no GitHub">'
-                '<svg height="22" viewBox="0 0 16 16" width="22" fill="currentColor">'
-                '<path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 '
-                '0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 '
-                '1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 '
-                '0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 '
-                '1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 '
-                '3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">'
-                '</path></svg></a></div>',
-                unsafe_allow_html=True,
-            )
-        with col_tema:
-            icone_tema = ":material/dark_mode:" if not st.session_state.tema_escuro else ":material/light_mode:"
-            if st.button(icone_tema, key="botao_tema"):
-                st.session_state.tema_escuro = not st.session_state.tema_escuro
-                st.rerun()
+icone_tema = ":material/dark_mode:" if not st.session_state.tema_escuro else ":material/light_mode:"
+if st.button(icone_tema, key="botao_tema"):
+    st.session_state.tema_escuro = not st.session_state.tema_escuro
+    st.rerun()
 
 if "capitulo_aberto" not in st.session_state:
     st.session_state.capitulo_aberto = None
@@ -613,6 +538,9 @@ def _iniciar_nova_busca():
 
 
 with st.sidebar:
+    with st.container(key="logo_sidebar"):
+        st.image("assets/logo.png", width=44)
+
     if ultima_busca:
         with st.container(border=True, key="sb_fontes"):
             st.caption("VERSICULOS ENCONTRADOS")
