@@ -47,7 +47,8 @@ def _renderizar_mensagem_chat(role, conteudo, quando, indice, on_regenerar=None)
     prefixo = "chat_msg_usuario" if role == "user" else "chat_msg_assistente"
     esta_regenerando = role == "assistant" and st.session_state.get("regenerando_alvo") == indice
     with st.container(key=f"{prefixo}_{indice}"):
-        st.caption(_formatar_quando(quando))
+        if role == "user":
+            st.caption(_formatar_quando(quando))
         conteudo_placeholder = st.empty()
         if esta_regenerando:
             with conteudo_placeholder.container():
