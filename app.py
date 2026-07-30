@@ -716,51 +716,61 @@ def _iniciar_nova_busca():
     st.session_state.capitulo_aberto = None
 
 
+@st.fragment
+def _renderizar_sidebar_resultados(capitulos_leitura, ultima_busca):
+    with st.container(border=True, key="sb_fontes"):
+        st.caption("VERSICULOS ENCONTRADOS")
+        if st.button("Nova busca", icon=":material/refresh:", use_container_width=True, key="btn_nova_busca"):
+            _iniciar_nova_busca()
+            st.rerun()
+
+        if "versiculos_visiveis" not in st.session_state:
+            st.session_state.versiculos_visiveis = QUANTIDADE_VERSICULOS_POR_PAGINA
+
+        total_versiculos = len(ultima_busca["versiculos"])
+        versiculos_visiveis = ultima_busca["versiculos"][: st.session_state.versiculos_visiveis]
+        for i, v in enumerate(versiculos_visiveis):
+            with st.container(border=True, key=f"versiculo_card_{i}"):
+                st.markdown(f"**{v['referencia']}**")
+                st.caption(f"{v.get('similaridade', 0):.2f}% similar")
+                if st.button(
+                    "Ver versiculo",
+                    icon=":material/open_in_new:",
+                    key=f"versiculo_btn_ver_{i}",
+                    use_container_width=True,
+                ):
+                    idx_capitulo = _localizar_capitulo(capitulos_leitura, v["referencia"])
+                    if idx_capitulo is not None:
+                        st.session_state.capitulo_aberto = idx_capitulo
+                        st.rerun()
+                st.write(_resumir_texto(v["texto"]))
+
+        if st.session_state.versiculos_visiveis < total_versiculos:
+            if st.button("Mostrar mais resultados", use_container_width=True, key="btn_mostrar_mais"):
+                st.session_state.versiculos_visiveis += QUANTIDADE_VERSICULOS_POR_PAGINA
+                st.rerun(scope="fragment")
+
+
+@st.fragment
+def _renderizar_sidebar_idle(capitulos_leitura):
+    with st.container(key="sb_idle_bloco"):
+        st.markdown(
+            f"<p style='color: {cor_mutado}; font-size: 1.05rem; text-align: center; margin-bottom: 1.5rem;'>"
+            "Escolha um livro e capitulo abaixo para ler o texto completo, "
+            "ou use a busca ao lado para encontrar versiculos por tema."
+            "</p>",
+            unsafe_allow_html=True,
+        )
+        with st.container(border=True, key="sb_livros"):
+            st.caption("ESCOLHA O LIVRO E CAPITULO")
+            _renderizar_seletor_livro_capitulo(capitulos_leitura)
+
+
 with st.sidebar:
     if ultima_busca:
-        with st.container(border=True, key="sb_fontes"):
-            st.caption("VERSICULOS ENCONTRADOS")
-            if st.button("Nova busca", icon=":material/refresh:", use_container_width=True, key="btn_nova_busca"):
-                _iniciar_nova_busca()
-                st.rerun()
-
-            if "versiculos_visiveis" not in st.session_state:
-                st.session_state.versiculos_visiveis = QUANTIDADE_VERSICULOS_POR_PAGINA
-
-            total_versiculos = len(ultima_busca["versiculos"])
-            versiculos_visiveis = ultima_busca["versiculos"][: st.session_state.versiculos_visiveis]
-            for i, v in enumerate(versiculos_visiveis):
-                with st.container(border=True, key=f"versiculo_card_{i}"):
-                    st.markdown(f"**{v['referencia']}**")
-                    st.caption(f"{v.get('similaridade', 0):.2f}% similar")
-                    if st.button(
-                        "Ver versiculo",
-                        icon=":material/open_in_new:",
-                        key=f"versiculo_btn_ver_{i}",
-                        use_container_width=True,
-                    ):
-                        idx_capitulo = _localizar_capitulo(capitulos_leitura, v["referencia"])
-                        if idx_capitulo is not None:
-                            st.session_state.capitulo_aberto = idx_capitulo
-                            st.rerun()
-                    st.write(_resumir_texto(v["texto"]))
-
-            if st.session_state.versiculos_visiveis < total_versiculos:
-                if st.button("Mostrar mais resultados", use_container_width=True, key="btn_mostrar_mais"):
-                    st.session_state.versiculos_visiveis += QUANTIDADE_VERSICULOS_POR_PAGINA
-                    st.rerun()
+        _renderizar_sidebar_resultados(capitulos_leitura, ultima_busca)
     else:
-        with st.container(key="sb_idle_bloco"):
-            st.markdown(
-                f"<p style='color: {cor_mutado}; font-size: 1.05rem; text-align: center; margin-bottom: 1.5rem;'>"
-                "Escolha um livro e capitulo abaixo para ler o texto completo, "
-                "ou use a busca ao lado para encontrar versiculos por tema."
-                "</p>",
-                unsafe_allow_html=True,
-            )
-            with st.container(border=True, key="sb_livros"):
-                st.caption("ESCOLHA O LIVRO E CAPITULO")
-                _renderizar_seletor_livro_capitulo(capitulos_leitura)
+        _renderizar_sidebar_idle(capitulos_leitura)
 
 with st.container(key="conteudo_pagina"):
     if idx_aberto is not None:
