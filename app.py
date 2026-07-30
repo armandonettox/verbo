@@ -488,7 +488,7 @@ st.markdown(
         left: 100%;
         transform: translateY(-50%);
         margin-left: 0.4rem;
-        width: 6.5rem;
+        width: 7.5rem;
     }}
     .st-key-audio_capitulo iframe {{ width: 100% !important; }}
 
@@ -583,13 +583,13 @@ st.markdown(
         line-height: 0 !important;
     }}
     [class*="st-key-sb_audio"] div[data-testid="stElementContainer"]:has(> iframe),
-    [class*="st-key-audio_"] div[data-testid="stElementContainer"]:has(> iframe) {{
+    [class*="st-key-audio_"]:not(.st-key-audio_capitulo) div[data-testid="stElementContainer"]:has(> iframe) {{
         height: 40px !important;
         min-height: 40px !important;
         line-height: normal !important;
     }}
     [class*="st-key-sb_audio"] iframe,
-    [class*="st-key-audio_"] iframe {{ height: 40px !important; }}
+    [class*="st-key-audio_"]:not(.st-key-audio_capitulo) iframe {{ height: 40px !important; }}
     </style>
     """,
     unsafe_allow_html=True,
@@ -777,6 +777,7 @@ with st.container(key="conteudo_pagina"):
                 key="audio_capitulo",
                 cor_mutado=cor_mutado,
                 cor_destaque=cor_destaque,
+                tamanho_icone_rem=2.1,
             )
 
         st.write(capitulo["texto"])
