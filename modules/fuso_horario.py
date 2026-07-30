@@ -4,12 +4,17 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 
+@st.fragment
 def garantir_data_local():
     """Garante que st.session_state.data_local_usuario tenha a data de hoje no fuso
     horario do navegador de quem esta acessando. O servidor roda em UTC e nao sabe
     o fuso do usuario, entao usamos um campo escondido preenchido via JavaScript
     (o mesmo tipo de truque de manipular window.parent.document ja usado em outros
-    pontos do app) em vez de navegar a pagina, que o sandbox do iframe bloqueia."""
+    pontos do app) em vez de navegar a pagina, que o sandbox do iframe bloqueia.
+
+    Roda isolado num fragment para que o preenchimento do campo (disparado pelo
+    JavaScript) so reexecute esse pedaco escondido, sem recarregar a pagina
+    inteira e causar uma piscada visual logo na primeira carga."""
     if "data_local_usuario" in st.session_state:
         return
 
