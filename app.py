@@ -106,6 +106,13 @@ def _renderizar_busca_semantica(capitulos_leitura):
     if "regenerando_alvo" not in st.session_state:
         st.session_state.regenerando_alvo = None
 
+    if st.session_state.regenerando_alvo is not None:
+        st.markdown(
+            f"<style>.st-key-chat_msg_assistente_{st.session_state.regenerando_alvo} "
+            "[data-stale='true'] { display: none !important; }</style>",
+            unsafe_allow_html=True,
+        )
+
     def _marcar_busca_pendente():
         if st.session_state.get("busca_pergunta", "").strip():
             st.session_state.busca_pendente = True
@@ -228,20 +235,10 @@ def _renderizar_busca_semantica(capitulos_leitura):
                 key="chat_input_seguimento",
             )
         if pergunta_seguimento:
-            historico_para_llm = [
-                {"role": t["role"], "content": t["content"]} for t in st.session_state.historico_chat
-            ]
-            with st.spinner(""):
-                resposta_seguimento = continuar_conversa(
-                    ultima_busca["pergunta"],
-                    ultima_busca["resposta"],
-                    ultima_busca["versiculos"],
-                    historico_para_llm,
-                    pergunta_seguimento,
-                )
             agora = datetime.now()
             st.session_state.historico_chat.append({"role": "user", "content": pergunta_seguimento, "quando": agora})
-            st.session_state.historico_chat.append({"role": "assistant", "content": resposta_seguimento, "quando": agora})
+            st.session_state.historico_chat.append({"role": "assistant", "content": "", "quando": agora})
+            st.session_state.regenerando_alvo = len(st.session_state.historico_chat) - 1
             st.rerun(scope="fragment")
 
 st.set_page_config(page_title="Verbo", page_icon="assets/favicon.png", layout="wide")
@@ -260,7 +257,6 @@ else:
         "#FBF6EC", "#F1E8D8", "#3B2A1E", "#6B4F3A"
     )
 cor_destaque = "#B8860B"
-alvo_regenerando = st.session_state.get("regenerando_alvo")
 
 st.markdown(
     f"""
@@ -525,9 +521,6 @@ st.markdown(
         width: fit-content !important;
         max-width: 75%;
         margin-bottom: 1.2rem;
-    }}
-    .st-key-chat_msg_assistente_{alvo_regenerando} [data-stale="true"] {{
-        display: none !important;
     }}
     [class*="st-key-acoes_chat_"] {{
         max-width: 10rem;
