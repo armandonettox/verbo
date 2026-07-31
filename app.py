@@ -543,6 +543,12 @@ st.markdown(
     }}
     [class*="st-key-acoes_chat_"] [data-testid="stHorizontalBlock"] {{
         gap: 0 !important;
+        flex-wrap: nowrap !important;
+    }}
+    [class*="st-key-acoes_chat_"] [data-testid="stColumn"] {{
+        width: 2.5rem !important;
+        min-width: 2.5rem !important;
+        flex: 0 0 auto !important;
     }}
     [class*="st-key-regenerar_chat_"] button {{
         background-color: transparent !important;
