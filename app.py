@@ -294,7 +294,7 @@ st.markdown(
         width: auto !important;
         z-index: 999;
         background-color: {cor_fundo};
-        padding: 0.75rem 1.5rem;
+        padding: 0.75rem 1.5rem 1rem;
         box-sizing: border-box;
     }}
     .st-key-chat_conversa [data-testid="stChatInput"] {{
@@ -307,10 +307,9 @@ st.markdown(
         text-align: center;
     }}
     .st-key-aviso_ia_chat p {{
-        font-size: 0.7rem;
+        font-size: 0.75rem;
         color: {cor_mutado};
-        opacity: 0.7;
-        margin: 0.35rem 0 0 0;
+        margin: 0.4rem 0 0 0;
     }}
     [data-testid="stAppViewContainer"]:has([data-testid="stSidebar"][aria-expanded="true"]) .st-key-chat_conversa {{
         left: 380px;
