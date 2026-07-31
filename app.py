@@ -347,6 +347,9 @@ st.markdown(
         gap: 0.25rem !important;
     }}
     .st-key-sb_idle_bloco {{ margin-top: 12rem !important; }}
+    @media (max-width: 640px) {{
+        .st-key-sb_idle_bloco {{ margin-top: 1.5rem !important; }}
+    }}
     .st-key-sb_plano, .st-key-sb_semana_dia, .st-key-sb_leitura_atual, .st-key-sb_progresso,
     .st-key-sb_versiculo_data {{
         padding: 0.4rem !important;
