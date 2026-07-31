@@ -95,6 +95,7 @@ def _renderizar_mensagem_chat(role, conteudo, quando, indice, on_regenerar=None)
                             on_click=_marcar_regenerando,
                             args=(indice,),
                         )
+            st.caption("Resposta gerada por IA a partir dos versiculos encontrados. Confira sempre o texto original.")
 
 
 @st.fragment
