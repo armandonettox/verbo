@@ -95,7 +95,6 @@ def _renderizar_mensagem_chat(role, conteudo, quando, indice, on_regenerar=None)
                             on_click=_marcar_regenerando,
                             args=(indice,),
                         )
-            st.caption("Resposta gerada por IA a partir dos versiculos encontrados. Confira sempre o texto original.")
 
 
 @st.fragment
@@ -235,6 +234,8 @@ def _renderizar_busca_semantica(capitulos_leitura):
                 "Faca uma pergunta de acompanhamento...",
                 key="chat_input_seguimento",
             )
+            with st.container(key="aviso_ia_chat"):
+                st.caption("Respostas geradas por IA a partir dos versiculos encontrados. Confira sempre o texto original.")
         if pergunta_seguimento:
             agora = datetime.now()
             st.session_state.historico_chat.append({"role": "user", "content": pergunta_seguimento, "quando": agora})
@@ -284,7 +285,7 @@ st.markdown(
     [data-testid="stBottom"] {{ display: none; }}
     [data-testid="stMain"] {{ padding-top: 0 !important; }}
     .espaco_rodape {{ height: 6rem; }}
-    .espaco_chat_fixo {{ height: 5rem; }}
+    .espaco_chat_fixo {{ height: 6rem; }}
     .st-key-chat_conversa {{
         position: fixed;
         bottom: 0;
@@ -299,6 +300,17 @@ st.markdown(
     .st-key-chat_conversa [data-testid="stChatInput"] {{
         max-width: 900px;
         margin: 0 auto;
+    }}
+    .st-key-aviso_ia_chat {{
+        max-width: 900px;
+        margin: 0 auto;
+        text-align: center;
+    }}
+    .st-key-aviso_ia_chat p {{
+        font-size: 0.7rem;
+        color: {cor_mutado};
+        opacity: 0.7;
+        margin: 0.35rem 0 0 0;
     }}
     [data-testid="stAppViewContainer"]:has([data-testid="stSidebar"][aria-expanded="true"]) .st-key-chat_conversa {{
         left: 380px;
