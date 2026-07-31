@@ -301,15 +301,14 @@ st.markdown(
         max-width: 900px;
         margin: 0 auto;
     }}
-    .st-key-aviso_ia_chat {{
-        max-width: 900px;
-        margin: 0 auto;
-        text-align: center;
+    .st-key-aviso_ia_chat [data-testid="stCaptionContainer"] {{
+        width: 100% !important;
+        text-align: center !important;
     }}
-    .st-key-aviso_ia_chat p {{
-        font-size: 0.75rem;
-        color: {cor_mutado};
-        margin: 0.4rem 0 0 0;
+    .st-key-aviso_ia_chat [data-testid="stCaptionContainer"] p {{
+        font-size: 0.75rem !important;
+        color: {cor_mutado} !important;
+        margin: 0.4rem 0 0 0 !important;
     }}
     [data-testid="stAppViewContainer"]:has([data-testid="stSidebar"][aria-expanded="true"]) .st-key-chat_conversa {{
         left: 380px;
