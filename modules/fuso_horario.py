@@ -4,6 +4,14 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 
+def agora_local():
+    """Retorna o horario atual no fuso do navegador de quem esta acessando,
+    usando o offset detectado via JS em garantir_data_local. Antes desse
+    offset chegar, cai de volta pro horario UTC do servidor."""
+    offset_minutos = st.session_state.get("tz_offset_minutos", 0)
+    return datetime.utcnow() + timedelta(minutes=offset_minutos)
+
+
 @st.fragment
 def garantir_data_local():
     """Garante que st.session_state.data_local_usuario tenha a data de hoje no fuso
@@ -23,8 +31,8 @@ def garantir_data_local():
 
     if offset_str:
         offset_minutos = int(offset_str)
-        agora_local = datetime.utcnow() + timedelta(minutes=offset_minutos)
-        st.session_state.data_local_usuario = agora_local.date()
+        st.session_state.tz_offset_minutos = offset_minutos
+        st.session_state.data_local_usuario = agora_local().date()
         return
 
     # Fuso ainda nao chegou do navegador (o JS abaixo esta tentando). Quem consome

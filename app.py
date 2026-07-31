@@ -1,5 +1,5 @@
 import re
-from datetime import date, datetime
+from datetime import date
 
 import streamlit as st
 import streamlit.components.v1 as components
@@ -10,7 +10,7 @@ from modules.plano_livre import _renderizar_seletor_livro_capitulo
 from modules.plano_versiculo_dia import obter_versiculo_do_dia
 from modules.audio_widget import renderizar_audio, renderizar_audio_com_progresso
 from modules.acoes_chat import renderizar_botao_copiar, renderizar_botao_compartilhar
-from modules.fuso_horario import garantir_data_local
+from modules.fuso_horario import garantir_data_local, agora_local
 
 TAMANHO_RESUMO_VERSICULO = 220
 QUANTIDADE_VERSICULOS_POR_PAGINA = 4
@@ -34,7 +34,8 @@ def _localizar_capitulo(capitulos, referencia):
 
 
 def _formatar_quando(quando):
-    if quando.date() == date.today():
+    hoje = st.session_state.get("data_local_usuario", date.today())
+    if quando.date() == hoje:
         return f"Hoje {quando.strftime('%H:%M')}"
     return quando.strftime("%d/%m/%Y %H:%M")
 
@@ -161,7 +162,7 @@ def _renderizar_busca_semantica(capitulos_leitura):
                 "pergunta": pergunta,
                 "resposta": resposta,
                 "versiculos": versiculos,
-                "quando": datetime.now(),
+                "quando": agora_local(),
             }
             st.session_state.versiculos_visiveis = QUANTIDADE_VERSICULOS_POR_PAGINA
             st.session_state.historico_chat = []
@@ -186,7 +187,7 @@ def _renderizar_busca_semantica(capitulos_leitura):
             st.write(versiculo_dia["texto"])
 
     else:
-        quando_original = ultima_busca.get("quando", datetime.now())
+        quando_original = ultima_busca.get("quando", agora_local())
 
         def _regenerar_original():
             nova_resposta = gerar_resposta(ultima_busca["pergunta"], ultima_busca["versiculos"])
@@ -237,7 +238,7 @@ def _renderizar_busca_semantica(capitulos_leitura):
             with st.container(key="aviso_ia_chat"):
                 st.caption("Respostas geradas por IA a partir dos versiculos encontrados. Confira sempre o texto original.")
         if pergunta_seguimento:
-            agora = datetime.now()
+            agora = agora_local()
             st.session_state.historico_chat.append({"role": "user", "content": pergunta_seguimento, "quando": agora})
             st.session_state.historico_chat.append({"role": "assistant", "content": "", "quando": agora})
             st.session_state.regenerando_alvo = len(st.session_state.historico_chat) - 1
