@@ -1,0 +1,28 @@
+<style>
+html, body { margin: 0; padding: 0; overflow: hidden; display: flex; justify-content: flex-start; }
+#ID_BOTAO {
+    width: TAMANHO_BOTAOrem;
+    height: TAMANHO_BOTAOrem;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    color: COR_MUTADO;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+}
+#ID_BOTAO:hover { color: COR_DESTAQUE; }
+</style>
+<button id="ID_BOTAO" type="button" title="TITULO">BOTAO_HTML_INICIAL</button>
+<script>
+(function() {
+    var btn = document.getElementById("ID_BOTAO");
+    var htmlNormal = ICONE_HTML_JSON;
+    var htmlConfirmado = ICONE_CONFIRMADO_JSON;
+    btn.addEventListener('click', function() {
+        SCRIPT_CLIQUE
+    });
+})();
+</script>

@@ -39,43 +39,27 @@ def _texto_para_js(texto):
     return json.dumps(texto).replace("</", "<\\/")
 
 
+with open("assets/templates/botao-icone.html", encoding="utf-8") as f:
+    _TEMPLATE_BOTAO_ICONE = f.read()
+
+
 def _renderizar_botao_icone(key, titulo, icone_html, icone_confirmado_html, script_clique, cor_mutado, cor_destaque, tamanho_botao_rem):
     with st.container(key=key):
         botao_id = f"btn-{key}"
         altura = int(tamanho_botao_rem * 16)
-        components.html(
-            f"""
-            <style>
-            html, body {{ margin: 0; padding: 0; overflow: hidden; display: flex; justify-content: flex-start; }}
-            #{botao_id} {{
-                width: {tamanho_botao_rem}rem;
-                height: {tamanho_botao_rem}rem;
-                padding: 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background-color: transparent;
-                color: {cor_mutado};
-                border: none;
-                border-radius: 50%;
-                cursor: pointer;
-            }}
-            #{botao_id}:hover {{ color: {cor_destaque}; }}
-            </style>
-            <button id="{botao_id}" type="button" title="{titulo}">{icone_html}</button>
-            <script>
-            (function() {{
-                var btn = document.getElementById("{botao_id}");
-                var htmlNormal = {json.dumps(icone_html)};
-                var htmlConfirmado = {json.dumps(icone_confirmado_html)};
-                btn.addEventListener('click', function() {{
-                    {script_clique}
-                }});
-            }})();
-            </script>
-            """,
-            height=altura,
+        html = (
+            _TEMPLATE_BOTAO_ICONE
+            .replace("ID_BOTAO", botao_id)
+            .replace("TAMANHO_BOTAO", str(tamanho_botao_rem))
+            .replace("COR_MUTADO", cor_mutado)
+            .replace("COR_DESTAQUE", cor_destaque)
+            .replace("TITULO", titulo)
+            .replace("BOTAO_HTML_INICIAL", icone_html)
+            .replace("ICONE_HTML_JSON", json.dumps(icone_html))
+            .replace("ICONE_CONFIRMADO_JSON", json.dumps(icone_confirmado_html))
+            .replace("SCRIPT_CLIQUE", script_clique)
         )
+        components.html(html, height=altura)
 
 
 def renderizar_botao_copiar(texto, key, cor_mutado, cor_destaque, tamanho_botao_rem=2.0):

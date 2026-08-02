@@ -307,99 +307,11 @@ if "capitulo_aberto" not in st.session_state:
 capitulos_leitura = carregar_capitulos()
 idx_aberto = st.session_state.capitulo_aberto
 
+with open("assets/templates/rolagem-automatica.html", encoding="utf-8") as f:
+    _script_rolagem = f.read()
+
 components.html(
-    """
-    <script>
-    (function() {
-        var doc = window.parent.document;
-        var win = window.parent;
-        var mostrar = MOSTRAR_FLAG;
-
-        if (!win.__rolarAutomatico) {
-            win.__rolarAutomatico = { rolando: false, intervalo: null };
-        }
-        var estado = win.__rolarAutomatico;
-
-        function obterContainerRolagem() {
-            return doc.querySelector('[data-testid="stMain"]') || doc.scrollingElement || doc.documentElement;
-        }
-
-        function pararRolagem(btn) {
-            if (estado.intervalo) {
-                win.clearInterval(estado.intervalo);
-                estado.intervalo = null;
-            }
-            estado.rolando = false;
-            if (btn) btn.textContent = 'Rolar';
-        }
-
-        function alternarRolagem(btn) {
-            if (estado.rolando) {
-                pararRolagem(btn);
-                return;
-            }
-            estado.rolando = true;
-            btn.textContent = 'Parar';
-            var container = obterContainerRolagem();
-            estado.intervalo = win.setInterval(function() {
-                container.scrollBy(0, 1);
-                if (container.scrollTop + container.clientHeight >= container.scrollHeight - 2) {
-                    pararRolagem(btn);
-                }
-            }, 40);
-        }
-
-        function temConteudoRolavel(container) {
-            return container.scrollHeight > container.clientHeight + 4;
-        }
-
-        function garantirBotao() {
-            var antigos = doc.querySelectorAll('#btn-rolar-automatico');
-            for (var i = 0; i < antigos.length; i++) {
-                antigos[i].parentNode.removeChild(antigos[i]);
-            }
-
-            var btn = doc.createElement('button');
-            btn.id = 'btn-rolar-automatico';
-            btn.type = 'button';
-            btn.style.position = 'fixed';
-            btn.style.bottom = '90px';
-            btn.style.right = '20px';
-            btn.style.zIndex = '2147483647';
-            btn.style.padding = '0.5rem 1rem';
-            btn.style.borderRadius = '999px';
-            btn.style.border = '1px solid COR_MUTADO';
-            btn.style.backgroundColor = 'COR_FUNDO';
-            btn.style.color = 'COR_TEXTO';
-            btn.style.cursor = 'pointer';
-            btn.style.fontSize = '0.85rem';
-            btn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.25)';
-            btn.style.pointerEvents = 'auto';
-            btn.textContent = estado.rolando ? 'Parar' : 'Rolar';
-            btn.onclick = function() { alternarRolagem(btn); };
-            doc.body.appendChild(btn);
-
-            var container = obterContainerRolagem();
-
-            function atualizarVisibilidade() {
-                var visivel = mostrar && temConteudoRolavel(container);
-                btn.style.display = visivel ? 'block' : 'none';
-                if (!visivel) {
-                    pararRolagem(btn);
-                }
-            }
-
-            atualizarVisibilidade();
-            win.addEventListener('resize', atualizarVisibilidade);
-
-            var observador = new MutationObserver(atualizarVisibilidade);
-            observador.observe(container, {childList: true, subtree: true, characterData: true});
-        }
-
-        garantirBotao();
-    })();
-    </script>
-    """
+    _script_rolagem
     .replace("MOSTRAR_FLAG", "true" if idx_aberto is not None else "false")
     .replace("COR_MUTADO", cor_mutado)
     .replace("COR_FUNDO", cor_fundo)
