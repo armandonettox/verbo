@@ -1,5 +1,5 @@
 # Dependencias do projeto
-chromadb
-streamlit
-openai
-python-dotenv
+chromadb==1.5.9
+streamlit==1.60.0
+openai==2.48.0
+python-dotenv==1.2.2
