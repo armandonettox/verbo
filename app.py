@@ -262,6 +262,9 @@ def _renderizar_busca_semantica(capitulos_leitura):
 
 st.set_page_config(page_title="Verbo", page_icon="assets/favicon.png", layout="wide")
 
+with open("assets/templates/definir-idioma.html", encoding="utf-8") as f:
+    components.html(f.read(), height=0)
+
 garantir_data_local()
 
 if "tema_escuro" not in st.session_state:
