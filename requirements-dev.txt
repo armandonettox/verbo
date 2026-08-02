@@ -1,2 +1,0 @@
-# Dependencias de desenvolvimento (testes)
-pytest==9.1.1
