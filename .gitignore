@@ -10,3 +10,11 @@ venv/
 .vscode/
 .idea/
 *.log
+
+# arquivos de instrucao/config de assistentes de IA (locais, nao versionados)
+CLAUDE.md
+AGENTS.md
+.claude/
+.cursor/
+.rules
+.gemini/
