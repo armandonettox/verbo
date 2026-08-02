@@ -1,16 +1,13 @@
-import os
-from dotenv import load_dotenv
 from openai import OpenAI
-
-load_dotenv()
+from config import NVIDIA_API_KEY, EMBEDDING_MODEL
 
 client = OpenAI(
-    api_key=os.getenv("NVIDIA_API_KEY"),
+    api_key=NVIDIA_API_KEY,
     base_url="https://integrate.api.nvidia.com/v1",
 )
 
 resposta = client.embeddings.create(
-    model="nvidia/nv-embedqa-e5-v5",
+    model=EMBEDDING_MODEL,
     input=["No principio era o Verbo"],
     extra_body={"input_type": "query", "truncate": "END"},
 )
