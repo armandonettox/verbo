@@ -152,21 +152,25 @@ def _renderizar_busca_semantica(capitulos_leitura):
                 )
 
         if st.session_state.busca_pendente and pergunta:
-            with st.spinner(""):
-                versiculos = buscar_versiculos(pergunta)
-
-            resposta = gerar_resposta(pergunta, versiculos)
-
-            st.session_state.busca_pendente = False
-            st.session_state.ultima_busca = {
-                "pergunta": pergunta,
-                "resposta": resposta,
-                "versiculos": versiculos,
-                "quando": agora_local(),
-            }
-            st.session_state.versiculos_visiveis = QUANTIDADE_VERSICULOS_POR_PAGINA
-            st.session_state.historico_chat = []
-            st.rerun()
+            try:
+                with st.spinner(""):
+                    versiculos = buscar_versiculos(pergunta)
+                resposta = gerar_resposta(pergunta, versiculos)
+            except Exception:
+                st.session_state.busca_pendente = False
+                st.toast("Nao foi possivel completar a busca. Tente novamente.", icon=":material/error:")
+                st.rerun()
+            else:
+                st.session_state.busca_pendente = False
+                st.session_state.ultima_busca = {
+                    "pergunta": pergunta,
+                    "resposta": resposta,
+                    "versiculos": versiculos,
+                    "quando": agora_local(),
+                }
+                st.session_state.versiculos_visiveis = QUANTIDADE_VERSICULOS_POR_PAGINA
+                st.session_state.historico_chat = []
+                st.rerun()
         elif st.session_state.busca_pendente:
             st.session_state.busca_pendente = False
 
@@ -190,10 +194,16 @@ def _renderizar_busca_semantica(capitulos_leitura):
         quando_original = ultima_busca.get("quando", agora_local())
 
         def _regenerar_original():
-            nova_resposta = gerar_resposta(ultima_busca["pergunta"], ultima_busca["versiculos"])
-            st.session_state.ultima_busca["resposta"] = nova_resposta
-            st.session_state.regenerando_alvo = None
-            st.rerun(scope="fragment")
+            try:
+                nova_resposta = gerar_resposta(ultima_busca["pergunta"], ultima_busca["versiculos"])
+            except Exception:
+                st.session_state.regenerando_alvo = None
+                st.toast("Nao foi possivel gerar uma nova resposta. Tente novamente.", icon=":material/error:")
+                st.rerun(scope="fragment")
+            else:
+                st.session_state.ultima_busca["resposta"] = nova_resposta
+                st.session_state.regenerando_alvo = None
+                st.rerun(scope="fragment")
 
         def _criar_regenerar_turno(indice):
             def _regenerar():
@@ -202,16 +212,22 @@ def _renderizar_busca_semantica(capitulos_leitura):
                 historico_para_llm = [
                     {"role": t["role"], "content": t["content"]} for t in historico[: indice - 1]
                 ]
-                nova_resposta = continuar_conversa(
-                    ultima_busca["pergunta"],
-                    ultima_busca["resposta"],
-                    ultima_busca["versiculos"],
-                    historico_para_llm,
-                    pergunta_usuario,
-                )
-                st.session_state.historico_chat[indice]["content"] = nova_resposta
-                st.session_state.regenerando_alvo = None
-                st.rerun(scope="fragment")
+                try:
+                    nova_resposta = continuar_conversa(
+                        ultima_busca["pergunta"],
+                        ultima_busca["resposta"],
+                        ultima_busca["versiculos"],
+                        historico_para_llm,
+                        pergunta_usuario,
+                    )
+                except Exception:
+                    st.session_state.regenerando_alvo = None
+                    st.toast("Nao foi possivel gerar uma nova resposta. Tente novamente.", icon=":material/error:")
+                    st.rerun(scope="fragment")
+                else:
+                    st.session_state.historico_chat[indice]["content"] = nova_resposta
+                    st.session_state.regenerando_alvo = None
+                    st.rerun(scope="fragment")
 
             return _regenerar
 
