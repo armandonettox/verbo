@@ -6,6 +6,12 @@
 
 RAG fechado sobre a Biblia Catolica, em portugues. Responde perguntas usando so o texto da Biblia como fonte, sem inventar com conhecimento geral do LLM.
 
+Alem da busca semantica, o Verbo permite ler qualquer livro e capitulo por
+inteiro, ouvir o texto narrado, acompanhar um versiculo do dia e continuar a
+conversa com perguntas de acompanhamento sobre a resposta gerada.
+
+Em producao em [overbo.streamlit.app](https://overbo.streamlit.app).
+
 ## Origem
 
 O Verbo nasceu na crisma. Comecei a fazer a crisma na igreja catolica junto com a
