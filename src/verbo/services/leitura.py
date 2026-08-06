@@ -4,7 +4,7 @@ from datetime import date
 
 import streamlit as st
 
-from config import BIBLE_JSON_PATH
+from verbo.config import BIBLE_JSON_PATH
 
 EPOCA = date(2026, 1, 1)
 

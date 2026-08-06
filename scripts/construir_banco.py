@@ -1,20 +1,14 @@
-"""
-Le biblia.json, gera embeddings via NVIDIA NIM
-e popula o banco vetorial Chroma. Executar uma unica vez.
+"""Le biblia.json, gera embeddings via NVIDIA NIM e popula o banco vetorial Chroma.
+
+Executar uma unica vez (ou apos atualizar data/biblia.json). Usa upsert, entao
+rodar de novo sobre o mesmo id apenas substitui o registro em vez de duplicar.
 """
 import json
-import sys
 import time
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-import chromadb
-from openai import OpenAI
-from config import (
-    NVIDIA_API_KEY, BIBLE_JSON_PATH, CHROMA_DB_PATH,
-    COLLECTION_NAME, EMBEDDING_MODEL
-)
+from verbo.config import BIBLE_JSON_PATH, EMBEDDING_MODEL
+from verbo.core.chroma_client import obter_colecao
+from verbo.core.nvidia_client import obter_client_nvidia
 
 BATCH_SIZE = 50
 CHUNK_SIZE = 1500
@@ -74,13 +68,8 @@ def main():
     total = len(versiculos)
     print(f"{total} chunks carregados.")
 
-    client = OpenAI(
-        api_key=NVIDIA_API_KEY,
-        base_url="https://integrate.api.nvidia.com/v1",
-    )
-
-    chroma = chromadb.PersistentClient(path=CHROMA_DB_PATH)
-    colecao = chroma.get_or_create_collection(COLLECTION_NAME)
+    client = obter_client_nvidia()
+    colecao = obter_colecao(criar_se_ausente=True)
 
     for i in range(0, total, BATCH_SIZE):
         lote = versiculos[i:i + BATCH_SIZE]
@@ -93,7 +82,7 @@ def main():
         )
         embeddings = [item.embedding for item in resposta.data]
 
-        colecao.add(
+        colecao.upsert(
             ids=[v["id"] for v in lote],
             embeddings=embeddings,
             documents=textos,

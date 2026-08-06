@@ -1,7 +1,7 @@
 from datetime import date
 
-from modules.leitura import EPOCA
-from modules.plano_versiculo_dia import obter_versiculo_do_dia
+from verbo.services.leitura import EPOCA
+from verbo.services.plano_versiculo_dia import obter_versiculo_do_dia
 
 
 def test_obter_versiculo_do_dia_retorna_versiculo_valido_na_epoca():

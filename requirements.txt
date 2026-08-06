@@ -1,5 +1,3 @@
-# Dependencias do projeto
-chromadb==1.5.9
-streamlit==1.60.0
-openai==2.48.0
-python-dotenv==1.2.2
+# Instala o pacote verbo (src/) em modo editavel, com as dependencias
+# declaradas em pyproject.toml. Usado tanto localmente quanto no deploy.
+-e .

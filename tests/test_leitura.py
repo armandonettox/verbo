@@ -1,4 +1,4 @@
-from modules.leitura import texto_para_audio
+from verbo.services.leitura import texto_para_audio
 
 
 def test_texto_para_audio_remove_marcadores_de_versiculo():

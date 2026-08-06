@@ -1,7 +1,7 @@
 import importlib.util
 from pathlib import Path
 
-_CAMINHO = Path(__file__).resolve().parent.parent / "data" / "construir-banco.py"
+_CAMINHO = Path(__file__).resolve().parent.parent / "scripts" / "construir_banco.py"
 _spec = importlib.util.spec_from_file_location("construir_banco", _CAMINHO)
 construir_banco = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(construir_banco)

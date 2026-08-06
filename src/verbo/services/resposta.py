@@ -1,10 +1,5 @@
-from openai import OpenAI
-from config import NVIDIA_API_KEY, CHAT_MODEL
-
-_client = OpenAI(
-    api_key=NVIDIA_API_KEY,
-    base_url="https://integrate.api.nvidia.com/v1",
-)
+from verbo.config import CHAT_MODEL
+from verbo.core.nvidia_client import obter_client_nvidia
 
 
 def _montar_contexto(versiculos: list[dict]) -> str:
@@ -14,6 +9,7 @@ def _montar_contexto(versiculos: list[dict]) -> str:
 
 
 def gerar_resposta(pergunta: str, versiculos: list[dict]) -> str:
+    client = obter_client_nvidia()
     contexto = _montar_contexto(versiculos)
 
     prompt = f"""Voce e um assistente que responde perguntas usando EXCLUSIVAMENTE os versiculos da Biblia fornecidos abaixo.
@@ -30,7 +26,7 @@ Pergunta: {pergunta}
 
 Resposta:"""
 
-    resposta = _client.chat.completions.create(
+    resposta = client.chat.completions.create(
         model=CHAT_MODEL,
         messages=[{"role": "user", "content": prompt}],
     )
@@ -45,6 +41,7 @@ def continuar_conversa(
     historico: list[dict],
     pergunta_nova: str,
 ) -> str:
+    client = obter_client_nvidia()
     contexto = _montar_contexto(versiculos)
 
     instrucao = f"""Voce e um assistente que responde perguntas usando EXCLUSIVAMENTE os versiculos da Biblia fornecidos abaixo.
@@ -62,7 +59,7 @@ Versiculos:
         {"role": "user", "content": pergunta_nova},
     ]
 
-    resposta = _client.chat.completions.create(
+    resposta = client.chat.completions.create(
         model=CHAT_MODEL,
         messages=messages,
     )

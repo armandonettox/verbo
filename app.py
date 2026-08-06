@@ -3,14 +3,14 @@ from datetime import date
 
 import streamlit as st
 import streamlit.components.v1 as components
-from modules.busca import buscar_versiculos
-from modules.resposta import gerar_resposta, continuar_conversa
-from modules.leitura import carregar_capitulos, texto_para_audio
-from modules.plano_livre import _renderizar_seletor_livro_capitulo
-from modules.plano_versiculo_dia import obter_versiculo_do_dia
-from modules.audio_widget import renderizar_audio, renderizar_audio_com_progresso
-from modules.acoes_chat import renderizar_botao_copiar, renderizar_botao_compartilhar
-from modules.fuso_horario import garantir_data_local, agora_local
+from verbo.services.busca import buscar_versiculos
+from verbo.services.resposta import gerar_resposta, continuar_conversa
+from verbo.services.leitura import carregar_capitulos, texto_para_audio
+from verbo.services.plano_livre import _renderizar_seletor_livro_capitulo
+from verbo.services.plano_versiculo_dia import obter_versiculo_do_dia
+from verbo.ui.audio_widget import renderizar_audio, renderizar_audio_com_progresso
+from verbo.ui.acoes_chat import renderizar_botao_copiar, renderizar_botao_compartilhar
+from verbo.ui.fuso_horario import garantir_data_local, agora_local
 
 TAMANHO_RESUMO_VERSICULO = 220
 QUANTIDADE_VERSICULOS_POR_PAGINA = 4

@@ -1,36 +1,20 @@
-import chromadb
-from openai import OpenAI
-from config import (
-    NVIDIA_API_KEY, CHROMA_DB_PATH, COLLECTION_NAME,
-    EMBEDDING_MODEL, TOP_K, SIMILARIDADE_MINIMA
-)
-
-_client = None
-_colecao = None
-
-
-def _init():
-    global _client, _colecao
-    if _client is None:
-        _client = OpenAI(
-            api_key=NVIDIA_API_KEY,
-            base_url="https://integrate.api.nvidia.com/v1",
-        )
-    if _colecao is None:
-        chroma = chromadb.PersistentClient(path=CHROMA_DB_PATH)
-        _colecao = chroma.get_collection(COLLECTION_NAME)
+from verbo.config import EMBEDDING_MODEL, SIMILARIDADE_MINIMA, TOP_K
+from verbo.core.chroma_client import obter_colecao
+from verbo.core.nvidia_client import obter_client_nvidia
 
 
 def buscar_versiculos(pergunta: str) -> list[dict]:
-    _init()
-    resposta = _client.embeddings.create(
+    client = obter_client_nvidia()
+    colecao = obter_colecao()
+
+    resposta = client.embeddings.create(
         model=EMBEDDING_MODEL,
         input=pergunta,
         extra_body={"input_type": "query", "truncate": "END"},
     )
     vetor = resposta.data[0].embedding
 
-    resultados = _colecao.query(query_embeddings=[vetor], n_results=TOP_K)
+    resultados = colecao.query(query_embeddings=[vetor], n_results=TOP_K)
 
     versiculos = []
     for texto, meta, distancia in zip(

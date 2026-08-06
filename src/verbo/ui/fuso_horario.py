@@ -30,7 +30,10 @@ def garantir_data_local():
         offset_str = st.text_input("tz", key="tz_offset_bruto", label_visibility="collapsed")
 
     if offset_str:
-        offset_minutos = int(offset_str)
+        try:
+            offset_minutos = int(offset_str)
+        except ValueError:
+            offset_minutos = 0
         st.session_state.tz_offset_minutos = offset_minutos
         st.session_state.data_local_usuario = agora_local().date()
         return

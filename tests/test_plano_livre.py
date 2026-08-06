@@ -1,4 +1,4 @@
-from modules.plano_livre import listar_livros
+from verbo.services.plano_livre import listar_livros
 
 
 def test_listar_livros_agrupa_capitulos_consecutivos_do_mesmo_livro():

@@ -3,8 +3,8 @@ from datetime import date
 
 import streamlit as st
 
-from config import BIBLE_JSON_PATH
-from modules.leitura import EPOCA
+from verbo.config import BIBLE_JSON_PATH
+from verbo.services.leitura import EPOCA
 
 
 @st.cache_data
