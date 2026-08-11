@@ -1,22 +1,9 @@
 import streamlit as st
 
-
-@st.cache_data
-def listar_livros(capitulos):
-    livros = []
-    for idx, capitulo in enumerate(capitulos):
-        if livros and livros[-1]["livro"] == capitulo["livro"]:
-            livros[-1]["total_capitulos"] += 1
-        else:
-            livros.append({
-                "livro": capitulo["livro"],
-                "indice_inicial": idx,
-                "total_capitulos": 1,
-            })
-    return livros
+from verbo.core.plano_livre import listar_livros
 
 
-def _renderizar_seletor_livro_capitulo(capitulos):
+def renderizar_seletor_livro_capitulo(capitulos):
     livros = listar_livros(capitulos)
     livros_por_nome = {livro["livro"]: livro for livro in livros}
     nomes_livros = [livro["livro"] for livro in livros]

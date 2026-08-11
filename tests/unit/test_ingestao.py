@@ -1,12 +1,4 @@
-import importlib.util
-from pathlib import Path
-
-_CAMINHO = Path(__file__).resolve().parent.parent / "data" / "construir-banco.py"
-_spec = importlib.util.spec_from_file_location("construir_banco", _CAMINHO)
-construir_banco = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(construir_banco)
-
-montar_chunks_capitulo = construir_banco.montar_chunks_capitulo
+from verbo.core.ingestao import montar_chunks_capitulo
 
 
 def test_montar_chunks_capitulo_agrupa_versiculos_curtos_em_um_unico_chunk():

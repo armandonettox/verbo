@@ -1,6 +1,6 @@
 import chromadb
 from openai import OpenAI
-from config import (
+from verbo.config import (
     NVIDIA_API_KEY, CHROMA_DB_PATH, COLLECTION_NAME,
     EMBEDDING_MODEL, TOP_K, SIMILARIDADE_MINIMA
 )

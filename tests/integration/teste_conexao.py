@@ -1,10 +1,8 @@
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
+"""Verifica manualmente a conexao com a API da NVIDIA. Nao roda no pytest
+(sem asserts) -- executar direto: python tests/integration/teste_conexao.py"""
 from openai import OpenAI
-from config import NVIDIA_API_KEY, EMBEDDING_MODEL
+
+from verbo.config import NVIDIA_API_KEY, EMBEDDING_MODEL
 
 client = OpenAI(
     api_key=NVIDIA_API_KEY,

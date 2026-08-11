@@ -1,15 +1,11 @@
 import json
 from datetime import date
 
-import streamlit as st
-
-from config import BIBLE_JSON_PATH
-from modules.leitura import EPOCA
+from verbo.core.leitura import EPOCA
 
 
-@st.cache_data
-def carregar_versiculos():
-    with open(BIBLE_JSON_PATH, encoding="utf-8") as f:
+def carregar_versiculos_do_arquivo(caminho):
+    with open(caminho, encoding="utf-8") as f:
         dados = json.load(f)
 
     versiculos = []
@@ -26,11 +22,10 @@ def carregar_versiculos():
     return versiculos
 
 
-def obter_versiculo_do_dia(data=None):
+def obter_versiculo_do_dia(versiculos, data=None):
     if data is None:
         data = date.today()
 
-    versiculos = carregar_versiculos()
     total = len(versiculos)
     idx = (data - EPOCA).days % total
     item = versiculos[idx]

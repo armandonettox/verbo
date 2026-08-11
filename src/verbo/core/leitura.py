@@ -2,16 +2,11 @@ import json
 import re
 from datetime import date
 
-import streamlit as st
-
-from config import BIBLE_JSON_PATH
-
 EPOCA = date(2026, 1, 1)
 
 
-@st.cache_data
-def carregar_capitulos():
-    with open(BIBLE_JSON_PATH, encoding="utf-8") as f:
+def carregar_capitulos_do_arquivo(caminho):
+    with open(caminho, encoding="utf-8") as f:
         dados = json.load(f)
 
     capitulos = []

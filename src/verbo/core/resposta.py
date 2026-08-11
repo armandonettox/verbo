@@ -1,5 +1,5 @@
 from openai import OpenAI
-from config import NVIDIA_API_KEY, CHAT_MODEL
+from verbo.config import NVIDIA_API_KEY, CHAT_MODEL
 
 _client = OpenAI(
     api_key=NVIDIA_API_KEY,
