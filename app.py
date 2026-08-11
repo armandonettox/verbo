@@ -11,6 +11,7 @@ from modules.plano_versiculo_dia import obter_versiculo_do_dia
 from modules.audio_widget import renderizar_audio, renderizar_audio_com_progresso
 from modules.acoes_chat import renderizar_botao_copiar, renderizar_botao_compartilhar
 from modules.fuso_horario import garantir_data_local, agora_local
+from modules.erros import mensagem_erro_ia
 
 TAMANHO_RESUMO_VERSICULO = 220
 QUANTIDADE_VERSICULOS_POR_PAGINA = 4
@@ -156,9 +157,9 @@ def _renderizar_busca_semantica(capitulos_leitura):
                 with st.spinner(""):
                     versiculos = buscar_versiculos(pergunta)
                 resposta = gerar_resposta(pergunta, versiculos)
-            except Exception:
+            except Exception as excecao:
                 st.session_state.busca_pendente = False
-                st.toast("Nao foi possivel completar a busca. Tente novamente.", icon=":material/error:")
+                st.toast(mensagem_erro_ia(excecao), icon=":material/error:")
                 st.rerun()
             else:
                 st.session_state.busca_pendente = False
@@ -196,9 +197,9 @@ def _renderizar_busca_semantica(capitulos_leitura):
         def _regenerar_original():
             try:
                 nova_resposta = gerar_resposta(ultima_busca["pergunta"], ultima_busca["versiculos"])
-            except Exception:
+            except Exception as excecao:
                 st.session_state.regenerando_alvo = None
-                st.toast("Nao foi possivel gerar uma nova resposta. Tente novamente.", icon=":material/error:")
+                st.toast(mensagem_erro_ia(excecao), icon=":material/error:")
                 st.rerun(scope="fragment")
             else:
                 st.session_state.ultima_busca["resposta"] = nova_resposta
@@ -220,9 +221,9 @@ def _renderizar_busca_semantica(capitulos_leitura):
                         historico_para_llm,
                         pergunta_usuario,
                     )
-                except Exception:
+                except Exception as excecao:
                     st.session_state.regenerando_alvo = None
-                    st.toast("Nao foi possivel gerar uma nova resposta. Tente novamente.", icon=":material/error:")
+                    st.toast(mensagem_erro_ia(excecao), icon=":material/error:")
                     st.rerun(scope="fragment")
                 else:
                     st.session_state.historico_chat[indice]["content"] = nova_resposta
