@@ -427,7 +427,7 @@ def render():
                     Feito por <a class="rodape-link" href="https://armandonetto.com/" target="_blank">Armando Netto</a>
                 </p>
                 <p style="text-align: center; color: {cor_mutado}; font-size: 0.75rem;">
-                    Protegido sob <a class="rodape-link" href="https://github.com/armandonettox/verbo/blob/main/LICENSE" target="_blank">Licenca Verbo 1.0</a>
+                    Protegido sob <a class="rodape-link" href="https://github.com/armandonettox/verbo/blob/master/LICENSE" target="_blank">Licenca Verbo 1.0</a>
                 </p>
                 """,
                 unsafe_allow_html=True,
