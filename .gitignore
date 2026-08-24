@@ -11,9 +11,6 @@ venv/
 .idea/
 *.log
 
-# banco vetorial local, muda a cada indexacao, nao deve ir pro historico
-chroma-db/
-
 # arquivos de instrucao/config de assistentes de IA (locais, nao versionados)
 CLAUDE.md
 AGENTS.md
