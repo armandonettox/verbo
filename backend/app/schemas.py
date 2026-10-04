@@ -83,3 +83,6 @@ class Saude(BaseModel):
     nvidia_configurada: bool
     indice_nvidia: bool
     indice_local: bool
+    disjuntor_busca: Literal["fechado", "aberto", "testando"]
+    disjuntor_chat: Literal["fechado", "aberto", "testando"]
+    metricas: dict

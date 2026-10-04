@@ -1,6 +1,7 @@
 import datetime as dt
 import logging
 import os
+import threading
 
 from fastapi import APIRouter, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,8 +11,8 @@ from backend.app.dados import Biblia
 from verbo.config import (
     BIBLE_JSON_PATH, COLLECTION_NAME, COLLECTION_NAME_LOCAL, NVIDIA_API_KEY
 )
-from verbo.core import busca
-from verbo.core.erros import mensagem_erro_ia
+from verbo.core import embedding_local, busca, metricas, resposta as modulo_resposta
+from verbo.core.erros import IAInstavelError, mensagem_erro_ia
 from verbo.core.resposta import continuar_conversa, gerar_resposta
 from verbo.core.util import separar_referencia
 from verbo.core.versiculo_dia import obter_versiculo_do_dia
@@ -60,6 +61,9 @@ def criar_rotas():
             "nvidia_configurada": bool(NVIDIA_API_KEY),
             "indice_nvidia": indice_nvidia,
             "indice_local": indice_local,
+            "disjuntor_busca": busca.disjuntor.estado,
+            "disjuntor_chat": modulo_resposta.disjuntor.estado,
+            "metricas": metricas.resumo(),
         }
 
     @rotas.post("/buscar", response_model=schemas.BuscaSaida)
@@ -153,6 +157,16 @@ def criar_rotas_biblia():
     return rotas
 
 
+def _aquecer_modelo_local():
+    # A primeira busca local baixaria e carregaria o modelo (~50 s). Fazendo isso
+    # ao iniciar, em segundo plano, o fallback ja nasce pronto.
+    try:
+        embedding_local.gerar_embeddings(["aquecimento"], "query")
+        logger.info("Modelo local carregado")
+    except Exception as erro:
+        logger.warning("Nao foi possivel carregar o modelo local: %s", type(erro).__name__)
+
+
 def criar_app(caminho_biblia=None):
     app = FastAPI(title="Verbo", docs_url=None, redoc_url=None, openapi_url=None)
     app.state.biblia = Biblia(caminho_biblia or BIBLE_JSON_PATH)
@@ -166,4 +180,7 @@ def criar_app(caminho_biblia=None):
 
     app.include_router(criar_rotas())
     app.include_router(criar_rotas_biblia())
+
+    if os.getenv("VERBO_AQUECER_MODELO_LOCAL") == "1":
+        threading.Thread(target=_aquecer_modelo_local, daemon=True).start()
     return app

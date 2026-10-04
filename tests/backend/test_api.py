@@ -243,3 +243,74 @@ def test_saude_degradado_sem_indice_local(cliente, monkeypatch):
     monkeypatch.setattr(main.busca, "_obter_colecao", obter)
 
     assert cliente.get("/api/saude").json()["status"] == "degradado"
+
+
+def test_saude_mostra_disjuntores_e_metricas(cliente, monkeypatch):
+    monkeypatch.setattr(main.busca, "_obter_colecao", lambda nome: type("C", (), {"count": lambda self: 1})())
+    main.busca.disjuntor.registrar_falha()
+    main.busca.disjuntor.registrar_falha()
+    main.metricas.contar("busca_fallback")
+
+    corpo = cliente.get("/api/saude").json()
+
+    assert corpo["disjuntor_busca"] == "aberto"
+    assert corpo["disjuntor_chat"] == "fechado"
+    assert corpo["metricas"]["contadores"] == {"busca_fallback": 1}
+
+
+def test_buscar_com_ia_instavel_mantem_versiculos_e_avisa(cliente, monkeypatch):
+    def instavel(pergunta, versiculos):
+        raise main.IAInstavelError()
+
+    monkeypatch.setattr(main.busca, "buscar_com_fallback",
+                        lambda p: {"versiculos": list(VERSICULOS), "modo": "nvidia"})
+    monkeypatch.setattr(main, "gerar_resposta", instavel)
+
+    corpo = cliente.post("/api/buscar", json={"pergunta": "como orar?"}).json()
+
+    assert corpo["resposta"] is None
+    assert "instavel" in corpo["aviso"]
+    assert len(corpo["versiculos"]) == 1
+
+
+def test_buscar_modo_local_real_nao_devolve_similaridade(cliente, monkeypatch):
+    monkeypatch.setattr(main.busca, "buscar_versiculos", lambda p: (_ for _ in ()).throw(openai.OpenAIError("fora")))
+    monkeypatch.setattr(main.busca, "gerar_embeddings", lambda t, tipo: [[0.0]])
+    resultados = {
+        "documents": [["No principio"]],
+        "metadatas": [[{"referencia": "Genesis 1:1"}]],
+        "distances": [[0.3]],
+    }
+    colecao = type("C", (), {"query": staticmethod(lambda **kw: resultados)})
+    monkeypatch.setattr(main.busca, "_obter_colecao", lambda nome: colecao)
+
+    corpo = cliente.post("/api/buscar", json={"pergunta": "como orar?"}).json()
+
+    assert corpo["modo"] == "local"
+    assert corpo["versiculos"][0]["similaridade"] is None
+
+
+def test_modelo_local_so_e_aquecido_quando_pedido(tmp_path, monkeypatch):
+    chamadas = []
+    monkeypatch.setattr(main.embedding_local, "gerar_embeddings",
+                        lambda textos, tipo: chamadas.append(tipo) or [[0.0]])
+    caminho = tmp_path / "biblia.json"
+    caminho.write_text(json.dumps(BIBLIA_MINI), encoding="utf-8")
+
+    monkeypatch.delenv("VERBO_AQUECER_MODELO_LOCAL", raising=False)
+    criar_app(str(caminho))
+    assert chamadas == []
+
+    monkeypatch.setenv("VERBO_AQUECER_MODELO_LOCAL", "1")
+    monkeypatch.setattr(main.threading, "Thread",
+                        lambda target, daemon: type("T", (), {"start": staticmethod(target)}))
+    criar_app(str(caminho))
+    assert chamadas == ["query"]
+
+
+def test_falha_ao_aquecer_o_modelo_nao_derruba_o_app(tmp_path, monkeypatch):
+    def quebra(textos, tipo):
+        raise OSError("sem rede")
+
+    monkeypatch.setattr(main.embedding_local, "gerar_embeddings", quebra)
+    main._aquecer_modelo_local()
