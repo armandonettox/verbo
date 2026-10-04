@@ -1,5 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { buscar, dataLocalISO, ErroApi, obterCapitulo, versiculoDoDia } from './cliente.ts'
+import {
+  buscar,
+  dataLocalISO,
+  ErroApi,
+  limparCacheLivros,
+  listarLivros,
+  obterCapitulo,
+  versiculoDoDia,
+} from './cliente.ts'
 
 function respostaJson(corpo: unknown, status = 200) {
   return new Response(JSON.stringify(corpo), {
@@ -8,7 +16,10 @@ function respostaJson(corpo: unknown, status = 200) {
   })
 }
 
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.unstubAllGlobals()
+  limparCacheLivros()
+})
 
 describe('dataLocalISO', () => {
   it('formata a data local com zeros a esquerda', () => {
@@ -90,5 +101,31 @@ describe('leitura', () => {
     await versiculoDoDia('2026-10-03')
 
     expect(fetchFalso.mock.calls[0][0]).toBe('/api/versiculo-do-dia?data=2026-10-03')
+  })
+})
+
+describe('listarLivros', () => {
+  it('chama a API uma vez so e reaproveita a lista', async () => {
+    const fetchFalso = vi.fn().mockImplementation(() => Promise.resolve(respostaJson([{ livro: 'Genesis' }])))
+    vi.stubGlobal('fetch', fetchFalso)
+
+    const [a, b] = await Promise.all([listarLivros(), listarLivros()])
+    const c = await listarLivros()
+
+    expect(fetchFalso).toHaveBeenCalledTimes(1)
+    expect(a).toEqual(b)
+    expect(c).toEqual(a)
+  })
+
+  it('depois de um erro tenta de novo na proxima chamada', async () => {
+    const fetchFalso = vi
+      .fn()
+      .mockResolvedValueOnce(respostaJson({ detail: 'fora do ar' }, 503))
+      .mockResolvedValueOnce(respostaJson([{ livro: 'Genesis' }]))
+    vi.stubGlobal('fetch', fetchFalso)
+
+    await expect(listarLivros()).rejects.toBeInstanceOf(ErroApi)
+    await expect(listarLivros()).resolves.toEqual([{ livro: 'Genesis' }])
+    expect(fetchFalso).toHaveBeenCalledTimes(2)
   })
 })

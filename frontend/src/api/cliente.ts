@@ -89,8 +89,22 @@ export function versiculoDoDia(data: string = dataLocalISO()): Promise<Versiculo
   return chamar(`/api/versiculo-do-dia?data=${encodeURIComponent(data)}`)
 }
 
+// A lista de livros nao muda, entao a tela de leitura e o seletor dividem uma
+// unica chamada. Se der erro, o cache e descartado para tentar de novo depois.
+let livrosEmCache: Promise<Livro[]> | null = null
+
 export function listarLivros(): Promise<Livro[]> {
-  return chamar('/api/livros')
+  if (!livrosEmCache) {
+    livrosEmCache = chamar<Livro[]>('/api/livros').catch((erro) => {
+      livrosEmCache = null
+      throw erro
+    })
+  }
+  return livrosEmCache
+}
+
+export function limparCacheLivros() {
+  livrosEmCache = null
 }
 
 export function obterCapitulo(livro: string, numero: number): Promise<Capitulo> {
