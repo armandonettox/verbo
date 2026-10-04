@@ -1,7 +1,12 @@
 # Verbo: backend (API) e frontend (React servido pelo nginx).
-# Na VPS, o nginx do host recebe o Cloudflare e entrega ao frontend em 127.0.0.1:8020.
+#
+# Local (docker): docker compose up --build, com VERBO_BACKEND_URL=http://verbo-backend:8000
+# Na VPS (podman-compose): as imagens vem do GHCR (VERBO_BACKEND_IMAGE e VERBO_FRONTEND_IMAGE,
+# definidas em ~/verbo/.env.imagens pelo deploy) e o nginx do host entrega o trafego do
+# Cloudflare ao frontend em 127.0.0.1:8020. Ver deploy/README.md.
 services:
   verbo-backend:
+    image: ${VERBO_BACKEND_IMAGE:-verbo-backend:local}
     build:
       context: .
       dockerfile: backend/Dockerfile
@@ -11,7 +16,7 @@ services:
       - .env
     volumes:
       - verbo-dados:/dados
-    # sem porta publicada: so o frontend (mesma rede) acessa a API
+    # sem porta publicada: so o frontend (mesmo pod ou mesma rede) acessa a API
     expose:
       - "8000"
     # a VM da Oracle e compartilhada com o hera; este limite impede o verbo de
@@ -20,6 +25,7 @@ services:
     cpus: 0.8
 
   verbo-frontend:
+    image: ${VERBO_FRONTEND_IMAGE:-verbo-frontend:local}
     build:
       context: frontend
     container_name: verbo-frontend
@@ -28,7 +34,10 @@ services:
       verbo-backend:
         condition: service_healthy
     environment:
-      BACKEND_URL: http://verbo-backend:8000
+      # No podman-compose os servicos dividem um pod, entao 127.0.0.1 chega no backend sem
+      # depender do DNS interno (o aardvark-dns ja travou na VPS e derrubou o hera por dias).
+      # Em docker puro, use VERBO_BACKEND_URL=http://verbo-backend:8000
+      BACKEND_URL: ${VERBO_BACKEND_URL:-http://127.0.0.1:8000}
     # so o nginx do host acessa; nao expor direto na internet
     ports:
       - "127.0.0.1:8020:8080"

@@ -1,0 +1,27 @@
+# Sobe e derruba o verbo inteiro via podman-compose, como o hera faz. Um projeto e um pod
+# proprios (pod_verbo), separados do pod do hera, entao reiniciar um nao mexe no outro.
+#
+# As imagens a usar vem de ~/verbo/.env.imagens, escrito pelo deploy.
+#
+# Instalar em ~/.config/systemd/user/verbo-compose.service (o deploy faz isso) e habilitar:
+#   systemctl --user daemon-reload
+#   systemctl --user enable verbo-compose.service
+# O linger do usuario ja esta ativo por causa do hera (loginctl enable-linger).
+
+[Unit]
+Description=Verbo (backend e frontend via podman-compose)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=%h/verbo
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:%h/.local/bin
+Environment=COMPOSE_PARALLEL_LIMIT=1
+EnvironmentFile=-%h/verbo/.env.imagens
+ExecStart=%h/.local/bin/podman-compose up -d --no-build
+ExecStop=%h/.local/bin/podman-compose down
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,2 @@
+# Scripts de shell rodam em Linux na VPS: um CRLF do Windows quebraria a execucao
+*.sh text eol=lf
