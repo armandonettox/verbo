@@ -84,21 +84,62 @@ a {
   color: var(--cor-destaque);
 }
 
-/* Estrutura: barra lateral fixa de 380px mais area de conteudo */
+/* Estrutura: barra lateral de 380px que abre e fecha, mais a area de conteudo */
 .quadro {
   display: grid;
   grid-template-columns: var(--largura-barra) minmax(0, 1fr);
   min-height: 100vh;
 }
 
+.quadro.barra-fechada {
+  grid-template-columns: 0 minmax(0, 1fr);
+}
+
+/* A barra rola por conta propria, sem acompanhar a rolagem da pagina */
 .barra-lateral {
-  padding: 1rem;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 3.5rem 1rem 1rem;
   border-right: 1px solid var(--cor-mutado);
   background-color: var(--cor-fundo);
 }
 
+.barra-fechada .barra-lateral {
+  visibility: hidden;
+  padding: 0;
+  border-right: none;
+  overflow: hidden;
+}
+
+/* Botao de abrir e fechar, fixo no canto superior esquerdo (acima da barra e do conteudo) */
+.botao-barra {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  background: transparent;
+  border: none;
+  color: var(--cor-mutado);
+  cursor: pointer;
+}
+
+.botao-barra:hover {
+  color: var(--cor-destaque);
+}
+
 .conteudo {
   padding: 2.5rem 1.5rem;
+}
+
+/* Com a barra fechada o botao fica sobre o canto do conteudo: abre espaco em cima */
+.barra-fechada .conteudo {
+  padding-top: 3.5rem;
 }
 
 .conteudo-miolo {
@@ -106,20 +147,58 @@ a {
   margin: 0 auto;
 }
 
-/* Telas estreitas: a barra vai para cima do conteudo (refinada na fase de responsividade) */
+/* Fundo escuro atras da gaveta no celular; tocar nele fecha a barra */
+.barra-fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  background-color: color-mix(in srgb, var(--cor-texto) 45%, transparent);
+}
+
+/* Telas estreitas: a barra vira uma gaveta por cima do conteudo, fechada por padrao */
 @media (max-width: 800px) {
   .mensagem-usuario,
   .mensagem-assistente {
     max-width: 100%;
   }
 
-  .quadro {
+  .quadro,
+  .quadro.barra-fechada {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .conteudo,
+  .barra-fechada .conteudo {
+    padding: 3.5rem 1rem 2.5rem;
+  }
+
   .barra-lateral {
-    border-right: none;
-    border-bottom: 1px solid var(--cor-mutado);
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 20;
+    width: min(var(--largura-barra), 88vw);
+    height: auto;
+    padding: 3.5rem 1rem 1rem;
+    border-right: 1px solid var(--cor-mutado);
+    box-shadow: 0 0 1.5rem color-mix(in srgb, var(--cor-texto) 35%, transparent);
+    transform: translateX(0);
+    transition: transform 0.2s ease, visibility 0.2s;
+  }
+
+  .barra-fechada .barra-lateral {
+    visibility: hidden;
+    padding: 3.5rem 1rem 1rem;
+    border-right: 1px solid var(--cor-mutado);
+    transform: translateX(-100%);
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .barra-lateral {
+    transition: none;
   }
 }
 
