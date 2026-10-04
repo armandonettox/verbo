@@ -137,3 +137,33 @@ def test_cliente_de_busca_nao_tem_retry(monkeypatch):
     busca._obter_client()
     assert criados[0]["max_retries"] == 0
     assert criados[0]["timeout"] == busca.BUSCA_TIMEOUT_SEGUNDOS
+
+
+def _preparar_embeddings(monkeypatch, vetores_pedidos):
+    class _Embeddings:
+        def create(self, **kwargs):
+            vetores_pedidos.append(kwargs["input"])
+            return type("R", (), {"data": [type("D", (), {"embedding": [0.1]})]})
+
+    monkeypatch.setattr(busca, "_obter_client", lambda: type("C", (), {"embeddings": _Embeddings()}))
+    monkeypatch.setattr(busca, "_embeddings_recentes", busca.OrderedDict())
+
+
+def test_embedding_da_mesma_pergunta_so_vai_a_nvidia_uma_vez(monkeypatch):
+    pedidos = []
+    _preparar_embeddings(monkeypatch, pedidos)
+    busca._embedding_da_pergunta("O que e a fe?")
+    busca._embedding_da_pergunta("  o que e a FE ")
+    assert len(pedidos) == 1
+    assert busca.metricas.resumo()["contadores"]["embedding_cache_acerto"] == 1
+
+
+def test_embedding_cache_descarta_o_mais_antigo(monkeypatch):
+    pedidos = []
+    _preparar_embeddings(monkeypatch, pedidos)
+    monkeypatch.setattr(busca, "EMBEDDING_CACHE_ITENS", 2)
+    for pergunta in ("a", "b", "c"):
+        busca._embedding_da_pergunta(pergunta)
+    busca._embedding_da_pergunta("c")
+    busca._embedding_da_pergunta("a")
+    assert pedidos == ["a", "b", "c", "a"]

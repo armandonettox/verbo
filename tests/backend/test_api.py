@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from backend.app import main
 from backend.app.main import criar_app
+from verbo.core.cache_respostas import CacheRespostas
 
 BIBLIA_MINI = {
     "antigoTestamento": [
@@ -314,3 +315,93 @@ def test_falha_ao_aquecer_o_modelo_nao_derruba_o_app(tmp_path, monkeypatch):
 
     monkeypatch.setattr(main.embedding_local, "gerar_embeddings", quebra)
     main._aquecer_modelo_local()
+
+
+# --- cache ---
+
+@pytest.fixture
+def cache_ligado(tmp_path, monkeypatch):
+    cache = CacheRespostas(str(tmp_path / "cache.sqlite"), 1000, 100)
+    monkeypatch.setattr(main, "cache_respostas", cache)
+    return cache
+
+
+def _busca_nvidia(monkeypatch, resposta="resposta gerada"):
+    chamadas = []
+
+    def gerar(pergunta, versiculos):
+        chamadas.append(pergunta)
+        return resposta
+
+    monkeypatch.setattr(main.busca, "buscar_com_fallback",
+                        lambda p: {"versiculos": list(VERSICULOS), "modo": "nvidia"})
+    monkeypatch.setattr(main, "gerar_resposta", gerar)
+    return chamadas
+
+
+def test_pergunta_repetida_usa_a_resposta_guardada(cliente, cache_ligado, monkeypatch):
+    chamadas = _busca_nvidia(monkeypatch)
+    primeira = cliente.post("/api/buscar", json={"pergunta": "Como orar?"}).json()
+    segunda = cliente.post("/api/buscar", json={"pergunta": "como orar"}).json()
+
+    assert primeira["resposta"] == segunda["resposta"] == "resposta gerada"
+    assert len(chamadas) == 1
+    contadores = main.metricas.resumo()["contadores"]
+    assert contadores["resposta_cache_acerto"] == 1
+    assert contadores["resposta_cache_falha"] == 1
+
+
+def test_gerar_novamente_ignora_o_cache(cliente, cache_ligado, monkeypatch):
+    chamadas = _busca_nvidia(monkeypatch)
+    cliente.post("/api/buscar", json={"pergunta": "Como orar?"})
+    corpo = {"pergunta": "Como orar?", "versiculos": VERSICULOS}
+    cliente.post("/api/resposta", json=corpo)
+    cliente.post("/api/resposta", json=corpo)
+    assert len(chamadas) == 3
+
+
+def test_resposta_vazia_nao_e_guardada(cliente, cache_ligado, monkeypatch):
+    chamadas = _busca_nvidia(monkeypatch, resposta="")
+    cliente.post("/api/buscar", json={"pergunta": "Como orar?"})
+    cliente.post("/api/buscar", json={"pergunta": "Como orar?"})
+    assert len(chamadas) == 2
+
+
+def test_falha_da_ia_nao_e_guardada(cliente, cache_ligado, monkeypatch):
+    _busca_nvidia(monkeypatch)
+    monkeypatch.setattr(main, "gerar_resposta",
+                        lambda p, v: (_ for _ in ()).throw(openai.OpenAIError("fora")))
+    assert cliente.post("/api/buscar", json={"pergunta": "Como orar?"}).json()["resposta"] is None
+    chamadas = _busca_nvidia(monkeypatch)
+    assert cliente.post("/api/buscar", json={"pergunta": "Como orar?"}).json()["resposta"] == "resposta gerada"
+    assert len(chamadas) == 1
+
+
+def test_cache_quebrado_nao_derruba_a_busca(cliente, tmp_path, monkeypatch):
+    monkeypatch.setattr(main, "cache_respostas", CacheRespostas(str(tmp_path), 1000, 100))
+    _busca_nvidia(monkeypatch)
+    corpo = cliente.post("/api/buscar", json={"pergunta": "Como orar?"}).json()
+    assert corpo["resposta"] == "resposta gerada"
+
+
+def test_texto_biblico_tem_cache_de_um_dia(cliente):
+    for caminho in ("/api/livros", "/api/capitulos/Genesis/1"):
+        assert cliente.get(caminho).headers["cache-control"] == "public, max-age=86400"
+
+
+def test_capitulo_inexistente_nao_fica_em_cache(cliente):
+    resposta = cliente.get("/api/capitulos/Genesis/99")
+    assert "max-age" not in resposta.headers.get("cache-control", "")
+
+
+def test_versiculo_do_dia_com_data_tem_cache_curto_e_sem_data_nao(cliente):
+    com_data = cliente.get("/api/versiculo-do-dia", params={"data": "2026-01-01"})
+    sem_data = cliente.get("/api/versiculo-do-dia")
+    assert com_data.headers["cache-control"] == "public, max-age=3600"
+    assert sem_data.headers["cache-control"] == "no-cache"
+
+
+def test_posts_nunca_sao_guardados(cliente, monkeypatch):
+    _busca_nvidia(monkeypatch)
+    resposta = cliente.post("/api/buscar", json={"pergunta": "Como orar?"})
+    assert resposta.headers["cache-control"] == "no-store"

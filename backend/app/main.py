@@ -3,17 +3,18 @@ import logging
 import os
 import threading
 
-from fastapi import APIRouter, FastAPI, HTTPException, Query, Request
+from fastapi import APIRouter, FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app import schemas
 from backend.app.dados import Biblia
 from verbo.config import (
-    BIBLE_JSON_PATH, COLLECTION_NAME, COLLECTION_NAME_LOCAL, NVIDIA_API_KEY
+    BIBLE_JSON_PATH, CHAT_MODEL, COLLECTION_NAME, COLLECTION_NAME_LOCAL, NVIDIA_API_KEY
 )
 from verbo.core import embedding_local, busca, metricas, resposta as modulo_resposta
+from verbo.core.cache_respostas import cache as cache_respostas, montar_chave
 from verbo.core.erros import IAInstavelError, mensagem_erro_ia
-from verbo.core.resposta import continuar_conversa, gerar_resposta
+from verbo.core.resposta import PROMPT_VERSAO, continuar_conversa, gerar_resposta
 from verbo.core.util import separar_referencia
 from verbo.core.versiculo_dia import obter_versiculo_do_dia
 
@@ -23,6 +24,10 @@ AVISO_BUSCA_LOCAL = (
     "O servico de IA esta indisponivel no momento. Mostrando uma busca "
     "simplificada, sem resposta gerada."
 )
+# O texto da Biblia nao muda, entao navegador e CDN podem guardar por um dia
+CACHE_TEXTO_BIBLICO = "public, max-age=86400"
+CACHE_VERSICULO_DO_DIA = "public, max-age=3600"
+
 AVISO_SEM_RESULTADOS = (
     "Nenhum versiculo relevante foi encontrado para essa pergunta."
 )
@@ -41,6 +46,19 @@ def _versiculo_saida(versiculo):
     separada = separar_referencia(versiculo["referencia"])
     livro, capitulo = separada if separada else (None, None)
     return {**versiculo, "livro": livro, "capitulo": capitulo}
+
+
+def _resposta_com_cache(pergunta, versiculos):
+    chave = montar_chave(CHAT_MODEL, PROMPT_VERSAO, pergunta, versiculos)
+    guardada = cache_respostas.obter(chave)
+    if guardada is not None:
+        metricas.contar("resposta_cache_acerto")
+        return guardada
+    metricas.contar("resposta_cache_falha")
+    resposta = gerar_resposta(pergunta, versiculos)
+    if resposta:
+        cache_respostas.guardar(chave, resposta)
+    return resposta
 
 
 def criar_rotas():
@@ -85,7 +103,7 @@ def criar_rotas():
             aviso = AVISO_SEM_RESULTADOS
         else:
             try:
-                resposta = gerar_resposta(pergunta, versiculos)
+                resposta = _resposta_com_cache(pergunta, versiculos)
             except Exception as excecao:
                 # a busca funcionou, so a resposta falhou: devolve os versiculos
                 aviso = _erro_ia(excecao).detail
@@ -130,11 +148,14 @@ def criar_rotas_biblia():
     @rotas.get("/versiculo-do-dia", response_model=schemas.VersiculoDia)
     def versiculo_do_dia(
         request: Request,
+        response: Response,
         data: dt.date | None = Query(
             default=None,
             description="Data local do usuario (AAAA-MM-DD). O servidor roda em UTC.",
         ),
     ):
+        # sem data o resultado depende do dia do servidor, entao nao pode ser guardado
+        response.headers["Cache-Control"] = CACHE_VERSICULO_DO_DIA if data else "no-cache"
         biblia = request.app.state.biblia
         item = obter_versiculo_do_dia(biblia.versiculos, data)
         return {
@@ -144,14 +165,16 @@ def criar_rotas_biblia():
         }
 
     @rotas.get("/livros", response_model=list[schemas.Livro])
-    def livros(request: Request):
+    def livros(request: Request, response: Response):
+        response.headers["Cache-Control"] = CACHE_TEXTO_BIBLICO
         return request.app.state.biblia.livros
 
     @rotas.get("/capitulos/{livro}/{numero}", response_model=schemas.Capitulo)
-    def capitulo(request: Request, livro: str, numero: int):
+    def capitulo(request: Request, response: Response, livro: str, numero: int):
         resultado = request.app.state.biblia.obter_capitulo(livro, numero)
         if resultado is None:
             raise HTTPException(status_code=404, detail="Capitulo nao encontrado.")
+        response.headers["Cache-Control"] = CACHE_TEXTO_BIBLICO
         return resultado
 
     return rotas
@@ -177,6 +200,14 @@ def criar_app(caminho_biblia=None):
             CORSMiddleware, allow_origins=origens, allow_methods=["GET", "POST"],
             allow_headers=["Content-Type"],
         )
+
+    @app.middleware("http")
+    async def nao_guardar_posts(request: Request, call_next):
+        # perguntas e respostas nunca devem ficar no navegador nem em CDN
+        resposta = await call_next(request)
+        if request.method == "POST":
+            resposta.headers["Cache-Control"] = "no-store"
+        return resposta
 
     app.include_router(criar_rotas())
     app.include_router(criar_rotas_biblia())

@@ -8,7 +8,8 @@ ENV PYTHONUNBUFFERED=1 \
     VERBO_CHROMA_DB_PATH=/dados/chroma-db \
     VERBO_MODELO_CACHE_DIR=/dados/modelos \
     HF_HOME=/dados/modelos \
-    VERBO_AQUECER_MODELO_LOCAL=1
+    VERBO_AQUECER_MODELO_LOCAL=1 \
+    VERBO_CACHE_RESPOSTAS_PATH=/dados/cache.sqlite
 
 WORKDIR /app
 

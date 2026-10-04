@@ -1,5 +1,7 @@
 import logging
+import threading
 import time
+from collections import OrderedDict
 
 import chromadb
 import chromadb.errors
@@ -8,9 +10,11 @@ from openai import OpenAI
 from verbo.config import (
     NVIDIA_API_KEY, CHROMA_DB_PATH, COLLECTION_NAME, COLLECTION_NAME_LOCAL,
     EMBEDDING_MODEL, TOP_K, TOP_K_LOCAL, SIMILARIDADE_MINIMA,
-    BUSCA_TIMEOUT_SEGUNDOS, DISJUNTOR_FALHAS, DISJUNTOR_PAUSA_SEGUNDOS
+    BUSCA_TIMEOUT_SEGUNDOS, DISJUNTOR_FALHAS, DISJUNTOR_PAUSA_SEGUNDOS,
+    EMBEDDING_CACHE_ITENS
 )
 from verbo.core import metricas
+from verbo.core.cache_respostas import normalizar_pergunta
 from verbo.core.disjuntor import Disjuntor
 from verbo.core.embedding_local import gerar_embeddings
 
@@ -67,14 +71,37 @@ def _formatar(resultados, similaridade_minima=None):
     return versiculos
 
 
-def buscar_versiculos(pergunta: str) -> list[dict]:
-    """Busca pelo indice da NVIDIA. Levanta excecao se a NVIDIA falhar."""
+_embeddings_recentes = OrderedDict()
+_trava_embeddings = threading.Lock()
+
+
+def _embedding_da_pergunta(pergunta):
+    """Vetor da pergunta na NVIDIA, com as ultimas perguntas guardadas em memoria
+    (economiza uma chamada de rede quando a mesma pergunta se repete)."""
+    chave = normalizar_pergunta(pergunta)
+    with _trava_embeddings:
+        if chave in _embeddings_recentes:
+            _embeddings_recentes.move_to_end(chave)
+            metricas.contar("embedding_cache_acerto")
+            return _embeddings_recentes[chave]
+
     resposta = _obter_client().embeddings.create(
         model=EMBEDDING_MODEL,
         input=pergunta,
         extra_body={"input_type": "query", "truncate": "END"},
     )
     vetor = resposta.data[0].embedding
+
+    with _trava_embeddings:
+        _embeddings_recentes[chave] = vetor
+        while len(_embeddings_recentes) > EMBEDDING_CACHE_ITENS:
+            _embeddings_recentes.popitem(last=False)
+    return vetor
+
+
+def buscar_versiculos(pergunta: str) -> list[dict]:
+    """Busca pelo indice da NVIDIA. Levanta excecao se a NVIDIA falhar."""
+    vetor = _embedding_da_pergunta(pergunta)
 
     resultados = _obter_colecao(COLLECTION_NAME).query(
         query_embeddings=[vetor], n_results=TOP_K

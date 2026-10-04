@@ -10,6 +10,9 @@ from verbo.core import metricas
 from verbo.core.disjuntor import Disjuntor
 from verbo.core.erros import IAInstavelError
 
+# Mudou o texto do prompt? Suba a versao para nao reaproveitar respostas antigas
+PROMPT_VERSAO = "1"
+
 _client = None
 disjuntor = Disjuntor(DISJUNTOR_FALHAS, DISJUNTOR_PAUSA_SEGUNDOS)
 

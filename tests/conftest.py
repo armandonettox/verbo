@@ -17,4 +17,5 @@ def _zerar_estado_global():
     for disjuntor in (busca.disjuntor, resposta.disjuntor):
         disjuntor.registrar_sucesso()
     metricas.zerar()
+    busca._embeddings_recentes.clear()
     yield

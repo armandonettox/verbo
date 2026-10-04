@@ -30,6 +30,12 @@ TOP_K_LOCAL = 10
 BUSCA_TIMEOUT_SEGUNDOS = float(os.getenv("VERBO_BUSCA_TIMEOUT", "8"))
 CHAT_TIMEOUT_SEGUNDOS = float(os.getenv("VERBO_CHAT_TIMEOUT", "45"))
 
+# Cache das respostas geradas (SQLite). Sem caminho, fica desligado.
+CACHE_RESPOSTAS_PATH = os.getenv("VERBO_CACHE_RESPOSTAS_PATH")
+CACHE_RESPOSTAS_TTL_SEGUNDOS = int(os.getenv("VERBO_CACHE_TTL_DIAS", "14")) * 86400
+CACHE_RESPOSTAS_MAX_ITENS = int(os.getenv("VERBO_CACHE_MAX_ITENS", "5000"))
+EMBEDDING_CACHE_ITENS = 256
+
 # Disjuntor: depois de algumas falhas seguidas a NVIDIA e pulada por um tempo,
 # para o usuario nao esperar o timeout de novo a cada busca
 DISJUNTOR_FALHAS = int(os.getenv("VERBO_DISJUNTOR_FALHAS", "2"))
