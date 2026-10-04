@@ -123,7 +123,7 @@ test('da para escolher livro e capitulo na gaveta e comecar a leitura', async ({
   await page.getByRole('button', { name: 'Comecar leitura' }).tap()
 
   await expect(page).toHaveURL(/\/ler\/S%C3%A3o%20Lucas\/1$/)
-  await expect(page.getByRole('heading', { name: /São Lucas 11/ })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /São Lucas 1$/ })).toBeVisible()
   await expect(botaoBarra(page)).toHaveAttribute('aria-expanded', 'false')
 })
 

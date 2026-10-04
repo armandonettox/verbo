@@ -17,14 +17,17 @@ export const VERSICULOS = Array.from({ length: 12 }, (_, i) => ({
   capitulo: i + 1,
 }))
 
-const CAPITULO = {
-  livro: 'São Lucas',
-  capitulo: 11,
-  total_capitulos_livro: 24,
-  versiculos: Array.from({ length: 30 }, (_, i) => ({
-    versiculo: i + 1,
-    texto: `Versiculo ${i + 1} do capitulo, com texto suficiente para ocupar uma linha inteira.`,
-  })),
+// 60 versiculos: o capitulo precisa ser mais alto que a tela para a rolagem automatica ter o que rolar
+function capitulo(livro: string, numero: number) {
+  return {
+    livro,
+    capitulo: numero,
+    total_capitulos_livro: LIVROS.find((l) => l.livro === livro)?.total_capitulos ?? 1,
+    versiculos: Array.from({ length: 60 }, (_, i) => ({
+      versiculo: i + 1,
+      texto: `Versiculo ${i + 1} do capitulo, com texto suficiente para ocupar uma linha inteira.`,
+    })),
+  }
 }
 
 function json(corpo: unknown) {
@@ -43,7 +46,11 @@ export async function simularApi(page: Page) {
         json({ referencia: 'Gênesis 1,1', texto: 'No principio Deus criou o ceu e a terra.', data: '2026-10-04' }),
       )
     }
-    if (caminho.startsWith('/api/capitulos/')) return rota.fulfill(json(CAPITULO))
+    if (caminho.startsWith('/api/capitulos/')) {
+      // /api/capitulos/{livro}/{numero}: devolve o capitulo pedido, nao sempre o mesmo
+      const [, , , livro, numero] = decodeURIComponent(caminho).split('/')
+      return rota.fulfill(json(capitulo(livro, Number(numero))))
+    }
     if (caminho === '/api/buscar') {
       return rota.fulfill(
         json({
