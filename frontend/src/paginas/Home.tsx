@@ -4,6 +4,7 @@ import { CampoBusca } from '../componentes/CampoBusca.tsx'
 import { CartaoLeituraDia } from '../componentes/CartaoLeituraDia.tsx'
 import { MensagemChat } from '../componentes/MensagemChat.tsx'
 import { Quadro } from '../componentes/Quadro.tsx'
+import { Rodape } from '../componentes/Rodape.tsx'
 import { SeletorCapitulo } from '../componentes/SeletorCapitulo.tsx'
 import { useBusca } from '../hooks/useBusca.ts'
 
@@ -42,6 +43,7 @@ function Inicio() {
         </p>
       )}
       <CartaoLeituraDia />
+      <Rodape />
     </Quadro>
   )
 }

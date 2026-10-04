@@ -8,7 +8,9 @@
 
   --largura-barra: 380px;
   --largura-conteudo: 900px;
-  --fonte: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  /* Serifada, como o tema do app antigo (font = "serif"). Sem baixar fonte de fora: usa a Source
+     Serif se a pessoa tiver e cai para Georgia ou a serifa do sistema. */
+  --fonte: "Source Serif 4", "Source Serif Pro", Georgia, "Times New Roman", serif;
 
   color-scheme: light;
 }
@@ -113,7 +115,8 @@ a {
   overflow: hidden;
 }
 
-/* Botao de abrir e fechar, fixo no canto superior esquerdo (acima da barra e do conteudo) */
+/* Botao de abrir e fechar, fixo no canto superior esquerdo (acima da barra e do conteudo).
+   Com borda e texto, para ninguem precisar adivinhar que aquilo abre e fecha a barra. */
 .botao-barra {
   position: fixed;
   top: 0.75rem;
@@ -122,15 +125,20 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.25rem;
-  background: transparent;
-  border: none;
-  color: var(--cor-mutado);
+  gap: 0.45rem;
+  padding: 0.35rem 0.7rem;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--cor-texto);
+  background-color: var(--cor-fundo);
+  border: 1px solid var(--cor-mutado);
+  border-radius: 0.5rem;
   cursor: pointer;
 }
 
 .botao-barra:hover {
   color: var(--cor-destaque);
+  border-color: var(--cor-destaque);
 }
 
 .conteudo {
@@ -209,7 +217,8 @@ a {
 @media (pointer: coarse) {
   .botao-barra,
   .botao-tema,
-  .botao-icone {
+  .botao-icone,
+  .botao-rolagem {
     min-width: 44px;
     min-height: 44px;
   }
@@ -436,6 +445,74 @@ a {
 
 .similaridade {
   font-size: 0.8rem;
+}
+
+/* Botao flutuante do modo leitura (rolagem automatica), abaixo da gaveta e do fundo escuro */
+.botao-rolagem {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 12;
+  padding: 0.5rem 1.1rem;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--cor-texto);
+  background-color: var(--cor-fundo);
+  border: 1px solid var(--cor-mutado);
+  border-radius: 999px;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--cor-texto) 25%, transparent);
+  cursor: pointer;
+}
+
+.botao-rolagem:hover,
+.botao-rolagem[aria-pressed='true'] {
+  color: var(--cor-destaque);
+  border-color: var(--cor-destaque);
+}
+
+/* Capitulo anterior e proximo, lado a lado (dois botoes iguais) */
+.navegacao-capitulos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin: 1.75rem 0 4rem;
+}
+
+.navegacao-capitulos .botao-largo {
+  margin-bottom: 0;
+  text-align: center;
+}
+
+.desabilitado {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Rodape da tela inicial: autoria e licenca */
+.rodape {
+  margin-top: 2.5rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--cor-mutado);
+}
+
+.rodape p {
+  margin: 0 0 0.25rem;
+  color: var(--cor-mutado);
+}
+
+.rodape p:last-child {
+  font-size: 0.75rem;
+}
+
+.rodape a {
+  color: var(--cor-destaque);
+  text-decoration: none;
+}
+
+.rodape a:hover {
+  text-decoration: underline;
 }
 
 /* Leitura de capitulo */

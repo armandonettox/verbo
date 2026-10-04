@@ -42,6 +42,10 @@ export function Quadro({ barra, children }: QuadroProps) {
         title={rotulo}
       >
         <IconeBarra />
+        {/* o nome acessivel continua sendo o aria-label; o texto so torna o botao facil de achar */}
+        <span className="botao-barra-texto" aria-hidden="true">
+          {aberta ? 'Fechar barra' : 'Abrir barra'}
+        </span>
       </button>
       {estreita && aberta && <div className="barra-fundo" onClick={fechar} aria-hidden="true" />}
       {/* inert tira a barra fechada da navegacao por teclado e dos leitores de tela */}
