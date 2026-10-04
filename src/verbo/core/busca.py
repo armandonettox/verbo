@@ -1,4 +1,5 @@
 import logging
+import time
 
 import chromadb
 import chromadb.errors
@@ -7,8 +8,10 @@ from openai import OpenAI
 from verbo.config import (
     NVIDIA_API_KEY, CHROMA_DB_PATH, COLLECTION_NAME, COLLECTION_NAME_LOCAL,
     EMBEDDING_MODEL, TOP_K, TOP_K_LOCAL, SIMILARIDADE_MINIMA,
-    BUSCA_TIMEOUT_SEGUNDOS
+    BUSCA_TIMEOUT_SEGUNDOS, DISJUNTOR_FALHAS, DISJUNTOR_PAUSA_SEGUNDOS
 )
+from verbo.core import metricas
+from verbo.core.disjuntor import Disjuntor
 from verbo.core.embedding_local import gerar_embeddings
 
 logger = logging.getLogger(__name__)
@@ -18,6 +21,7 @@ _ERROS_QUE_ACIONAM_FALLBACK = (openai.OpenAIError, chromadb.errors.ChromaError)
 
 _client = None
 _colecoes = {}
+disjuntor = Disjuntor(DISJUNTOR_FALHAS, DISJUNTOR_PAUSA_SEGUNDOS)
 
 
 def _obter_client():
@@ -27,7 +31,7 @@ def _obter_client():
             api_key=NVIDIA_API_KEY,
             base_url="https://integrate.api.nvidia.com/v1",
             timeout=BUSCA_TIMEOUT_SEGUNDOS,
-            max_retries=1,
+            max_retries=0,
         )
     return _client
 
@@ -86,14 +90,36 @@ def buscar_versiculos_local(pergunta: str) -> list[dict]:
     resultados = _obter_colecao(COLLECTION_NAME_LOCAL).query(
         query_embeddings=[vetor], n_results=TOP_K_LOCAL
     )
-    return _formatar(resultados)
+    versiculos = _formatar(resultados)
+    # a nota do e5 e quase igual para tudo (81 a 87), entao nao e mostrada
+    for v in versiculos:
+        v["similaridade"] = None
+    return versiculos
+
+
+def _buscar_local_com_metricas(pergunta):
+    inicio = time.monotonic()
+    versiculos = buscar_versiculos_local(pergunta)
+    metricas.registrar_latencia("busca_local", time.monotonic() - inicio)
+    return versiculos
 
 
 def buscar_com_fallback(pergunta: str) -> dict:
     """Tenta a NVIDIA e, se ela falhar, cai para a busca local.
     Retorna {"versiculos": [...], "modo": "nvidia" | "local"}."""
+    if not disjuntor.permite():
+        metricas.contar("busca_disjuntor_aberto")
+        return {"versiculos": _buscar_local_com_metricas(pergunta), "modo": "local"}
+
+    inicio = time.monotonic()
     try:
-        return {"versiculos": buscar_versiculos(pergunta), "modo": "nvidia"}
+        versiculos = buscar_versiculos(pergunta)
     except _ERROS_QUE_ACIONAM_FALLBACK as erro:
+        disjuntor.registrar_falha()
+        metricas.contar("busca_fallback")
         logger.warning("Busca NVIDIA falhou (%s), usando busca local", type(erro).__name__)
-        return {"versiculos": buscar_versiculos_local(pergunta), "modo": "local"}
+        return {"versiculos": _buscar_local_com_metricas(pergunta), "modo": "local"}
+
+    disjuntor.registrar_sucesso()
+    metricas.registrar_latencia("busca_nvidia", time.monotonic() - inicio)
+    return {"versiculos": versiculos, "modo": "nvidia"}

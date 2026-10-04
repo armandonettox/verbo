@@ -1,7 +1,17 @@
+import time
+
+import openai
 from openai import OpenAI
-from verbo.config import NVIDIA_API_KEY, CHAT_MODEL
+from verbo.config import (
+    NVIDIA_API_KEY, CHAT_MODEL, CHAT_TIMEOUT_SEGUNDOS,
+    DISJUNTOR_FALHAS, DISJUNTOR_PAUSA_SEGUNDOS,
+)
+from verbo.core import metricas
+from verbo.core.disjuntor import Disjuntor
+from verbo.core.erros import IAInstavelError
 
 _client = None
+disjuntor = Disjuntor(DISJUNTOR_FALHAS, DISJUNTOR_PAUSA_SEGUNDOS)
 
 
 def _obter_client():
@@ -10,8 +20,32 @@ def _obter_client():
         _client = OpenAI(
             api_key=NVIDIA_API_KEY,
             base_url="https://integrate.api.nvidia.com/v1",
+            # sem retry: o tempo total fica limitado ao timeout
+            timeout=CHAT_TIMEOUT_SEGUNDOS,
+            max_retries=0,
         )
     return _client
+
+
+def _chamar_chat(messages: list[dict]) -> str:
+    if not disjuntor.permite():
+        metricas.contar("chat_disjuntor_aberto")
+        raise IAInstavelError()
+
+    inicio = time.monotonic()
+    try:
+        resposta = _obter_client().chat.completions.create(
+            model=CHAT_MODEL,
+            messages=messages,
+        )
+    except openai.OpenAIError:
+        disjuntor.registrar_falha()
+        metricas.contar("chat_falha")
+        raise
+
+    disjuntor.registrar_sucesso()
+    metricas.registrar_latencia("chat", time.monotonic() - inicio)
+    return resposta.choices[0].message.content
 
 
 def _montar_contexto(versiculos: list[dict]) -> str:
@@ -37,12 +71,7 @@ Pergunta: {pergunta}
 
 Resposta:"""
 
-    resposta = _obter_client().chat.completions.create(
-        model=CHAT_MODEL,
-        messages=[{"role": "user", "content": prompt}],
-    )
-
-    return resposta.choices[0].message.content
+    return _chamar_chat([{"role": "user", "content": prompt}])
 
 
 def continuar_conversa(
@@ -69,9 +98,4 @@ Versiculos:
         {"role": "user", "content": pergunta_nova},
     ]
 
-    resposta = _obter_client().chat.completions.create(
-        model=CHAT_MODEL,
-        messages=messages,
-    )
-
-    return resposta.choices[0].message.content
+    return _chamar_chat(messages)

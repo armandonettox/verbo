@@ -2,7 +2,17 @@ import openai
 import chromadb.errors
 
 
+class IAInstavelError(Exception):
+    """A IA falhou varias vezes seguidas e esta sendo pulada por um tempo."""
+
+
 def mensagem_erro_ia(excecao: Exception) -> str:
+    if isinstance(excecao, IAInstavelError):
+        return "O servico de IA esta instavel agora. Tente novamente em alguns instantes."
+
+    if isinstance(excecao, openai.APITimeoutError):
+        return "A IA demorou demais para responder. Tente novamente."
+
     if isinstance(excecao, openai.AuthenticationError):
         return "Nao foi possivel autenticar com o servico de IA. Avise o responsavel pelo site."
 

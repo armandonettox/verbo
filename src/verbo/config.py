@@ -27,4 +27,10 @@ TOP_K = 40
 # perguntas fora de escopo (receita, futebol, geografia) ate 22
 SIMILARIDADE_MINIMA = 28
 TOP_K_LOCAL = 10
-BUSCA_TIMEOUT_SEGUNDOS = 10
+BUSCA_TIMEOUT_SEGUNDOS = float(os.getenv("VERBO_BUSCA_TIMEOUT", "8"))
+CHAT_TIMEOUT_SEGUNDOS = float(os.getenv("VERBO_CHAT_TIMEOUT", "45"))
+
+# Disjuntor: depois de algumas falhas seguidas a NVIDIA e pulada por um tempo,
+# para o usuario nao esperar o timeout de novo a cada busca
+DISJUNTOR_FALHAS = int(os.getenv("VERBO_DISJUNTOR_FALHAS", "2"))
+DISJUNTOR_PAUSA_SEGUNDOS = float(os.getenv("VERBO_DISJUNTOR_PAUSA", "60"))

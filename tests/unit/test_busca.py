@@ -80,3 +80,60 @@ def test_se_o_local_tambem_falha_o_erro_sobe(monkeypatch):
 
     with pytest.raises(RuntimeError):
         busca.buscar_com_fallback("pergunta")
+
+
+def test_busca_local_nao_devolve_similaridade(monkeypatch):
+    monkeypatch.setattr(busca, "gerar_embeddings", lambda textos, tipo: [[0.0]])
+    colecao = type("C", (), {"query": staticmethod(lambda **kw: _resultados([0.2, 0.3]))})
+    monkeypatch.setattr(busca, "_obter_colecao", lambda nome: colecao)
+    versiculos = busca.buscar_versiculos_local("pergunta")
+    assert [v["similaridade"] for v in versiculos] == [None, None]
+    assert versiculos[0]["referencia"] == "Livro 1:0"
+
+
+def _nvidia_falha(monkeypatch, chamadas):
+    def falha(pergunta):
+        chamadas.append(pergunta)
+        raise openai.OpenAIError("fora do ar")
+
+    monkeypatch.setattr(busca, "buscar_versiculos", falha)
+    monkeypatch.setattr(busca, "buscar_versiculos_local", lambda p: [{"referencia": "local"}])
+
+
+def test_depois_de_duas_falhas_a_nvidia_e_pulada(monkeypatch):
+    chamadas = []
+    _nvidia_falha(monkeypatch, chamadas)
+
+    for _ in range(4):
+        resultado = busca.buscar_com_fallback("pergunta")
+        assert resultado["modo"] == "local"
+
+    assert len(chamadas) == 2
+    assert busca.disjuntor.estado == "aberto"
+    contadores = busca.metricas.resumo()["contadores"]
+    assert contadores["busca_fallback"] == 2
+    assert contadores["busca_disjuntor_aberto"] == 2
+
+
+def test_nvidia_volta_depois_da_pausa(monkeypatch):
+    relogio = {"agora": 0.0}
+    disjuntor = busca.Disjuntor(1, 60, lambda: relogio["agora"])
+    monkeypatch.setattr(busca, "disjuntor", disjuntor)
+    _nvidia_falha(monkeypatch, [])
+    busca.buscar_com_fallback("pergunta")
+
+    monkeypatch.setattr(busca, "buscar_versiculos", lambda p: [{"referencia": "nv"}])
+    assert busca.buscar_com_fallback("pergunta")["modo"] == "local"
+
+    relogio["agora"] = 60
+    assert busca.buscar_com_fallback("pergunta")["modo"] == "nvidia"
+    assert disjuntor.estado == "fechado"
+
+
+def test_cliente_de_busca_nao_tem_retry(monkeypatch):
+    criados = []
+    monkeypatch.setattr(busca, "_client", None)
+    monkeypatch.setattr(busca, "OpenAI", lambda **kw: criados.append(kw) or object())
+    busca._obter_client()
+    assert criados[0]["max_retries"] == 0
+    assert criados[0]["timeout"] == busca.BUSCA_TIMEOUT_SEGUNDOS

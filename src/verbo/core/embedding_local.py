@@ -1,9 +1,18 @@
+import threading
+
 from verbo.config import LOCAL_EMBEDDING_MODEL, FASTEMBED_CACHE_DIR
 
 _modelo = None
+_trava = threading.Lock()
 
 
 def _obter_modelo():
+    global _modelo
+    with _trava:
+        return _carregar_modelo()
+
+
+def _carregar_modelo():
     global _modelo
     if _modelo is None:
         from fastembed import TextEmbedding
