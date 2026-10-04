@@ -105,9 +105,10 @@ if ! echo "$SAUDE" | grep -q '"indice_local":true'; then
 fi
 
 sincronizar_nginx() {
-    local base="/etc/ssl/cloudflare/verbo.armandonetto.com"
+    # o verbo reaproveita o certificado wildcard do hera
+    local base="/etc/ssl/cloudflare/hera.armandonetto.com"
     if ! sudo test -f "$base.pem" || ! sudo test -f "$base.key"; then
-        echo "Certificado do Cloudflare para o verbo ainda nao existe; pulando o nginx do host"
+        echo "Certificado wildcard do Cloudflare nao encontrado em /etc/ssl/cloudflare; pulando o nginx do host"
         return 0
     fi
 

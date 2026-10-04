@@ -34,10 +34,11 @@ Estes passos mudam a VPS e o Cloudflare. Faca na ordem.
 ### 1. Cloudflare
 
 - DNS: registro `verbo` apontando para o mesmo destino do `hera`, com o proxy ligado.
-- SSL/TLS: criar um Origin Certificate para `verbo.armandonetto.com` (ou reaproveitar um
-  wildcard). Salvar na VM como:
-  - `/etc/ssl/cloudflare/verbo.armandonetto.com.pem`
-  - `/etc/ssl/cloudflare/verbo.armandonetto.com.key` (permissao 600, dono root)
+- SSL/TLS: nao precisa gerar certificado. O verbo reaproveita o Origin Certificate do hera,
+  que e wildcard (`*.armandonetto.com`, valido ate 2041) e ja esta na VM em
+  `/etc/ssl/cloudflare/hera.armandonetto.com.pem` e `.key`. Para conferir os nomes cobertos:
+  `sudo openssl x509 -in /etc/ssl/cloudflare/hera.armandonetto.com.pem -noout -ext subjectAltName`.
+  Nao apague nem renomeie esses arquivos, porque o verbo depende deles.
 - Authenticated Origin Pulls ja esta ativo para o dominio, e a CA
   `/etc/ssl/cloudflare/origin_pull_ca.pem` ja existe por causa do hera.
 
