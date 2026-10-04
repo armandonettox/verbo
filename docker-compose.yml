@@ -19,6 +19,19 @@ services:
     # sem porta publicada: so o frontend (mesmo pod ou mesma rede) acessa a API
     expose:
       - "8000"
+    # Declarado aqui (e nao so no Dockerfile) porque o podman ignora o HEALTHCHECK de imagens
+    # no formato OCI. Sem isso o backend nunca fica "saudavel" e o frontend, que espera por
+    # service_healthy, nao sobe.
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/saude', timeout=4).status == 200 else 1)"
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
     # a VM da Oracle e compartilhada com o hera; este limite impede o verbo de
     # derrubar o resto se o consumo de memoria crescer
     mem_limit: 1500m
