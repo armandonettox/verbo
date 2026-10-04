@@ -1,0 +1,67 @@
+# Gerado a partir deste template quando o container sobe; ${BACKEND_URL} vem do ambiente.
+
+# Limites por IP. A busca e o chat gastam cota da NVIDIA, entao sao bem mais restritos
+# que a leitura de capitulos.
+limit_req_zone $binary_remote_addr zone=verbo_ia:10m rate=10r/m;
+limit_req_zone $binary_remote_addr zone=verbo_api:10m rate=120r/m;
+limit_req_status 429;
+
+# O container fica atras do nginx do host (que recebe o Cloudflare). O host manda o IP real
+# do visitante em X-Real-IP; so confiamos nesse cabecalho vindo de rede privada.
+set_real_ip_from 10.0.0.0/8;
+set_real_ip_from 172.16.0.0/12;
+set_real_ip_from 192.168.0.0/16;
+set_real_ip_from 127.0.0.1;
+real_ip_header X-Real-IP;
+
+server {
+    listen 8080;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    server_tokens off;
+    client_max_body_size 512k;
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+    gzip_min_length 1024;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    # a resposta do chat leva ~20 s; o padrao do nginx (60 s) ja cobre, mas fica explicito
+    proxy_connect_timeout 5s;
+    proxy_read_timeout 90s;
+
+    # Rotas que chamam a IA
+    location ~ ^/api/(buscar|resposta|chat)$ {
+        limit_req zone=verbo_ia burst=10 nodelay;
+        proxy_pass ${BACKEND_URL};
+    }
+
+    location /api/ {
+        limit_req zone=verbo_api burst=60 nodelay;
+        proxy_pass ${BACKEND_URL};
+    }
+
+    # Arquivos do build tem hash no nome, entao podem ficar em cache por um ano.
+    # Usamos `expires` (e nao add_header) porque add_header dentro de location descarta
+    # os cabecalhos de seguranca definidos no server.
+    location /assets/ {
+        expires 1y;
+        try_files $uri =404;
+    }
+
+    # Qualquer outro caminho (ex: /ler/Genesis/1) devolve o app, que resolve a rota
+    location / {
+        expires -1;
+        try_files $uri /index.html;
+    }
+}

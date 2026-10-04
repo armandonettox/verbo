@@ -1,0 +1,39 @@
+# Verbo: backend (API) e frontend (React servido pelo nginx).
+# Na VPS, o nginx do host recebe o Cloudflare e entrega ao frontend em 127.0.0.1:8020.
+services:
+  verbo-backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: verbo-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - verbo-dados:/dados
+    # sem porta publicada: so o frontend (mesma rede) acessa a API
+    expose:
+      - "8000"
+    # a VM da Oracle e compartilhada com o hera; este limite impede o verbo de
+    # derrubar o resto se o consumo de memoria crescer
+    mem_limit: 1500m
+    cpus: 0.8
+
+  verbo-frontend:
+    build:
+      context: frontend
+    container_name: verbo-frontend
+    restart: unless-stopped
+    depends_on:
+      verbo-backend:
+        condition: service_healthy
+    environment:
+      BACKEND_URL: http://verbo-backend:8000
+    # so o nginx do host acessa; nao expor direto na internet
+    ports:
+      - "127.0.0.1:8020:8080"
+    mem_limit: 64m
+    cpus: 0.2
+
+volumes:
+  verbo-dados:
