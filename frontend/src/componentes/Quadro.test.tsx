@@ -164,6 +164,26 @@ describe('Quadro no celular', () => {
     expect(botao()).toHaveAttribute('aria-expanded', 'true')
   })
 
+  it('trava a rolagem da pagina enquanto a gaveta esta aberta e libera ao fechar', () => {
+    renderizar()
+    expect(document.body.style.overflow).toBe('')
+
+    fireEvent.click(botao())
+    expect(document.body.style.overflow).toBe('hidden')
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(document.body.style.overflow).toBe('')
+  })
+
+  it('libera a rolagem da pagina se a tela for desmontada com a gaveta aberta', () => {
+    const { unmount } = renderizar()
+    fireEvent.click(botao())
+
+    unmount()
+
+    expect(document.body.style.overflow).toBe('')
+  })
+
   it('nao grava a escolha do celular (nao muda o que vale no computador)', () => {
     renderizar()
 

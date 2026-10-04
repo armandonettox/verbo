@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 
 const CHAVE = 'barra-lateral'
-// Mesmo ponto de corte do CSS (index.css): abaixo disso a barra vira uma gaveta
-const TELA_ESTREITA = '(max-width: 800px)'
+// Mesmo ponto de corte do CSS (index.css): em tela estreita, ou baixa (celular deitado, que passa
+// de 800 px de largura mas tem pouco espaco), a barra vira uma gaveta
+const TELA_ESTREITA = '(max-width: 800px), (max-height: 480px)'
 
 function telaEstreita(): boolean {
   return typeof window.matchMedia === 'function' && window.matchMedia(TELA_ESTREITA).matches
@@ -52,6 +53,17 @@ export function useBarraLateral() {
   }, [])
 
   const fechar = useCallback(() => setAberta(false), [])
+
+  // Com a gaveta aberta a pagina de tras nao rola (senao, ao chegar no fim da gaveta, a rolagem
+  // "vaza" para o conteudo atras dela)
+  useEffect(() => {
+    if (!estreita || !aberta) return
+    const anterior = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = anterior
+    }
+  }, [estreita, aberta])
 
   useEffect(() => {
     if (!estreita || !aberta) return

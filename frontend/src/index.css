@@ -155,8 +155,9 @@ a {
   background-color: color-mix(in srgb, var(--cor-texto) 45%, transparent);
 }
 
-/* Telas estreitas: a barra vira uma gaveta por cima do conteudo, fechada por padrao */
-@media (max-width: 800px) {
+/* Telas estreitas ou baixas (celular em pe ou deitado): a barra vira uma gaveta por cima do
+   conteudo, fechada por padrao. Mantenha igual ao TELA_ESTREITA de hooks/useBarraLateral.ts */
+@media (max-width: 800px), (max-height: 480px) {
   .mensagem-usuario,
   .mensagem-assistente {
     max-width: 100%;
@@ -183,6 +184,8 @@ a {
     padding: 3.5rem 1rem 1rem;
     border-right: 1px solid var(--cor-mutado);
     box-shadow: 0 0 1.5rem color-mix(in srgb, var(--cor-texto) 35%, transparent);
+    /* a rolagem termina na gaveta e nao passa para a pagina de tras */
+    overscroll-behavior: contain;
     transform: translateX(0);
     transition: transform 0.2s ease, visibility 0.2s;
   }
@@ -199,6 +202,26 @@ a {
 @media (prefers-reduced-motion: reduce) {
   .barra-lateral {
     transition: none;
+  }
+}
+
+/* Telas de toque: alvos de pelo menos 44 px, o tamanho confortavel para o dedo */
+@media (pointer: coarse) {
+  .botao-barra,
+  .botao-tema,
+  .botao-icone {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .botao-barra {
+    top: 0.25rem;
+    left: 0.25rem;
+  }
+
+  .botao-tema {
+    top: 0.25rem;
+    right: 0.25rem;
   }
 }
 
