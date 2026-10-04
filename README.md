@@ -44,6 +44,9 @@ gerada, e avisa que a busca esta simplificada.
 - **Fallback local:** `intfloat/multilingual-e5-small` via fastembed (ONNX, CPU). Se a NVIDIA
   falhar 2 vezes seguidas, ela e pulada por 60 s (disjuntor) e a busca local responde na hora.
   O modelo local e carregado em segundo plano ao iniciar o backend.
+- **Cache:** a primeira resposta de cada pergunta fica num SQLite no volume (so o hash da pergunta e
+  a resposta, 14 dias, ate 5000 itens); "gerar novamente" ignora o cache. Livros, capitulos e versiculo
+  do dia saem com `Cache-Control`, e as buscas (POST) com `no-store`.
 - **Banco vetorial:** ChromaDB, com um indice para cada modelo de embedding.
 - **Frontend:** React 19, TypeScript, Vite e React Router, com CSS puro e tema
   claro e escuro.
@@ -126,7 +129,8 @@ Variaveis opcionais: `VERBO_CHROMA_DB_PATH` (pasta dos indices),
 `VERBO_EMBEDDING_MODEL`, `VERBO_CHAT_MODEL` e `VERBO_COLLECTION_NAME` (trocar os
 modelos da NVIDIA; ao trocar o embedding, troque tambem a colecao e refaca o indice).
 `VERBO_BUSCA_TIMEOUT` (8 s), `VERBO_CHAT_TIMEOUT` (45 s), `VERBO_DISJUNTOR_FALHAS` (2) e
-`VERBO_DISJUNTOR_PAUSA` (60 s) ajustam os tempos de espera e o disjuntor.
+`VERBO_DISJUNTOR_PAUSA` (60 s), `VERBO_CACHE_RESPOSTAS_PATH`, `VERBO_CACHE_TTL_DIAS` (14) e
+`VERBO_CACHE_MAX_ITENS` (5000) ajustam os tempos de espera e o disjuntor.
 
 ## Testes
 
