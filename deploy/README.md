@@ -21,8 +21,9 @@ O workflow `.github/workflows/deploy.yml` roda quando o workflow `testes` passa 
    o verbo (`verbo-compose.service`).
 3. Confere a saude por ate 90 s. Se falhar, volta para as imagens anteriores e o job termina
    com erro.
-4. Sincroniza a config do nginx do host, mas so se o certificado do Cloudflare ja existir, e
-   desfaz a copia se o `nginx -t` falhar (para nao quebrar o proximo deploy do hera).
+4. Sincroniza a config do nginx do host (o site do verbo e o servidor padrao da VPS, descrito
+   abaixo), mas so se o certificado do Cloudflare ja existir, e desfaz as copias se o `nginx -t`
+   falhar, para nao quebrar o nginx dos outros sites (hermes, novo).
 5. Apaga imagens antigas, mantendo a atual e a anterior.
 
 O script nunca mexe no pod do hera e nao mata o `aardvark-dns`.
@@ -96,6 +97,19 @@ Rode manualmente o workflow `deploy` e acompanhe o log. Depois confira:
 curl -s http://127.0.0.1:8020/api/saude     # na VPS
 curl -sI https://verbo.armandonetto.com/    # de fora
 ```
+
+## Servidor padrao da VPS (nome sem site vai para o dominio principal)
+
+`deploy/nginx/00-padrao-redirect.conf` e instalado em `/etc/nginx/conf.d/` e atende, na porta 443,
+qualquer nome que nao tenha bloco proprio, redirecionando (302) para `https://armandonetto.com/`.
+Sem ele, o nginx entrega o primeiro servidor carregado, que e o do hermes: foi o que aconteceu com
+`verbo.armandonetto.com` entre a criacao do DNS e a instalacao do bloco do verbo.
+
+- Vale para a VPS inteira, entao se um subdominio novo for criado no Cloudflare antes do bloco
+  dele existir, o visitante vai para o dominio principal e nao para outro site.
+- Usa 302 e nao 301 para o navegador nao guardar o redirecionamento.
+- So cobre a porta 443 (a do Cloudflare em modo Full Strict). Um nome que nao existe no DNS
+  nem chega na VPS.
 
 ## Operacao
 

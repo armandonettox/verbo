@@ -115,25 +115,34 @@ sincronizar_nginx() {
     sudo mkdir -p /usr/share/nginx/verbo-erros
     sudo cp deploy/nginx/erros/50x.html /usr/share/nginx/verbo-erros/erro-50x.html
 
-    local destino="/etc/nginx/conf.d/verbo.armandonetto.com.conf"
-    local copia=""
-    if sudo test -f "$destino"; then
-        copia=$(mktemp)
-        sudo cp "$destino" "$copia"
-    fi
-    sudo cp deploy/nginx/verbo.armandonetto.com.conf "$destino"
+    # O site do verbo e o servidor padrao da VPS (nomes sem bloco proprio vao para o dominio
+    # principal; ver o cabecalho de 00-padrao-redirect.conf)
+    local arquivos=("verbo.armandonetto.com.conf" "00-padrao-redirect.conf")
+    local -A copias=()
+    local arq destino
+    for arq in "${arquivos[@]}"; do
+        destino="/etc/nginx/conf.d/$arq"
+        if sudo test -f "$destino"; then
+            copias[$arq]=$(mktemp)
+            sudo cp "$destino" "${copias[$arq]}"
+        fi
+        sudo cp "deploy/nginx/$arq" "$destino"
+    done
 
-    # Um nginx -t quebrado deixaria o proximo deploy do hera falhar, entao a config
-    # anterior volta se o teste nao passar
+    # Um nginx -t quebrado afetaria todos os sites da VPS (hermes, novo e verbo), entao as
+    # configuracoes anteriores voltam se o teste nao passar
     if sudo nginx -t; then
         sudo nginx -s reload
     else
         echo "nginx -t falhou; restaurando a configuracao anterior"
-        if [ -n "$copia" ]; then
-            sudo cp "$copia" "$destino"
-        else
-            sudo rm -f "$destino"
-        fi
+        for arq in "${arquivos[@]}"; do
+            destino="/etc/nginx/conf.d/$arq"
+            if [ -n "${copias[$arq]:-}" ]; then
+                sudo cp "${copias[$arq]}" "$destino"
+            else
+                sudo rm -f "$destino"
+            fi
+        done
         return 1
     fi
 }
