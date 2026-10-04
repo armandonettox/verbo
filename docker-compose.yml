@@ -20,8 +20,8 @@ services:
     expose:
       - "8000"
     # Declarado aqui (e nao so no Dockerfile) porque o podman ignora o HEALTHCHECK de imagens
-    # no formato OCI. Sem isso o backend nunca fica "saudavel" e o frontend, que espera por
-    # service_healthy, nao sobe.
+    # no formato OCI. Serve para monitoramento (podman ps) e para o docker; o frontend nao
+    # espera por ele (ver depends_on abaixo).
     healthcheck:
       test:
         - CMD
@@ -44,8 +44,12 @@ services:
     container_name: verbo-frontend
     restart: unless-stopped
     depends_on:
+      # service_started e nao service_healthy: no podman rootless, quando o compose sobe pela
+      # unit do systemd, as checagens de saude nunca chegam a rodar e o frontend ficaria
+      # esperando para sempre. O nginx do frontend usa um IP fixo para o backend, entao sobe
+      # antes dele responder; a saude real e conferida por HTTP no script de deploy.
       verbo-backend:
-        condition: service_healthy
+        condition: service_started
     environment:
       # No podman-compose os servicos dividem um pod, entao 127.0.0.1 chega no backend sem
       # depender do DNS interno (o aardvark-dns ja travou na VPS e derrubou o hera por dias).
