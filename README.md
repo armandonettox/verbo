@@ -41,7 +41,9 @@ gerada, e avisa que a busca esta simplificada.
   embeddings e `nvidia/nemotron-3-super-120b-a12b` para a resposta. Os nomes dos
   modelos sao variaveis de ambiente, porque a NVIDIA aposenta modelos de tempos em
   tempos.
-- **Fallback local:** `intfloat/multilingual-e5-small` via fastembed (ONNX, CPU).
+- **Fallback local:** `intfloat/multilingual-e5-small` via fastembed (ONNX, CPU). Se a NVIDIA
+  falhar 2 vezes seguidas, ela e pulada por 60 s (disjuntor) e a busca local responde na hora.
+  O modelo local e carregado em segundo plano ao iniciar o backend.
 - **Banco vetorial:** ChromaDB, com um indice para cada modelo de embedding.
 - **Frontend:** React 19, TypeScript, Vite e React Router, com CSS puro e tema
   claro e escuro.
@@ -89,7 +91,7 @@ Todas as rotas ficam sob `/api`.
 | `GET /versiculo-do-dia` | versiculo do dia; `data` e a data local do usuario |
 | `GET /livros` | livros, com o total de capitulos |
 | `GET /capitulos/{livro}/{numero}` | capitulo completo, versiculo a versiculo |
-| `GET /saude` | estado da chave e dos dois indices |
+| `GET /saude` | estado da chave, dos dois indices, dos disjuntores e contadores de falha e latencia |
 
 ## Rodando localmente
 
@@ -123,6 +125,8 @@ npm run dev
 Variaveis opcionais: `VERBO_CHROMA_DB_PATH` (pasta dos indices),
 `VERBO_EMBEDDING_MODEL`, `VERBO_CHAT_MODEL` e `VERBO_COLLECTION_NAME` (trocar os
 modelos da NVIDIA; ao trocar o embedding, troque tambem a colecao e refaca o indice).
+`VERBO_BUSCA_TIMEOUT` (8 s), `VERBO_CHAT_TIMEOUT` (45 s), `VERBO_DISJUNTOR_FALHAS` (2) e
+`VERBO_DISJUNTOR_PAUSA` (60 s) ajustam os tempos de espera e o disjuntor.
 
 ## Testes
 
