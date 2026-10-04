@@ -114,5 +114,9 @@ curl -sI https://verbo.armandonetto.com/    # de fora
   ~1 GiB de RAM. O container tem limite de 1,5 GB para nao afetar o hera.
 - O rate limit por IP depende de o nginx do host mandar `X-Real-IP` com o valor de
   `CF-Connecting-IP`. Sem isso, todos os visitantes dividem o mesmo limite.
-- O modo "pod" do podman-compose (frontend chegando no backend por `127.0.0.1`) foi
-  desenhado a partir da documentacao do hera, mas nao foi testado nesta VM.
+- No podman-compose desta VM os containers do mesmo pod nao compartilham a rede: o frontend
+  chega no backend pelo nome (`verbo-backend`, via aardvark-dns), nao por `127.0.0.1` (testado,
+  deu 502). Se o DNS interno travar, o container do frontend reinicia sozinho e tenta de novo.
+- As checagens de saude do podman nao rodam para containers subidos pela unit do systemd
+  (o status fica em `starting`). Por isso o frontend espera so o backend iniciar
+  (`service_started`) e a saude real e conferida por HTTP no script de deploy.
