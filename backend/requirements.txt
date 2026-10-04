@@ -1,4 +1,4 @@
-# Dependencias do backend (API FastAPI). O app Streamlit antigo usa o requirements.txt da raiz.
+# Dependencias do backend (API FastAPI e core). Unico arquivo de dependencias Python do projeto.
 fastapi==0.142.2
 uvicorn[standard]==0.51.0
 chromadb==1.5.9

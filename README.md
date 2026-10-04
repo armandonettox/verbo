@@ -77,9 +77,6 @@ tests/
   backend/               # testam a API
 ```
 
-O app antigo, em Streamlit (`app.py`, `src/verbo/ui/` e `assets/`), continua no
-repositorio ate ser removido. A versao no ar e a nova.
-
 ## API
 
 Todas as rotas ficam sob `/api`.

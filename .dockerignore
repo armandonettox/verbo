@@ -9,8 +9,6 @@ __pycache__
 *.pyc
 chroma-db
 tests
-assets
-app.py
 README.md
 CLAUDE.md
 AGENTS.md

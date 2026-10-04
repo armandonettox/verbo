@@ -21,3 +21,6 @@ AGENTS.md
 
 # copia local dos indices vetoriais (vao para a VPS por scp, nao pelo git)
 .indices/
+
+# indice vetorial gerado localmente (o caminho padrao de config.py); os indices que vao para a VPS ficam em .indices/
+chroma-db/

@@ -18,7 +18,6 @@ jobs:
 
       - name: Instala dependencias
         run: |
-          pip install -r requirements.txt
           pip install -r backend/requirements.txt
           pip install -r tests/requirements.txt
 
