@@ -7,7 +7,8 @@ ENV PYTHONUNBUFFERED=1 \
     VERBO_BIBLE_JSON_PATH=/app/data/biblia.json \
     VERBO_CHROMA_DB_PATH=/dados/chroma-db \
     VERBO_MODELO_CACHE_DIR=/dados/modelos \
-    HF_HOME=/dados/modelos \n    VERBO_AQUECER_MODELO_LOCAL=1
+    HF_HOME=/dados/modelos \
+    VERBO_AQUECER_MODELO_LOCAL=1
 
 WORKDIR /app
 
