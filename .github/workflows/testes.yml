@@ -50,3 +50,20 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      # Navegador de verdade com tela de computador e de celular (toque, largura, paisagem)
+      - name: Instala o navegador dos testes e2e
+        run: npx playwright install --with-deps chromium
+
+      - name: Testes e2e
+        run: npx playwright test
+
+      - name: Guarda o relatorio dos testes e2e quando falham
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-e2e
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+          retention-days: 7
