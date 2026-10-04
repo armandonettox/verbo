@@ -62,7 +62,7 @@ src/verbo/
     embedding_local.py   # embeddings locais (multilingual-e5-small)
     resposta.py          # resposta inicial e perguntas de acompanhamento
     erros.py             # mapeia falhas de API para mensagens claras
-    leitura.py           # capitulos e texto para narracao
+    leitura.py           # carga dos capitulos, versiculo a versiculo
     versiculo_dia.py     # versiculo do dia, deterministico por data
     ingestao.py          # chunking usado na construcao dos indices
 frontend/
