@@ -14,6 +14,12 @@ set_real_ip_from 192.168.0.0/16;
 set_real_ip_from 127.0.0.1;
 real_ip_header X-Real-IP;
 
+# O nome do backend e resolvido a cada requisicao (nao so quando o nginx sobe). Se o backend
+# reiniciar e ganhar outro IP, o nginx acompanha; sem isso ele ficaria apontando para o IP
+# antigo e devolveria 502 ate alguem reiniciar o frontend. NGINX_LOCAL_RESOLVERS e preenchida
+# pela imagem do nginx a partir do /etc/resolv.conf do container.
+resolver ${NGINX_LOCAL_RESOLVERS} valid=10s ipv6=off;
+
 server {
     listen 8080;
     server_name _;
@@ -43,12 +49,15 @@ server {
     # Rotas que chamam a IA
     location ~ ^/api/(buscar|resposta|chat)$ {
         limit_req zone=verbo_ia burst=10 nodelay;
-        proxy_pass ${BACKEND_URL};
+        # proxy_pass com variavel: o nginx repassa a URI original e resolve o nome em runtime
+        set $backend ${BACKEND_URL};
+        proxy_pass $backend;
     }
 
     location /api/ {
         limit_req zone=verbo_api burst=60 nodelay;
-        proxy_pass ${BACKEND_URL};
+        set $backend ${BACKEND_URL};
+        proxy_pass $backend;
     }
 
     # Arquivos do build tem hash no nome, entao podem ficar em cache por um ano.

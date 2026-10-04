@@ -116,7 +116,8 @@ curl -sI https://verbo.armandonetto.com/    # de fora
   `CF-Connecting-IP`. Sem isso, todos os visitantes dividem o mesmo limite.
 - No podman-compose desta VM os containers do mesmo pod nao compartilham a rede: o frontend
   chega no backend pelo nome (`verbo-backend`, via aardvark-dns), nao por `127.0.0.1` (testado,
-  deu 502). Se o DNS interno travar, o container do frontend reinicia sozinho e tenta de novo.
+  deu 502). O nginx do frontend resolve esse nome a cada requisicao: sem isso, quando o backend
+  reiniciava e ganhava outro IP, o frontend ficava com 502 ate ser reiniciado tambem.
 - As checagens de saude do podman nao rodam para containers subidos pela unit do systemd
   (o status fica em `starting`). Por isso o frontend espera so o backend iniciar
   (`service_started`) e a saude real e conferida por HTTP no script de deploy.
