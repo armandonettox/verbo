@@ -1,10 +1,17 @@
 from openai import OpenAI
 from verbo.config import NVIDIA_API_KEY, CHAT_MODEL
 
-_client = OpenAI(
-    api_key=NVIDIA_API_KEY,
-    base_url="https://integrate.api.nvidia.com/v1",
-)
+_client = None
+
+
+def _obter_client():
+    global _client
+    if _client is None:
+        _client = OpenAI(
+            api_key=NVIDIA_API_KEY,
+            base_url="https://integrate.api.nvidia.com/v1",
+        )
+    return _client
 
 
 def _montar_contexto(versiculos: list[dict]) -> str:
@@ -30,7 +37,7 @@ Pergunta: {pergunta}
 
 Resposta:"""
 
-    resposta = _client.chat.completions.create(
+    resposta = _obter_client().chat.completions.create(
         model=CHAT_MODEL,
         messages=[{"role": "user", "content": prompt}],
     )
@@ -62,7 +69,7 @@ Versiculos:
         {"role": "user", "content": pergunta_nova},
     ]
 
-    resposta = _client.chat.completions.create(
+    resposta = _obter_client().chat.completions.create(
         model=CHAT_MODEL,
         messages=messages,
     )
