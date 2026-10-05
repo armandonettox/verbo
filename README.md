@@ -149,6 +149,16 @@ npm run e2e                          # navegador: computador e celular
 Os testes de ponta a ponta usam a API simulada. Para rodar contra o site no ar
 (so leitura): `E2E_URL=https://verbo.armandonetto.com npx playwright test`.
 
+### Qualidade da busca
+
+`tests/avaliacao/perguntas.json` tem 30 perguntas com os capitulos esperados. O script mede
+quantas vezes o capitulo certo aparece entre os primeiros resultados (acerto em 5, 10 e 40, e MRR) e se
+as perguntas sem relacao com a Biblia ficam sem resultado. Usa os indices reais, entao nao roda no CI:
+
+```
+python scripts/avaliar_busca.py --indice ambos --comparar tests/avaliacao/linha-de-base.json
+```
+
 ## Deploy
 
 O deploy roda sozinho quando os testes passam na `master`: constroi as imagens,

@@ -1,0 +1,54 @@
+{
+  "validadas": 0,
+  "total": 30,
+  "nvidia": {
+    "perguntas": 26,
+    "acerto_em_5": 0.808,
+    "acerto_em_10": 0.846,
+    "acerto_em_40": 0.923,
+    "mrr": 0.742,
+    "fora_de_escopo": 4,
+    "fora_de_escopo_sem_versiculos": 1.0,
+    "por_categoria": {
+      "ambigua": {
+        "perguntas": 4,
+        "acerto_em_10": 0.25
+      },
+      "conceito": {
+        "perguntas": 12,
+        "acerto_em_10": 0.917
+      },
+      "passagem": {
+        "perguntas": 10,
+        "acerto_em_10": 1.0
+      }
+    },
+    "segundos_media": 0.42,
+    "segundos_maximo": 3.87
+  },
+  "local": {
+    "perguntas": 26,
+    "acerto_em_5": 0.5,
+    "acerto_em_10": 0.5,
+    "acerto_em_40": 0.962,
+    "mrr": 0.388,
+    "fora_de_escopo": 4,
+    "fora_de_escopo_sem_versiculos": null,
+    "por_categoria": {
+      "ambigua": {
+        "perguntas": 4,
+        "acerto_em_10": 0.25
+      },
+      "conceito": {
+        "perguntas": 12,
+        "acerto_em_10": 0.583
+      },
+      "passagem": {
+        "perguntas": 10,
+        "acerto_em_10": 0.5
+      }
+    },
+    "segundos_media": 0.17,
+    "segundos_maximo": 4.19
+  }
+}
