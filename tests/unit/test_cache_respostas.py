@@ -37,6 +37,12 @@ def test_chave_muda_com_modelo_prompt_pergunta_ou_versiculos():
     assert montar_chave("m", "1", "pergunta", VERSICULOS[:1]) != base
 
 
+def test_chave_muda_se_o_texto_do_versiculo_for_alterado():
+    original = [{"referencia": "Joao 1:1", "texto": "No principio era o Verbo."}]
+    adulterado = [{"referencia": "Joao 1:1", "texto": "Texto falso."}]
+    assert montar_chave("m", "1", "p", original) != montar_chave("m", "1", "p", adulterado)
+
+
 def test_guarda_e_le(tmp_path):
     cache, _ = _cache(tmp_path)
     assert cache.obter("k") is None

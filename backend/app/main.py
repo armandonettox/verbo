@@ -84,6 +84,27 @@ def criar_rotas():
             "metricas": metricas.resumo(),
         }
 
+    @rotas.post("/versiculos", response_model=schemas.VersiculosSaida)
+    def versiculos(entrada: schemas.BuscaEntrada):
+        pergunta = entrada.pergunta.strip()
+        try:
+            resultado = busca.buscar_com_fallback(pergunta)
+        except Exception as excecao:
+            raise _erro_ia(excecao)
+
+        aviso = None
+        if resultado["modo"] == "local":
+            aviso = AVISO_BUSCA_LOCAL
+        elif not resultado["versiculos"]:
+            aviso = AVISO_SEM_RESULTADOS
+
+        return {
+            "pergunta": pergunta,
+            "modo": resultado["modo"],
+            "aviso": aviso,
+            "versiculos": [_versiculo_saida(v) for v in resultado["versiculos"]],
+        }
+
     @rotas.post("/buscar", response_model=schemas.BuscaSaida)
     def buscar(entrada: schemas.BuscaEntrada):
         pergunta = entrada.pergunta.strip()
@@ -118,8 +139,12 @@ def criar_rotas():
 
     @rotas.post("/resposta", response_model=schemas.RespostaSaida)
     def regenerar_resposta(entrada: schemas.RespostaEntrada):
+        versiculos = _como_dicts(entrada.versiculos)
         try:
-            resposta = gerar_resposta(entrada.pergunta, _como_dicts(entrada.versiculos))
+            if entrada.usar_cache:
+                resposta = _resposta_com_cache(entrada.pergunta, versiculos)
+            else:
+                resposta = gerar_resposta(entrada.pergunta, versiculos)
         except Exception as excecao:
             raise _erro_ia(excecao)
         return {"resposta": resposta}

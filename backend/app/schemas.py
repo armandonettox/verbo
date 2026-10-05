@@ -24,6 +24,14 @@ class BuscaEntrada(BaseModel):
     pergunta: str = Field(min_length=2, max_length=500)
 
 
+class VersiculosSaida(BaseModel):
+    # So a recuperacao: a resposta gerada vem depois, em /resposta
+    pergunta: str
+    modo: Literal["nvidia", "local"]
+    aviso: str | None
+    versiculos: list[VersiculoSaida]
+
+
 class BuscaSaida(BaseModel):
     pergunta: str
     modo: Literal["nvidia", "local"]
@@ -35,6 +43,8 @@ class BuscaSaida(BaseModel):
 class RespostaEntrada(BaseModel):
     pergunta: str = Field(min_length=2, max_length=500)
     versiculos: list[VersiculoEntrada] = Field(max_length=MAX_VERSICULOS)
+    # True na primeira resposta de uma busca (pode vir do cache); "gerar novamente" usa False
+    usar_cache: bool = False
 
 
 class RespostaSaida(BaseModel):

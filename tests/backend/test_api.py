@@ -405,3 +405,66 @@ def test_posts_nunca_sao_guardados(cliente, monkeypatch):
     _busca_nvidia(monkeypatch)
     resposta = cliente.post("/api/buscar", json={"pergunta": "Como orar?"})
     assert resposta.headers["cache-control"] == "no-store"
+
+
+# --- versiculos primeiro, resposta depois ---
+
+def test_versiculos_nao_gera_resposta(cliente, monkeypatch):
+    monkeypatch.setattr(main.busca, "buscar_com_fallback",
+                        lambda p: {"versiculos": list(VERSICULOS), "modo": "nvidia"})
+    monkeypatch.setattr(main, "gerar_resposta", lambda p, v: pytest.fail("nao deveria gerar"))
+
+    corpo = cliente.post("/api/versiculos", json={"pergunta": "como orar?"}).json()
+
+    assert corpo["modo"] == "nvidia"
+    assert corpo["aviso"] is None
+    assert "resposta" not in corpo
+    assert corpo["versiculos"][0]["livro"] == "São Lucas"
+    assert corpo["versiculos"][0]["capitulo"] == 11
+
+
+def test_versiculos_no_modo_local_avisa(cliente, monkeypatch):
+    monkeypatch.setattr(main.busca, "buscar_com_fallback",
+                        lambda p: {"versiculos": list(VERSICULOS), "modo": "local"})
+    corpo = cliente.post("/api/versiculos", json={"pergunta": "como orar?"}).json()
+    assert corpo["modo"] == "local"
+    assert "simplificada" in corpo["aviso"]
+
+
+def test_versiculos_sem_resultado_avisa(cliente, monkeypatch):
+    monkeypatch.setattr(main.busca, "buscar_com_fallback",
+                        lambda p: {"versiculos": [], "modo": "nvidia"})
+    corpo = cliente.post("/api/versiculos", json={"pergunta": "receita de bolo"}).json()
+    assert corpo["versiculos"] == []
+    assert "Nenhum versiculo" in corpo["aviso"]
+
+
+def test_versiculos_com_busca_fora_do_ar_da_503(cliente, monkeypatch):
+    def quebra(pergunta):
+        raise RuntimeError("tudo fora")
+
+    monkeypatch.setattr(main.busca, "buscar_com_fallback", quebra)
+    assert cliente.post("/api/versiculos", json={"pergunta": "como orar?"}).status_code == 503
+
+
+def test_resposta_com_usar_cache_reaproveita_a_da_busca(cliente, cache_ligado, monkeypatch):
+    chamadas = _busca_nvidia(monkeypatch)
+    cliente.post("/api/buscar", json={"pergunta": "Como orar?"})
+    corpo = {"pergunta": "como orar", "versiculos": VERSICULOS, "usar_cache": True}
+    assert cliente.post("/api/resposta", json=corpo).json() == {"resposta": "resposta gerada"}
+    assert len(chamadas) == 1
+
+
+def test_resposta_sem_usar_cache_gera_de_novo(cliente, cache_ligado, monkeypatch):
+    chamadas = _busca_nvidia(monkeypatch)
+    cliente.post("/api/buscar", json={"pergunta": "Como orar?"})
+    cliente.post("/api/resposta", json={"pergunta": "Como orar?", "versiculos": VERSICULOS})
+    assert len(chamadas) == 2
+
+
+def test_texto_adulterado_nao_usa_a_resposta_guardada(cliente, cache_ligado, monkeypatch):
+    chamadas = _busca_nvidia(monkeypatch)
+    cliente.post("/api/buscar", json={"pergunta": "Como orar?"})
+    falso = [{**VERSICULOS[0], "texto": "texto falso"}]
+    cliente.post("/api/resposta", json={"pergunta": "Como orar?", "versiculos": falso, "usar_cache": True})
+    assert len(chamadas) == 2

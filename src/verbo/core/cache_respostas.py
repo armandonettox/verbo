@@ -18,8 +18,10 @@ def normalizar_pergunta(pergunta: str) -> str:
 
 
 def montar_chave(modelo: str, versao_prompt: str, pergunta: str, versiculos: list[dict]) -> str:
-    referencias = "|".join(v["referencia"] for v in versiculos)
-    base = "\n".join([modelo, versao_prompt, normalizar_pergunta(pergunta), referencias])
+    # o texto entra na chave: o cliente pode mandar os versiculos, e assim texto
+    # adulterado nunca reaproveita (nem contamina) a resposta de um versiculo real
+    versiculos_chave = "|".join(f"{v['referencia']}={v.get('texto', '')}" for v in versiculos)
+    base = "\n".join([modelo, versao_prompt, normalizar_pergunta(pergunta), versiculos_chave])
     return hashlib.sha256(base.encode("utf-8")).hexdigest()
 
 
