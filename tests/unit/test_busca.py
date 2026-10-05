@@ -167,3 +167,17 @@ def test_embedding_cache_descarta_o_mais_antigo(monkeypatch):
     busca._embedding_da_pergunta("c")
     busca._embedding_da_pergunta("a")
     assert pedidos == ["a", "b", "c", "a"]
+
+
+def test_busca_local_pede_o_top_k_configurado(monkeypatch):
+    pedidos = []
+
+    def consulta(**kwargs):
+        pedidos.append(kwargs["n_results"])
+        return _resultados([0.2])
+
+    monkeypatch.setattr(busca, "gerar_embeddings", lambda textos, tipo: [[0.0]])
+    monkeypatch.setattr(busca, "_obter_colecao", lambda nome: type("C", (), {"query": staticmethod(consulta)}))
+    monkeypatch.setattr(busca, "TOP_K_LOCAL", 25)
+    busca.buscar_versiculos_local("pergunta")
+    assert pedidos == [25]

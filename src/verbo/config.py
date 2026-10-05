@@ -15,7 +15,7 @@ CHROMA_DB_PATH = os.getenv("VERBO_CHROMA_DB_PATH", "chroma-db")
 EMBEDDING_MODEL = os.getenv("VERBO_EMBEDDING_MODEL", "nvidia/nemotron-3-embed-1b")
 CHAT_MODEL = os.getenv("VERBO_CHAT_MODEL", "nvidia/nemotron-3-super-120b-a12b")
 COLLECTION_NAME = os.getenv("VERBO_COLLECTION_NAME", "biblia-nemotron")
-COLLECTION_NAME_LOCAL = "biblia-local"
+COLLECTION_NAME_LOCAL = os.getenv("VERBO_COLLECTION_NAME_LOCAL", "biblia-local")
 
 # Embedding local (fallback quando a NVIDIA falha)
 LOCAL_EMBEDDING_MODEL = "intfloat/multilingual-e5-small"
@@ -26,7 +26,9 @@ TOP_K = 40
 # Calibrado para o nemotron-3-embed-1b: perguntas biblicas ficam entre 30 e 66,
 # perguntas fora de escopo (receita, futebol, geografia) ate 22
 SIMILARIDADE_MINIMA = 28
-TOP_K_LOCAL = 10
+# No modo local nao ha resposta gerada, so a lista de versiculos (que o site mostra de 4 em 4).
+# Na avaliacao o acerto sobe de 50% com 10 resultados para 92% com 30 (2026-10-05).
+TOP_K_LOCAL = int(os.getenv("VERBO_TOP_K_LOCAL", "30"))
 BUSCA_TIMEOUT_SEGUNDOS = float(os.getenv("VERBO_BUSCA_TIMEOUT", "8"))
 CHAT_TIMEOUT_SEGUNDOS = float(os.getenv("VERBO_CHAT_TIMEOUT", "45"))
 
