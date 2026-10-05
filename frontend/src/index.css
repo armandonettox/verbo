@@ -5,6 +5,10 @@
   --cor-texto: #3B2A1E;
   --cor-mutado: #6B4F3A;
   --cor-destaque: #B8860B;
+  /* O dourado sobre o fundo claro fica abaixo de 4,5:1 (WCAG AA) para texto pequeno; no tema claro
+     os links usam o marrom da paleta e sao sublinhados. No escuro o dourado passa. */
+  --cor-link: var(--cor-mutado);
+  --cor-destaque-texto: var(--cor-mutado);
 
   --largura-barra: 380px;
   --largura-conteudo: 900px;
@@ -20,6 +24,8 @@
   --cor-fundo-2: #33281B;
   --cor-texto: #F1E8D8;
   --cor-mutado: #C9B79E;
+  --cor-link: var(--cor-destaque);
+  --cor-destaque-texto: var(--cor-destaque);
 
   color-scheme: dark;
 }
@@ -54,7 +60,7 @@ li {
 }
 
 a {
-  color: var(--cor-destaque);
+  color: var(--cor-link);
 }
 
 :focus-visible {
@@ -83,7 +89,7 @@ a {
 }
 
 .botao-tema:hover {
-  color: var(--cor-destaque);
+  color: var(--cor-destaque-texto);
 }
 
 /* Estrutura: barra lateral de 380px que abre e fecha, mais a area de conteudo */
@@ -137,7 +143,7 @@ a {
 }
 
 .botao-barra:hover {
-  color: var(--cor-destaque);
+  color: var(--cor-destaque-texto);
   border-color: var(--cor-destaque);
 }
 
@@ -214,11 +220,52 @@ a {
 }
 
 /* Telas de toque: alvos de pelo menos 44 px, o tamanho confortavel para o dedo */
+/* Buscas recentes e aviso de link copiado */
+.historico-buscas {
+  margin-top: 1rem;
+}
+
+.lista-historico {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+
+.botao-historico {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  overflow: hidden;
+  color: var(--cor-texto);
+  font: inherit;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.botao-historico:hover {
+  border-color: var(--cor-destaque);
+  color: var(--cor-destaque-texto);
+}
+
+.aviso-historico,
+.aviso-link {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
 @media (pointer: coarse) {
   .botao-barra,
   .botao-tema,
   .botao-icone,
-  .botao-rolagem {
+  .botao-rolagem,
+  .botao-historico {
     min-width: 44px;
     min-height: 44px;
   }
@@ -299,7 +346,7 @@ a {
 .botao-busca:hover:not(:disabled),
 .botao-secundario:hover {
   border-color: var(--cor-destaque);
-  color: var(--cor-destaque);
+  color: var(--cor-destaque-texto);
 }
 
 .botao-busca:disabled {
@@ -466,7 +513,7 @@ a {
 
 .botao-rolagem:hover,
 .botao-rolagem[aria-pressed='true'] {
-  color: var(--cor-destaque);
+  color: var(--cor-destaque-texto);
   border-color: var(--cor-destaque);
 }
 
@@ -507,12 +554,12 @@ a {
 }
 
 .rodape a {
-  color: var(--cor-destaque);
-  text-decoration: none;
+  color: var(--cor-link);
+  text-decoration: underline;
 }
 
 .rodape a:hover {
-  text-decoration: underline;
+  color: var(--cor-destaque-texto);
 }
 
 /* Leitura de capitulo */
@@ -582,5 +629,5 @@ a {
 }
 
 .botao-icone:hover {
-  color: var(--cor-destaque);
+  color: var(--cor-destaque-texto);
 }
