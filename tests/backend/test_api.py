@@ -168,7 +168,7 @@ def test_resposta_regenera_a_partir_dos_versiculos(cliente, monkeypatch):
 
     corpo = cliente.post("/api/resposta", json={"pergunta": "como orar?", "versiculos": VERSICULOS}).json()
 
-    assert corpo == {"resposta": "como orar?|1"}
+    assert corpo["resposta"] == "como orar?|1"
 
 
 def test_chat_repassa_historico_e_pergunta_nova(cliente, monkeypatch):
@@ -188,7 +188,7 @@ def test_chat_repassa_historico_e_pergunta_nova(cliente, monkeypatch):
         "pergunta_nova": "mais detalhes",
     }).json()
 
-    assert corpo == {"resposta": "ok"}
+    assert corpo["resposta"] == "ok"
     assert recebido["historico"] == [{"role": "user", "content": "e depois?"}]
     assert recebido["nova"] == "mais detalhes"
 
@@ -451,7 +451,7 @@ def test_resposta_com_usar_cache_reaproveita_a_da_busca(cliente, cache_ligado, m
     chamadas = _busca_nvidia(monkeypatch)
     cliente.post("/api/buscar", json={"pergunta": "Como orar?"})
     corpo = {"pergunta": "como orar", "versiculos": VERSICULOS, "usar_cache": True}
-    assert cliente.post("/api/resposta", json=corpo).json() == {"resposta": "resposta gerada"}
+    assert cliente.post("/api/resposta", json=corpo).json()["resposta"] == "resposta gerada"
     assert len(chamadas) == 1
 
 
@@ -468,3 +468,56 @@ def test_texto_adulterado_nao_usa_a_resposta_guardada(cliente, cache_ligado, mon
     falso = [{**VERSICULOS[0], "texto": "texto falso"}]
     cliente.post("/api/resposta", json={"pergunta": "Como orar?", "versiculos": falso, "usar_cache": True})
     assert len(chamadas) == 2
+
+
+# --- citacoes nao confirmadas ---
+
+RESPOSTA_COM_CITACAO_FORA = "Lucas 11:2 ensina a orar, e Mateus 7:7 tambem."
+
+
+def test_resposta_avisa_citacao_que_nao_estava_nos_versiculos(cliente, monkeypatch):
+    monkeypatch.setattr(main, "gerar_resposta", lambda p, v: RESPOSTA_COM_CITACAO_FORA)
+    corpo = cliente.post("/api/resposta", json={"pergunta": "como orar?", "versiculos": VERSICULOS}).json()
+    assert corpo["resposta"] == RESPOSTA_COM_CITACAO_FORA
+    assert corpo["citacoes_nao_confirmadas"] == ["São Mateus 7"]
+    contadores = main.metricas.resumo()["contadores"]
+    assert contadores["resposta_conferida"] == 1
+    assert contadores["resposta_com_citacao_nao_confirmada"] == 1
+
+
+def test_resposta_so_com_citacoes_enviadas_vem_sem_alerta(cliente, monkeypatch):
+    monkeypatch.setattr(main, "gerar_resposta", lambda p, v: "Veja Lucas 11:1-4.")
+    corpo = cliente.post("/api/resposta", json={"pergunta": "como orar?", "versiculos": VERSICULOS}).json()
+    assert corpo["citacoes_nao_confirmadas"] == []
+    assert "resposta_com_citacao_nao_confirmada" not in main.metricas.resumo()["contadores"]
+
+
+def test_buscar_tambem_confere_as_citacoes(cliente, monkeypatch):
+    monkeypatch.setattr(main.busca, "buscar_com_fallback",
+                        lambda p: {"versiculos": list(VERSICULOS), "modo": "nvidia"})
+    monkeypatch.setattr(main, "gerar_resposta", lambda p, v: RESPOSTA_COM_CITACAO_FORA)
+    corpo = cliente.post("/api/buscar", json={"pergunta": "como orar?"}).json()
+    assert corpo["citacoes_nao_confirmadas"] == ["São Mateus 7"]
+
+
+def test_chat_confere_as_citacoes(cliente, monkeypatch):
+    monkeypatch.setattr(main, "continuar_conversa", lambda *a: RESPOSTA_COM_CITACAO_FORA)
+    corpo = cliente.post("/api/chat", json={
+        "pergunta_original": "como orar?", "resposta_original": "Lucas 11:1.",
+        "versiculos": VERSICULOS, "historico": [], "pergunta_nova": "e depois?",
+    }).json()
+    assert corpo["citacoes_nao_confirmadas"] == ["São Mateus 7"]
+
+
+def test_resposta_vazia_nao_e_conferida(cliente, monkeypatch):
+    monkeypatch.setattr(main, "gerar_resposta", lambda p, v: "")
+    corpo = cliente.post("/api/resposta", json={"pergunta": "como orar?", "versiculos": VERSICULOS}).json()
+    assert corpo["citacoes_nao_confirmadas"] == []
+    assert "resposta_conferida" not in main.metricas.resumo()["contadores"]
+
+
+def test_resposta_do_cache_tambem_e_conferida(cliente, cache_ligado, monkeypatch):
+    _busca_nvidia(monkeypatch, resposta=RESPOSTA_COM_CITACAO_FORA)
+    cliente.post("/api/buscar", json={"pergunta": "Como orar?"})
+    segunda = cliente.post("/api/buscar", json={"pergunta": "como orar"}).json()
+    assert segunda["citacoes_nao_confirmadas"] == ["São Mateus 7"]

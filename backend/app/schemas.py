@@ -38,6 +38,7 @@ class BuscaSaida(BaseModel):
     resposta: str | None
     aviso: str | None
     versiculos: list[VersiculoSaida]
+    citacoes_nao_confirmadas: list[str] = []
 
 
 class RespostaEntrada(BaseModel):
@@ -49,6 +50,8 @@ class RespostaEntrada(BaseModel):
 
 class RespostaSaida(BaseModel):
     resposta: str
+    # capitulos citados na resposta que nao estavam entre os versiculos enviados ao LLM
+    citacoes_nao_confirmadas: list[str] = []
 
 
 class Turno(BaseModel):

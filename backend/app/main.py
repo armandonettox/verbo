@@ -12,6 +12,7 @@ from verbo.config import (
     BIBLE_JSON_PATH, CHAT_MODEL, COLLECTION_NAME, COLLECTION_NAME_LOCAL, NVIDIA_API_KEY
 )
 from verbo.core import embedding_local, busca, metricas, resposta as modulo_resposta
+from verbo.core import citacoes
 from verbo.core.cache_respostas import cache as cache_respostas, montar_chave
 from verbo.core.erros import IAInstavelError, mensagem_erro_ia
 from verbo.core.resposta import PROMPT_VERSAO, continuar_conversa, gerar_resposta
@@ -46,6 +47,19 @@ def _versiculo_saida(versiculo):
     separada = separar_referencia(versiculo["referencia"])
     livro, capitulo = separada if separada else (None, None)
     return {**versiculo, "livro": livro, "capitulo": capitulo}
+
+
+def _conferir_citacoes(resposta, versiculos):
+    """Passagens que a resposta cita mas que nao estavam entre os versiculos enviados.
+    A resposta nao e escondida: o site so avisa para o usuario conferir."""
+    if not resposta:
+        return []
+    nao_confirmadas = citacoes.nao_confirmadas(resposta, versiculos)
+    metricas.contar("resposta_conferida")
+    if nao_confirmadas:
+        metricas.contar("resposta_com_citacao_nao_confirmada")
+        logger.info("Citacoes nao confirmadas: %s", ", ".join(nao_confirmadas))
+    return nao_confirmadas
 
 
 def _resposta_com_cache(pergunta, versiculos):
@@ -135,6 +149,7 @@ def criar_rotas():
             "resposta": resposta,
             "aviso": aviso,
             "versiculos": [_versiculo_saida(v) for v in versiculos],
+            "citacoes_nao_confirmadas": _conferir_citacoes(resposta, versiculos),
         }
 
     @rotas.post("/resposta", response_model=schemas.RespostaSaida)
@@ -147,22 +162,23 @@ def criar_rotas():
                 resposta = gerar_resposta(entrada.pergunta, versiculos)
         except Exception as excecao:
             raise _erro_ia(excecao)
-        return {"resposta": resposta}
+        return {"resposta": resposta, "citacoes_nao_confirmadas": _conferir_citacoes(resposta, versiculos)}
 
     @rotas.post("/chat", response_model=schemas.RespostaSaida)
     def chat(entrada: schemas.ChatEntrada):
         historico = [t.model_dump() for t in entrada.historico]
+        versiculos = _como_dicts(entrada.versiculos)
         try:
             resposta = continuar_conversa(
                 entrada.pergunta_original,
                 entrada.resposta_original,
-                _como_dicts(entrada.versiculos),
+                versiculos,
                 historico,
                 entrada.pergunta_nova,
             )
         except Exception as excecao:
             raise _erro_ia(excecao)
-        return {"resposta": resposta}
+        return {"resposta": resposta, "citacoes_nao_confirmadas": _conferir_citacoes(resposta, versiculos)}
 
     return rotas
 
