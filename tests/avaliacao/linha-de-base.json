@@ -1,5 +1,5 @@
 {
-  "validadas": 0,
+  "validadas": 30,
   "total": 30,
   "nvidia": {
     "perguntas": 26,
@@ -23,15 +23,15 @@
         "acerto_em_10": 1.0
       }
     },
-    "segundos_media": 0.42,
-    "segundos_maximo": 3.87
+    "segundos_media": 0.41,
+    "segundos_maximo": 3.52
   },
   "local": {
     "perguntas": 26,
     "acerto_em_5": 0.5,
     "acerto_em_10": 0.5,
     "acerto_em_40": 0.962,
-    "mrr": 0.388,
+    "mrr": 0.387,
     "fora_de_escopo": 4,
     "fora_de_escopo_sem_versiculos": null,
     "por_categoria": {
@@ -48,7 +48,15 @@
         "acerto_em_10": 0.5
       }
     },
-    "segundos_media": 0.17,
-    "segundos_maximo": 4.19
+    "segundos_media": 0.14,
+    "segundos_maximo": 3.52
+  },
+  "citacoes": {
+    "respostas": 26,
+    "respostas_com_citacao_nao_confirmada": 0.0,
+    "citacoes": 168,
+    "citacoes_nao_confirmadas": 0,
+    "taxa_citacao_nao_confirmada": 0.0,
+    "sem_resposta": 0
   }
 }

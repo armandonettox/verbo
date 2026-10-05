@@ -44,6 +44,9 @@ gerada, e avisa que a busca esta simplificada.
 - **Fallback local:** `intfloat/multilingual-e5-small` via fastembed (ONNX, CPU). Se a NVIDIA
   falhar 2 vezes seguidas, ela e pulada por 60 s (disjuntor) e a busca local responde na hora.
   O modelo local e carregado em segundo plano ao iniciar o backend.
+- **Conferencia das citacoes:** o backend le as passagens que a resposta cita ("Lucas 11:2-4", "I Corintios 13")
+  e avisa na tela quando o capitulo nao estava entre os versiculos encontrados, com link para o texto.
+  A resposta nao e escondida: o aviso so pede para conferir.
 - **Cache:** a primeira resposta de cada pergunta fica num SQLite no volume (so o hash da pergunta e
   a resposta, 14 dias, ate 5000 itens); "gerar novamente" ignora o cache. Livros, capitulos e versiculo
   do dia saem com `Cache-Control`, e as buscas (POST) com `no-store`.
@@ -89,7 +92,7 @@ Todas as rotas ficam sob `/api`.
 | Rota | O que faz |
 |------|-----------|
 | `POST /versiculos` | so a busca (com fallback); devolve aviso e versiculos |
-| `POST /resposta` | resposta gerada para os versiculos; `usar_cache` so na primeira resposta |
+| `POST /resposta` | resposta gerada para os versiculos; `usar_cache` so na primeira resposta; devolve `citacoes_nao_confirmadas` |
 | `POST /buscar` | as duas etapas numa chamada so (nao usada pelo site) |
 | `POST /resposta` | gera a resposta de novo a partir dos versiculos |
 | `POST /chat` | pergunta de acompanhamento, com o historico |
@@ -157,6 +160,7 @@ as perguntas sem relacao com a Biblia ficam sem resultado. Usa os indices reais,
 
 ```
 python scripts/avaliar_busca.py --indice ambos --comparar tests/avaliacao/linha-de-base.json
+python scripts/avaliar_busca.py --indice nvidia --respostas   # gera respostas reais e mede as citacoes fora dos versiculos
 ```
 
 ## Deploy

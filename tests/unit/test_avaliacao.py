@@ -116,3 +116,27 @@ def test_capitulos_esperados_existem_na_biblia():
         if (livro, capitulo) not in capitulos
     ]
     assert inexistentes == []
+
+
+def test_resumir_citacoes():
+    from verbo.core.avaliacao import resumir_citacoes
+
+    itens = [
+        {"citacoes": 4, "nao_confirmadas": 0},
+        {"citacoes": 6, "nao_confirmadas": 2},
+        {"citacoes": 0, "nao_confirmadas": 0},
+        {"citacoes": 10, "nao_confirmadas": 1},
+    ]
+    resumo = resumir_citacoes(itens)
+    assert resumo["respostas"] == 4
+    assert resumo["respostas_com_citacao_nao_confirmada"] == 0.5
+    assert resumo["citacoes"] == 20
+    assert resumo["citacoes_nao_confirmadas"] == 3
+    assert resumo["taxa_citacao_nao_confirmada"] == 0.15
+
+
+def test_resumir_citacoes_sem_respostas_nem_citacoes():
+    from verbo.core.avaliacao import resumir_citacoes
+
+    assert resumir_citacoes([])["respostas_com_citacao_nao_confirmada"] is None
+    assert resumir_citacoes([{"citacoes": 0, "nao_confirmadas": 0}])["taxa_citacao_nao_confirmada"] is None

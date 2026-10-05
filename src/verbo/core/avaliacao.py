@@ -62,3 +62,21 @@ def resumir(itens: list[dict]) -> dict:
     resumo["segundos_media"] = round(sum(tempos) / len(tempos), 2) if tempos else None
     resumo["segundos_maximo"] = round(tempos[-1], 2) if tempos else None
     return resumo
+
+
+def resumir_citacoes(itens: list[dict]) -> dict:
+    """Resume a conferencia das citacoes das respostas geradas.
+
+    Cada item tem citacoes (quantidade de capitulos citados) e nao_confirmadas (quantos
+    deles nao estavam entre os versiculos enviados ao LLM)."""
+    total = sum(i["citacoes"] for i in itens)
+    fora = sum(i["nao_confirmadas"] for i in itens)
+    return {
+        "respostas": len(itens),
+        "respostas_com_citacao_nao_confirmada": (
+            round(sum(1 for i in itens if i["nao_confirmadas"]) / len(itens), 3) if itens else None
+        ),
+        "citacoes": total,
+        "citacoes_nao_confirmadas": fora,
+        "taxa_citacao_nao_confirmada": round(fora / total, 3) if total else None,
+    }

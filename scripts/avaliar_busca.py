@@ -7,6 +7,7 @@ Uso:
     python scripts/avaliar_busca.py --indice nvidia
     python scripts/avaliar_busca.py --indice ambos --salvar tests/avaliacao/linha-de-base.json
     python scripts/avaliar_busca.py --indice nvidia --comparar tests/avaliacao/linha-de-base.json
+    python scripts/avaliar_busca.py --indice nvidia --respostas   # tambem gera respostas e confere as citacoes
 
 O acerto em N conta se algum capitulo esperado aparece entre os N primeiros capitulos
 devolvidos. O ranking e lido sem o corte de similaridade para medir a ordem; nas perguntas
@@ -21,10 +22,14 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
+import openai
+
 from verbo.config import COLLECTION_NAME, COLLECTION_NAME_LOCAL
 from verbo.core import busca
-from verbo.core.avaliacao import capitulos_em_ordem, posicao_do_acerto, resumir
+from verbo.core.avaliacao import capitulos_em_ordem, posicao_do_acerto, resumir, resumir_citacoes
+from verbo.core.citacoes import citacoes_na_resposta, nao_confirmadas
 from verbo.core.embedding_local import gerar_embeddings
+from verbo.core.resposta import gerar_resposta
 
 PERGUNTAS = RAIZ / "tests" / "avaliacao" / "perguntas.json"
 TOTAL_LIDO = 40
@@ -68,6 +73,41 @@ def avaliar(indice, perguntas):
     return itens
 
 
+def _gerar_com_nova_tentativa(pergunta, versiculos):
+    # a NVIDIA gratuita as vezes passa do tempo; uma segunda tentativa resolve a maioria
+    for _ in range(2):
+        try:
+            return gerar_resposta(pergunta, versiculos)
+        except openai.OpenAIError:
+            continue
+    return None
+
+
+def avaliar_respostas(perguntas):
+    """Gera a resposta real de cada pergunta e confere as citacoes (faz uma chamada ao LLM
+    por pergunta, entao leva alguns minutos). So perguntas com resposta esperada."""
+    itens, falhas = [], []
+    for p in perguntas:
+        if not p["esperados"]:
+            continue
+        versiculos = busca.buscar_versiculos(p["pergunta"])
+        if not versiculos:
+            continue
+        resposta = _gerar_com_nova_tentativa(p["pergunta"], versiculos)
+        if resposta is None:
+            falhas.append(p["id"])
+            print(f"  {p['id']:>2} sem resposta (falha da NVIDIA depois de 2 tentativas)", flush=True)
+            continue
+        fora = nao_confirmadas(resposta, versiculos)
+        itens.append({
+            "id": p["id"], "pergunta": p["pergunta"],
+            "citacoes": len(citacoes_na_resposta(resposta)), "nao_confirmadas": len(fora),
+            "fora": fora,
+        })
+        print(f"  {p['id']:>2} citacoes={itens[-1]['citacoes']:>2} nao confirmadas={fora}", flush=True)
+    return itens, falhas
+
+
 def _mostrar(indice, itens, resumo, anterior=None):
     print(f"\n=== Indice {indice} ===")
     for i in itens:
@@ -93,6 +133,8 @@ def main():
     parser.add_argument("--indice", choices=["nvidia", "local", "ambos"], default="ambos")
     parser.add_argument("--salvar", help="grava o resumo neste arquivo JSON")
     parser.add_argument("--comparar", help="mostra a diferenca para um resumo salvo antes")
+    parser.add_argument("--respostas", action="store_true",
+                        help="tambem gera as respostas (NVIDIA) e mede as citacoes fora dos versiculos")
     parser.add_argument("--so-validadas", action="store_true", help="usa so as perguntas marcadas como validadas")
     args = parser.parse_args()
 
@@ -107,6 +149,15 @@ def main():
         resumo = resumir(itens)
         _mostrar(indice, itens, resumo, anterior.get(indice))
         saida[indice] = resumo
+
+    if args.respostas:
+        print("\n=== Citacoes nas respostas geradas ===")
+        itens_respostas, falhas = avaliar_respostas(perguntas)
+        resumo_respostas = resumir_citacoes(itens_respostas)
+        resumo_respostas["sem_resposta"] = len(falhas)
+        for chave, valor in resumo_respostas.items():
+            print(f"  {chave}: {valor}")
+        saida["citacoes"] = resumo_respostas
 
     if args.salvar:
         Path(args.salvar).write_text(json.dumps(saida, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
