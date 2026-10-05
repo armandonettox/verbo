@@ -83,6 +83,7 @@ function ConversaAtual() {
         <MensagemChat
           role="assistant"
           conteudo={conversa.resposta}
+          citacoesNaoConfirmadas={conversa.citacoes}
           gerando={gerando === 'original'}
           onRegenerar={regenerarOriginal}
           desabilitado={ocupado}
@@ -107,6 +108,7 @@ function ConversaAtual() {
           key={i}
           role={turno.role}
           conteudo={turno.content}
+          citacoesNaoConfirmadas={turno.citacoes}
           quando={turno.role === 'user' ? turno.quando : undefined}
           gerando={gerando === i}
           onRegenerar={turno.role === 'assistant' ? () => regenerarTurno(i) : undefined}

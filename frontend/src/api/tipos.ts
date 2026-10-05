@@ -18,6 +18,13 @@ export interface ResultadoVersiculos {
   versiculos: Versiculo[]
 }
 
+// Resposta gerada pela IA. As citacoes nao confirmadas sao capitulos que a resposta menciona mas
+// que nao estavam entre os versiculos encontrados (ex: "Sao Mateus 7")
+export interface RespostaIA {
+  resposta: string
+  citacoes_nao_confirmadas?: string[]
+}
+
 export interface Turno {
   role: 'user' | 'assistant'
   content: string

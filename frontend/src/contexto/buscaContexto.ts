@@ -6,12 +6,15 @@ export interface Conversa {
   resultado: ResultadoVersiculos
   // Pode mudar quando o usuario pede para gerar de novo, ou ser nula no modo local
   resposta: string | null
+  // Capitulos citados na resposta que nao estavam entre os versiculos encontrados
+  citacoes: string[]
   quando: Date
 }
 
 export interface TurnoChat {
   role: 'user' | 'assistant'
   content: string
+  citacoes?: string[]
   quando: Date
 }
 

@@ -224,4 +224,59 @@ describe('conversa', () => {
     const usos = chamadas.filter((c) => c.caminho === '/api/resposta').map((c) => c.corpo.usar_cache)
     expect(usos).toEqual([true, true])
   })
+
+  it('avisa quando a resposta cita capitulo que nao estava nos versiculos, com link para conferir', async () => {
+    rotas['/api/resposta'] = () =>
+      json({ resposta: 'Veja Mateus 7:7.', citacoes_nao_confirmadas: ['São Mateus 7', 'Jó 36'] })
+    await abrirConversa()
+
+    const aviso = screen.getByRole('note')
+    expect(aviso).toHaveTextContent('nao estavam entre os versiculos encontrados')
+    expect(within(aviso).getByRole('link', { name: 'São Mateus 7' })).toHaveAttribute(
+      'href',
+      '/ler/S%C3%A3o%20Mateus/7',
+    )
+    expect(within(aviso).getByRole('link', { name: 'Jó 36' })).toHaveAttribute('href', '/ler/J%C3%B3/36')
+  })
+
+  it('sem citacao fora dos versiculos nao mostra nenhum aviso', async () => {
+    rotas['/api/resposta'] = () => json({ resposta: 'Veja Livro 1:1.', citacoes_nao_confirmadas: [] })
+    await abrirConversa()
+
+    expect(screen.queryByRole('note')).not.toBeInTheDocument()
+  })
+
+  it('o aviso acompanha a resposta: gerar novamente com resposta limpa tira o aviso', async () => {
+    let pedidos = 0
+    rotas['/api/resposta'] = () =>
+      ++pedidos === 1
+        ? json({ resposta: 'Primeira.', citacoes_nao_confirmadas: ['São Mateus 7'] })
+        : json({ resposta: 'Segunda.', citacoes_nao_confirmadas: [] })
+    await abrirConversa()
+    expect(screen.getByRole('note')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Gerar novamente' }))
+
+    expect(await screen.findByText('Segunda.')).toBeInTheDocument()
+    expect(screen.queryByRole('note')).not.toBeInTheDocument()
+  })
+
+  it('a resposta de uma pergunta de acompanhamento tambem mostra o aviso', async () => {
+    rotas['/api/chat'] = () => json({ resposta: 'Outra.', citacoes_nao_confirmadas: ['São João 3'] })
+    await abrirConversa()
+    expect(screen.queryByRole('note')).not.toBeInTheDocument()
+
+    perguntarAcompanhamento('e depois?')
+
+    expect(await screen.findByText('Outra.')).toBeInTheDocument()
+    expect(screen.getByRole('note')).toHaveTextContent('São João 3')
+  })
+
+  it('resposta do servidor sem o campo de citacoes continua funcionando', async () => {
+    rotas['/api/resposta'] = () => json({ resposta: 'Sem campo.' })
+    await abrirConversa()
+
+    expect(screen.getByText('Sem campo.')).toBeInTheDocument()
+    expect(screen.queryByRole('note')).not.toBeInTheDocument()
+  })
 })

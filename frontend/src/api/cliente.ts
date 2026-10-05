@@ -1,6 +1,7 @@
 import type {
   Capitulo,
   Livro,
+  RespostaIA,
   ResultadoVersiculos,
   Saude,
   Turno,
@@ -68,7 +69,7 @@ export function regenerarResposta(
   pergunta: string,
   versiculos: Versiculo[],
   usarCache = false,
-): Promise<{ resposta: string }> {
+): Promise<RespostaIA> {
   return enviar('/api/resposta', { pergunta, versiculos, usar_cache: usarCache })
 }
 
@@ -78,7 +79,7 @@ export function conversar(dados: {
   versiculos: Versiculo[]
   historico: Turno[]
   perguntaNova: string
-}): Promise<{ resposta: string }> {
+}): Promise<RespostaIA> {
   return enviar('/api/chat', {
     pergunta_original: dados.perguntaOriginal,
     resposta_original: dados.respostaOriginal,

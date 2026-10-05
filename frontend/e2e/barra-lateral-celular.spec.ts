@@ -142,6 +142,33 @@ test.describe('depois de uma busca', () => {
     expect(sobra).toBeLessThanOrEqual(0)
   })
 
+  test('o aviso de citacoes fora dos versiculos aparece sem criar rolagem horizontal', async ({ page }) => {
+    await page.route('**/api/resposta', (rota) =>
+      rota.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          resposta: 'Jesus ensinou o Pai Nosso, citado em Lucas 11. Veja tambem Mateus 7.',
+          citacoes_nao_confirmadas: ['São Mateus 7', 'Atos dos Apóstolos 26', 'II Coríntios 12'],
+        }),
+      }),
+    )
+    await page.goto('/')
+    await page.getByLabel('Qual e a sua pergunta?').fill('como orar?')
+    await page.getByRole('button', { name: 'Buscar' }).tap()
+
+    const aviso = page.getByRole('note')
+    await expect(aviso).toContainText('nao estavam entre os versiculos encontrados')
+    await expect(aviso.getByRole('link', { name: 'São Mateus 7' })).toBeVisible()
+    const sobra = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    )
+    expect(sobra).toBeLessThanOrEqual(0)
+
+    await aviso.getByRole('link', { name: 'São Mateus 7' }).tap()
+    await expect(page).toHaveURL(/\/ler\/S%C3%A3o%20Mateus\/7$/)
+  })
+
   test('o botao Ver versiculos na conversa abre a gaveta com os resultados', async ({ page }) => {
     await page.goto('/')
     await buscar(page)

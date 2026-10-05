@@ -44,16 +44,18 @@ export function BuscaProvider({ children }: { children: ReactNode }) {
 
     // os versiculos aparecem na hora; a resposta chega logo depois
     setHistorico([])
-    setConversa({ pergunta, resultado, resposta: null, quando: new Date() })
+    setConversa({ pergunta, resultado, resposta: null, citacoes: [], quando: new Date() })
     setBuscando(false)
     // no modo local nao ha resposta, e sem versiculos nao ha o que responder
     if (resultado.modo !== 'nvidia' || resultado.versiculos.length === 0) return
 
     setGerando('original')
     try {
-      const { resposta } = await regenerarResposta(pergunta, resultado.versiculos, true)
+      const { resposta, citacoes_nao_confirmadas } = await regenerarResposta(pergunta, resultado.versiculos, true)
       if (minha !== rodada.current) return
-      setConversa((atual) => (atual ? { ...atual, resposta } : atual))
+      setConversa((atual) =>
+        atual ? { ...atual, resposta, citacoes: citacoes_nao_confirmadas ?? [] } : atual,
+      )
     } catch (e) {
       if (minha !== rodada.current) return
       // os versiculos continuam na tela e o botao "Gerar resposta" permite tentar de novo
@@ -72,7 +74,7 @@ export function BuscaProvider({ children }: { children: ReactNode }) {
       setGerando('novo')
       setHistorico([...anterior, { role: 'user', content: pergunta, quando: new Date() }])
       try {
-        const { resposta } = await conversar({
+        const { resposta, citacoes_nao_confirmadas } = await conversar({
           perguntaOriginal: conversa.pergunta,
           respostaOriginal: conversa.resposta,
           versiculos: conversa.resultado.versiculos,
@@ -80,7 +82,10 @@ export function BuscaProvider({ children }: { children: ReactNode }) {
           perguntaNova: pergunta,
         })
         if (minha !== rodada.current) return false
-        setHistorico((atual) => [...atual, { role: 'assistant', content: resposta, quando: new Date() }])
+        setHistorico((atual) => [
+          ...atual,
+          { role: 'assistant', content: resposta, citacoes: citacoes_nao_confirmadas ?? [], quando: new Date() },
+        ])
         return true
       } catch (e) {
         if (minha !== rodada.current) return false
@@ -101,14 +106,16 @@ export function BuscaProvider({ children }: { children: ReactNode }) {
     setErroChat(null)
     setGerando('original')
     try {
-      const { resposta } = await regenerarResposta(
+      const { resposta, citacoes_nao_confirmadas } = await regenerarResposta(
         conversa.pergunta,
         conversa.resultado.versiculos,
         // se a primeira resposta falhou, esta ainda e a primeira: pode usar o cache
         conversa.resposta === null,
       )
       if (minha !== rodada.current) return
-      setConversa((atual) => (atual ? { ...atual, resposta } : atual))
+      setConversa((atual) =>
+        atual ? { ...atual, resposta, citacoes: citacoes_nao_confirmadas ?? [] } : atual,
+      )
     } catch (e) {
       if (minha !== rodada.current) return
       setErroChat(mensagemDe(e))
@@ -126,7 +133,7 @@ export function BuscaProvider({ children }: { children: ReactNode }) {
       setErroChat(null)
       setGerando(indice)
       try {
-        const { resposta } = await conversar({
+        const { resposta, citacoes_nao_confirmadas } = await conversar({
           perguntaOriginal: conversa.pergunta,
           respostaOriginal: conversa.resposta,
           versiculos: conversa.resultado.versiculos,
@@ -135,7 +142,9 @@ export function BuscaProvider({ children }: { children: ReactNode }) {
         })
         if (minha !== rodada.current) return
         setHistorico((atual) =>
-          atual.map((turno, i) => (i === indice ? { ...turno, content: resposta } : turno)),
+          atual.map((turno, i) =>
+            i === indice ? { ...turno, content: resposta, citacoes: citacoes_nao_confirmadas ?? [] } : turno,
+          ),
         )
       } catch (e) {
         if (minha !== rodada.current) return
