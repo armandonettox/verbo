@@ -1,10 +1,11 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import {
-  buscar as buscarNaApi,
+  buscarVersiculos,
   conversar,
   regenerarResposta,
 } from '../api/cliente.ts'
+import type { ResultadoVersiculos } from '../api/tipos.ts'
 import { BuscaContexto } from './buscaContexto.ts'
 import type { Conversa, EstadoBusca, Gerando, TurnoChat } from './buscaContexto.ts'
 
@@ -29,16 +30,36 @@ export function BuscaProvider({ children }: { children: ReactNode }) {
     setBuscando(true)
     setErro(null)
     setErroChat(null)
+    let resultado: ResultadoVersiculos
     try {
-      const resultado = await buscarNaApi(pergunta)
+      resultado = await buscarVersiculos(pergunta)
+    } catch (e) {
+      if (minha === rodada.current) {
+        setErro(mensagemDe(e))
+        setBuscando(false)
+      }
+      return
+    }
+    if (minha !== rodada.current) return
+
+    // os versiculos aparecem na hora; a resposta chega logo depois
+    setHistorico([])
+    setConversa({ pergunta, resultado, resposta: null, quando: new Date() })
+    setBuscando(false)
+    // no modo local nao ha resposta, e sem versiculos nao ha o que responder
+    if (resultado.modo !== 'nvidia' || resultado.versiculos.length === 0) return
+
+    setGerando('original')
+    try {
+      const { resposta } = await regenerarResposta(pergunta, resultado.versiculos, true)
       if (minha !== rodada.current) return
-      setHistorico([])
-      setConversa({ pergunta, resultado, resposta: resultado.resposta, quando: new Date() })
+      setConversa((atual) => (atual ? { ...atual, resposta } : atual))
     } catch (e) {
       if (minha !== rodada.current) return
-      setErro(mensagemDe(e))
+      // os versiculos continuam na tela e o botao "Gerar resposta" permite tentar de novo
+      setErroChat(mensagemDe(e))
     } finally {
-      if (minha === rodada.current) setBuscando(false)
+      if (minha === rodada.current) setGerando(null)
     }
   }, [])
 
@@ -80,7 +101,12 @@ export function BuscaProvider({ children }: { children: ReactNode }) {
     setErroChat(null)
     setGerando('original')
     try {
-      const { resposta } = await regenerarResposta(conversa.pergunta, conversa.resultado.versiculos)
+      const { resposta } = await regenerarResposta(
+        conversa.pergunta,
+        conversa.resultado.versiculos,
+        // se a primeira resposta falhou, esta ainda e a primeira: pode usar o cache
+        conversa.resposta === null,
+      )
       if (minha !== rodada.current) return
       setConversa((atual) => (atual ? { ...atual, resposta } : atual))
     } catch (e) {

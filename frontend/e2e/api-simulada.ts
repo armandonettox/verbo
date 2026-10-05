@@ -51,16 +51,14 @@ export async function simularApi(page: Page) {
       const [, , , livro, numero] = decodeURIComponent(caminho).split('/')
       return rota.fulfill(json(capitulo(livro, Number(numero))))
     }
-    if (caminho === '/api/buscar') {
+    // a busca e feita em duas etapas: primeiro os versiculos, depois a resposta
+    if (caminho === '/api/versiculos') {
       return rota.fulfill(
-        json({
-          pergunta: 'como orar?',
-          modo: 'nvidia',
-          resposta: 'Jesus ensinou o Pai Nosso, citado em Lucas 11.',
-          aviso: null,
-          versiculos: VERSICULOS,
-        }),
+        json({ pergunta: 'como orar?', modo: 'nvidia', aviso: null, versiculos: VERSICULOS }),
       )
+    }
+    if (caminho === '/api/resposta') {
+      return rota.fulfill(json({ resposta: 'Jesus ensinou o Pai Nosso, citado em Lucas 11.' }))
     }
     return rota.fulfill({ status: 404, contentType: 'application/json', body: '{"detail":"nao simulado"}' })
   })

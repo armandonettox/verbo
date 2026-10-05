@@ -17,10 +17,11 @@ const VERSICULO_DIA = {
   data: '2026-10-03',
 }
 
+const RESPOSTA = { resposta: 'Jesus ensinou o Pai Nosso.' }
+
 const RESULTADO = {
   pergunta: 'como orar?',
   modo: 'nvidia',
-  resposta: 'Jesus ensinou o Pai Nosso.',
   aviso: null,
   versiculos: [
     { referencia: 'Sao Lucas 11:1-12', texto: 'Senhor, ensina-nos a orar.', similaridade: 66.3, livro: 'Sao Lucas', capitulo: 11 },
@@ -82,7 +83,8 @@ describe('Home', () => {
   it('busca e mostra a resposta e o versiculo na barra lateral', async () => {
     simularApi({
       '/api/versiculo-do-dia': () => json(VERSICULO_DIA),
-      '/api/buscar': () => json(RESULTADO),
+      '/api/versiculos': () => json(RESULTADO),
+      '/api/resposta': () => json(RESPOSTA),
     })
     renderizar()
 
@@ -96,8 +98,8 @@ describe('Home', () => {
   it('mostra o aviso do modo local sem resposta gerada', async () => {
     simularApi({
       '/api/versiculo-do-dia': () => json(VERSICULO_DIA),
-      '/api/buscar': () =>
-        json({ ...RESULTADO, modo: 'local', resposta: null, aviso: 'Mostrando uma busca simplificada.' }),
+      '/api/versiculos': () =>
+        json({ ...RESULTADO, modo: 'local', aviso: 'Mostrando uma busca simplificada.' }),
     })
     renderizar()
 
@@ -110,7 +112,7 @@ describe('Home', () => {
   it('mostra o erro da API e permanece na tela de busca', async () => {
     simularApi({
       '/api/versiculo-do-dia': () => json(VERSICULO_DIA),
-      '/api/buscar': () => json({ detail: 'O servico de IA esta indisponivel.' }, 503),
+      '/api/versiculos': () => json({ detail: 'O servico de IA esta indisponivel.' }, 503),
     })
     renderizar()
 
@@ -123,7 +125,8 @@ describe('Home', () => {
   it('Nova busca volta para a tela inicial', async () => {
     simularApi({
       '/api/versiculo-do-dia': () => json(VERSICULO_DIA),
-      '/api/buscar': () => json(RESULTADO),
+      '/api/versiculos': () => json(RESULTADO),
+      '/api/resposta': () => json(RESPOSTA),
     })
     renderizar()
     buscarPor('como orar?')

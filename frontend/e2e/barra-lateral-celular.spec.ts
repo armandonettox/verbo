@@ -142,6 +142,44 @@ test.describe('depois de uma busca', () => {
     expect(sobra).toBeLessThanOrEqual(0)
   })
 
+  test('o botao Ver versiculos na conversa abre a gaveta com os resultados', async ({ page }) => {
+    await page.goto('/')
+    await buscar(page)
+
+    const ver = page.getByRole('button', { name: 'Ver versiculos (12)' })
+    await expect(ver).toBeVisible()
+    await ver.tap()
+
+    await expect(botaoBarra(page)).toHaveAttribute('aria-expanded', 'true')
+    await expect(gaveta(page).getByRole('listitem')).toHaveCount(4)
+    // com a gaveta aberta o atalho some
+    await expect(ver).toBeHidden()
+  })
+
+  test('os versiculos ficam disponiveis enquanto a resposta ainda esta sendo gerada', async ({ page }) => {
+    let liberar!: () => void
+    const portao = new Promise<void>((resolver) => (liberar = resolver))
+    await page.route('**/api/resposta', async (rota) => {
+      await portao
+      await rota.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ resposta: 'Jesus ensinou o Pai Nosso, citado em Lucas 11.' }),
+      })
+    })
+    await page.goto('/')
+    await page.getByLabel('Qual e a sua pergunta?').fill('como orar?')
+    await page.getByRole('button', { name: 'Buscar' }).tap()
+
+    await page.getByRole('button', { name: 'Ver versiculos (12)' }).tap()
+    await expect(gaveta(page).getByRole('listitem')).toHaveCount(4)
+    await expect(page.getByText('Jesus ensinou o Pai Nosso')).toHaveCount(0)
+
+    liberar()
+    await page.keyboard.press('Escape')
+    await expect(page.getByText('Jesus ensinou o Pai Nosso')).toBeVisible()
+  })
+
   test('a gaveta mostra os versiculos e o Mostrar mais libera outros 4', async ({ page }) => {
     await page.goto('/')
     await buscar(page)

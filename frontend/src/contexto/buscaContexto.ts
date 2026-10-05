@@ -1,9 +1,9 @@
 import { createContext } from 'react'
-import type { ResultadoBusca } from '../api/tipos.ts'
+import type { ResultadoVersiculos } from '../api/tipos.ts'
 
 export interface Conversa {
   pergunta: string
-  resultado: ResultadoBusca
+  resultado: ResultadoVersiculos
   // Pode mudar quando o usuario pede para gerar de novo, ou ser nula no modo local
   resposta: string | null
   quando: Date

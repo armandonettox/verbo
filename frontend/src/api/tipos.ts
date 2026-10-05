@@ -10,10 +10,10 @@ export interface Versiculo {
   capitulo: number | null
 }
 
-export interface ResultadoBusca {
+// Primeira etapa da busca: so os versiculos, a resposta gerada vem depois
+export interface ResultadoVersiculos {
   pergunta: string
   modo: ModoBusca
-  resposta: string | null
   aviso: string | null
   versiculos: Versiculo[]
 }

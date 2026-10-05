@@ -1,7 +1,7 @@
 import type {
   Capitulo,
   Livro,
-  ResultadoBusca,
+  ResultadoVersiculos,
   Saude,
   Turno,
   Versiculo,
@@ -58,15 +58,18 @@ export function dataLocalISO(agora: Date = new Date()): string {
   return `${agora.getFullYear()}-${mes}-${dia}`
 }
 
-export function buscar(pergunta: string): Promise<ResultadoBusca> {
-  return enviar('/api/buscar', { pergunta })
+export function buscarVersiculos(pergunta: string): Promise<ResultadoVersiculos> {
+  return enviar('/api/versiculos', { pergunta })
 }
 
+// usarCache: na primeira resposta de uma busca o servidor pode devolver a que ja tinha guardada;
+// "gerar novamente" passa false para sempre pedir uma resposta nova
 export function regenerarResposta(
   pergunta: string,
   versiculos: Versiculo[],
+  usarCache = false,
 ): Promise<{ resposta: string }> {
-  return enviar('/api/resposta', { pergunta, versiculos })
+  return enviar('/api/resposta', { pergunta, versiculos, usar_cache: usarCache })
 }
 
 export function conversar(dados: {

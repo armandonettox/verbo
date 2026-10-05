@@ -4,6 +4,9 @@ import { useBarraLateral } from '../hooks/useBarraLateral.ts'
 interface QuadroProps {
   barra: ReactNode
   children: ReactNode
+  // Em tela estreita a barra e uma gaveta fechada; com este texto aparece um botao no
+  // conteudo que abre a gaveta (por exemplo, para ver os versiculos encontrados)
+  rotuloVersiculos?: string
 }
 
 function IconeBarra() {
@@ -26,7 +29,7 @@ function IconeBarra() {
 }
 
 // Estrutura das telas: barra lateral que abre e fecha mais a area de conteudo
-export function Quadro({ barra, children }: QuadroProps) {
+export function Quadro({ barra, children, rotuloVersiculos }: QuadroProps) {
   const { aberta, estreita, alternar, fechar } = useBarraLateral()
   const rotulo = aberta ? 'Fechar barra lateral' : 'Abrir barra lateral'
 
@@ -53,7 +56,14 @@ export function Quadro({ barra, children }: QuadroProps) {
         {barra}
       </aside>
       <main className="conteudo">
-        <div className="conteudo-miolo">{children}</div>
+        <div className="conteudo-miolo">
+          {rotuloVersiculos && estreita && !aberta && (
+            <button type="button" className="botao-secundario botao-largo" onClick={alternar}>
+              {rotuloVersiculos}
+            </button>
+          )}
+          {children}
+        </div>
       </main>
     </div>
   )

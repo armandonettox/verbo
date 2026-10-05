@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
-  buscar,
+  buscarVersiculos,
+  regenerarResposta,
   dataLocalISO,
   ErroApi,
   limparCacheLivros,
@@ -32,18 +33,18 @@ describe('dataLocalISO', () => {
   })
 })
 
-describe('buscar', () => {
+describe('buscarVersiculos', () => {
   it('envia a pergunta por POST em JSON', async () => {
     const fetchFalso = vi.fn().mockResolvedValue(
-      respostaJson({ pergunta: 'x', modo: 'nvidia', resposta: 'ok', aviso: null, versiculos: [] }),
+      respostaJson({ pergunta: 'x', modo: 'nvidia', aviso: null, versiculos: [] }),
     )
     vi.stubGlobal('fetch', fetchFalso)
 
-    const resultado = await buscar('como orar?')
+    const resultado = await buscarVersiculos('como orar?')
 
     expect(resultado.modo).toBe('nvidia')
     const [caminho, opcoes] = fetchFalso.mock.calls[0]
-    expect(caminho).toBe('/api/buscar')
+    expect(caminho).toBe('/api/versiculos')
     expect(opcoes.method).toBe('POST')
     expect(JSON.parse(opcoes.body)).toEqual({ pergunta: 'como orar?' })
   })
@@ -54,7 +55,7 @@ describe('buscar', () => {
       vi.fn().mockResolvedValue(respostaJson({ detail: 'O servico de IA esta indisponivel.' }, 503)),
     )
 
-    const erro = await buscar('como orar?').catch((e) => e)
+    const erro = await buscarVersiculos('como orar?').catch((e) => e)
 
     expect(erro).toBeInstanceOf(ErroApi)
     expect(erro.status).toBe(503)
@@ -67,7 +68,7 @@ describe('buscar', () => {
       vi.fn().mockResolvedValue(respostaJson({ detail: [{ msg: 'campo invalido' }] }, 422)),
     )
 
-    const erro = await buscar('a').catch((e) => e)
+    const erro = await buscarVersiculos('a').catch((e) => e)
 
     expect(erro.status).toBe(422)
     expect(erro.message).toContain('Nao foi possivel')
@@ -76,7 +77,7 @@ describe('buscar', () => {
   it('trata falha de rede como erro com status 0', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
 
-    const erro = await buscar('como orar?').catch((e) => e)
+    const erro = await buscarVersiculos('como orar?').catch((e) => e)
 
     expect(erro).toBeInstanceOf(ErroApi)
     expect(erro.status).toBe(0)
@@ -127,5 +128,25 @@ describe('listarLivros', () => {
     await expect(listarLivros()).rejects.toBeInstanceOf(ErroApi)
     await expect(listarLivros()).resolves.toEqual([{ livro: 'Genesis' }])
     expect(fetchFalso).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('regenerarResposta', () => {
+  it('pede ao servidor para ignorar o cache por padrao', async () => {
+    const fetchFalso = vi.fn().mockResolvedValue(respostaJson({ resposta: 'ok' }))
+    vi.stubGlobal('fetch', fetchFalso)
+
+    await regenerarResposta('como orar?', [])
+
+    expect(JSON.parse(fetchFalso.mock.calls[0][1].body).usar_cache).toBe(false)
+  })
+
+  it('na primeira resposta de uma busca permite usar o cache', async () => {
+    const fetchFalso = vi.fn().mockResolvedValue(respostaJson({ resposta: 'ok' }))
+    vi.stubGlobal('fetch', fetchFalso)
+
+    await regenerarResposta('como orar?', [], true)
+
+    expect(JSON.parse(fetchFalso.mock.calls[0][1].body).usar_cache).toBe(true)
   })
 })

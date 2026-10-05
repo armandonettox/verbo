@@ -67,7 +67,10 @@ function ConversaAtual() {
   const limiteAtingido = historico.length >= MAX_TURNOS
 
   return (
-    <Quadro barra={<BarraResultados versiculos={resultado.versiculos} onNovaBusca={novaBusca} />}>
+    <Quadro
+      barra={<BarraResultados versiculos={resultado.versiculos} onNovaBusca={novaBusca} />}
+      rotuloVersiculos={`Ver versiculos (${resultado.versiculos.length})`}
+    >
       <MensagemChat role="user" conteudo={conversa.pergunta} quando={conversa.quando} />
 
       {resultado.aviso && (
@@ -87,11 +90,17 @@ function ConversaAtual() {
       )}
 
       {/* a busca funcionou mas a resposta falhou: da para tentar gerar de novo */}
-      {conversa.resposta === null && resultado.modo === 'nvidia' && resultado.versiculos.length > 0 && (
-        <button type="button" className="botao-secundario" onClick={regenerarOriginal} disabled={ocupado}>
-          {gerando === 'original' ? 'Gerando resposta...' : 'Gerar resposta'}
-        </button>
+      {conversa.resposta === null && gerando === 'original' && (
+        <MensagemChat role="assistant" conteudo="" gerando />
       )}
+      {conversa.resposta === null &&
+        gerando !== 'original' &&
+        resultado.modo === 'nvidia' &&
+        resultado.versiculos.length > 0 && (
+          <button type="button" className="botao-secundario" onClick={regenerarOriginal} disabled={ocupado}>
+            Gerar resposta
+          </button>
+        )}
 
       {historico.map((turno, i) => (
         <MensagemChat
