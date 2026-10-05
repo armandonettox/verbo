@@ -10,6 +10,9 @@ afterEach(() => {
   cleanup();
   // a lista de livros fica guardada no modulo; cada teste comeca sem ela
   limparCacheLivros();
+  // conversa (sessionStorage) e historico de buscas (localStorage) tambem nao passam de um teste para o outro
+  sessionStorage.clear();
+  localStorage.clear();
 });
 
 // O jsdom nao implementa a rolagem da janela (so loga "Not implemented"). Troca por espioes, que

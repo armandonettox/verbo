@@ -33,6 +33,8 @@ export interface EstadoBusca {
   regenerarOriginal: () => Promise<void>
   regenerarTurno: (indice: number) => Promise<void>
   novaBusca: () => void
+  // True se a busca dessa pergunta ja foi iniciada (ou restaurada) nesta aba
+  jaIniciou: (pergunta: string) => boolean
 }
 
 export const BuscaContexto = createContext<EstadoBusca | null>(null)

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import {
   buscarVersiculos,
@@ -6,6 +6,8 @@ import {
   regenerarResposta,
 } from '../api/cliente.ts'
 import type { ResultadoVersiculos } from '../api/tipos.ts'
+import { adicionarAoHistorico } from '../utils/historico.ts'
+import { apagarConversa, lerConversa, salvarConversa } from '../utils/persistencia.ts'
 import { BuscaContexto } from './buscaContexto.ts'
 import type { Conversa, EstadoBusca, Gerando, TurnoChat } from './buscaContexto.ts'
 
@@ -16,17 +18,30 @@ function mensagemDe(e: unknown): string {
 // Guarda a busca atual acima das rotas, para ela sobreviver a ida e volta
 // entre a conversa e a leitura de um capitulo
 export function BuscaProvider({ children }: { children: ReactNode }) {
-  const [conversa, setConversa] = useState<Conversa | null>(null)
-  const [historico, setHistorico] = useState<TurnoChat[]>([])
+  // Se a pagina foi recarregada, a conversa volta do que ficou guardado na aba
+  const [restaurada] = useState(lerConversa)
+  const [conversa, setConversa] = useState<Conversa | null>(restaurada?.conversa ?? null)
+  const [historico, setHistorico] = useState<TurnoChat[]>(restaurada?.historico ?? [])
   const [buscando, setBuscando] = useState(false)
   const [gerando, setGerando] = useState<Gerando>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [erroChat, setErroChat] = useState<string | null>(null)
   // Identifica a conversa atual; "nova busca" ou uma busca nova invalida respostas atrasadas
   const rodada = useRef(0)
+  // Ultima pergunta cuja busca ja foi iniciada: evita buscar de novo quando o endereco
+  // /buscar?q=... apenas reflete uma busca que o proprio usuario acabou de fazer
+  const ultimaPergunta = useRef<string | null>(restaurada?.conversa.pergunta ?? null)
+
+  useEffect(() => {
+    if (conversa) salvarConversa(conversa, historico)
+    else apagarConversa()
+  }, [conversa, historico])
+
+  const jaIniciou = useCallback((pergunta: string) => ultimaPergunta.current === pergunta, [])
 
   const buscar = useCallback(async (pergunta: string) => {
     const minha = ++rodada.current
+    ultimaPergunta.current = pergunta
     setBuscando(true)
     setErro(null)
     setErroChat(null)
@@ -43,6 +58,7 @@ export function BuscaProvider({ children }: { children: ReactNode }) {
     if (minha !== rodada.current) return
 
     // os versiculos aparecem na hora; a resposta chega logo depois
+    adicionarAoHistorico(pergunta)
     setHistorico([])
     setConversa({ pergunta, resultado, resposta: null, citacoes: [], quando: new Date() })
     setBuscando(false)
@@ -158,6 +174,7 @@ export function BuscaProvider({ children }: { children: ReactNode }) {
 
   const novaBusca = useCallback(() => {
     rodada.current++
+    ultimaPergunta.current = null
     setConversa(null)
     setHistorico([])
     setErro(null)
@@ -179,8 +196,22 @@ export function BuscaProvider({ children }: { children: ReactNode }) {
       regenerarOriginal,
       regenerarTurno,
       novaBusca,
+      jaIniciou,
     }),
-    [conversa, historico, buscando, gerando, erro, erroChat, buscar, perguntar, regenerarOriginal, regenerarTurno, novaBusca],
+    [
+      conversa,
+      historico,
+      buscando,
+      gerando,
+      erro,
+      erroChat,
+      buscar,
+      perguntar,
+      regenerarOriginal,
+      regenerarTurno,
+      novaBusca,
+      jaIniciou,
+    ],
   )
 
   return <BuscaContexto.Provider value={valor}>{children}</BuscaContexto.Provider>

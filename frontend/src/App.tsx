@@ -11,6 +11,7 @@ export default function App() {
         <Routes>
           <Route element={<Raiz />}>
             <Route path="/" element={<Home />} />
+            <Route path="/buscar" element={<Home />} />
             <Route path="/ler/:livro/:capitulo" element={<Leitura />} />
           </Route>
         </Routes>

@@ -1,7 +1,10 @@
+import { useEffect } from 'react'
+import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { BarraResultados } from '../componentes/BarraResultados.tsx'
 import { CampoAcompanhamento } from '../componentes/CampoAcompanhamento.tsx'
 import { CampoBusca } from '../componentes/CampoBusca.tsx'
 import { CartaoLeituraDia } from '../componentes/CartaoLeituraDia.tsx'
+import { HistoricoBuscas } from '../componentes/HistoricoBuscas.tsx'
 import { MensagemChat } from '../componentes/MensagemChat.tsx'
 import { Quadro } from '../componentes/Quadro.tsx'
 import { Rodape } from '../componentes/Rodape.tsx'
@@ -11,8 +14,23 @@ import { useBusca } from '../hooks/useBusca.ts'
 // A API aceita ate 20 turnos de historico
 const MAX_TURNOS = 20
 
+// A busca vai para o endereco /buscar?q=..., que pode ser copiado e aberto de novo depois
+function enderecoDaBusca(pergunta: string) {
+  return `/buscar?q=${encodeURIComponent(pergunta)}`
+}
+
+function useIniciarBusca() {
+  const { buscar } = useBusca()
+  const navegar = useNavigate()
+  return (pergunta: string) => {
+    void buscar(pergunta)
+    navegar(enderecoDaBusca(pergunta))
+  }
+}
+
 function Inicio() {
-  const { buscando, erro, buscar } = useBusca()
+  const { buscando, erro } = useBusca()
+  const iniciarBusca = useIniciarBusca()
 
   return (
     <Quadro
@@ -23,6 +41,7 @@ function Inicio() {
             para encontrar versiculos por tema.
           </p>
           <SeletorCapitulo />
+          <HistoricoBuscas onBuscar={iniciarBusca} />
         </>
       }
     >
@@ -36,7 +55,7 @@ function Inicio() {
           </em>
         </p>
       </div>
-      <CampoBusca buscando={buscando} onBuscar={buscar} />
+      <CampoBusca buscando={buscando} onBuscar={iniciarBusca} />
       {erro && (
         <p className="erro" role="alert">
           {erro}
@@ -60,15 +79,27 @@ function ConversaAtual() {
     novaBusca,
   } = useBusca()
 
+  const navegar = useNavigate()
+
   if (!conversa) return null
   const { resultado } = conversa
+
+  function recomecar() {
+    novaBusca()
+    navegar('/')
+  }
+
   const ocupado = gerando !== null
   const podeConversar = conversa.resposta !== null
   const limiteAtingido = historico.length >= MAX_TURNOS
 
   return (
     <Quadro
-      barra={<BarraResultados versiculos={resultado.versiculos} onNovaBusca={novaBusca} />}
+      barra={<BarraResultados
+          pergunta={conversa.pergunta}
+          versiculos={resultado.versiculos}
+          onNovaBusca={recomecar}
+        />}
       rotuloVersiculos={`Ver versiculos (${resultado.versiculos.length})`}
     >
       <MensagemChat role="user" conteudo={conversa.pergunta} quando={conversa.quando} />
@@ -139,6 +170,16 @@ function ConversaAtual() {
 }
 
 export function Home() {
-  const { conversa } = useBusca()
+  const { conversa, buscar, jaIniciou } = useBusca()
+  const [parametros] = useSearchParams()
+  const { pathname } = useLocation()
+  const pergunta = (parametros.get('q') ?? '').trim().slice(0, 500)
+
+  // Abrir /buscar?q=... (link compartilhado, recarregar) faz a busca, a menos que ela ja esteja feita
+  useEffect(() => {
+    if (pergunta.length >= 2 && !jaIniciou(pergunta)) void buscar(pergunta)
+  }, [pergunta, buscar, jaIniciou])
+
+  if (pathname === '/buscar' && !pergunta) return <Navigate to="/" replace />
   return conversa ? <ConversaAtual /> : <Inicio />
 }

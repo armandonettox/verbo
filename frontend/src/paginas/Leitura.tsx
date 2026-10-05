@@ -101,7 +101,11 @@ export function Leitura() {
 
   // Com uma busca em andamento, a barra continua mostrando os versiculos encontrados
   const barra = conversa ? (
-    <BarraResultados versiculos={conversa.resultado.versiculos} onNovaBusca={novaBusca} />
+    <BarraResultados
+      pergunta={conversa.pergunta}
+      versiculos={conversa.resultado.versiculos}
+      onNovaBusca={novaBusca}
+    />
   ) : (
     <SeletorCapitulo livroInicial={livro} capituloInicial={numeroValido ? numero : 1} />
   )
