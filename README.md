@@ -88,7 +88,9 @@ Todas as rotas ficam sob `/api`.
 
 | Rota | O que faz |
 |------|-----------|
-| `POST /buscar` | busca com fallback; devolve resposta, aviso e versiculos |
+| `POST /versiculos` | so a busca (com fallback); devolve aviso e versiculos |
+| `POST /resposta` | resposta gerada para os versiculos; `usar_cache` so na primeira resposta |
+| `POST /buscar` | as duas etapas numa chamada so (nao usada pelo site) |
 | `POST /resposta` | gera a resposta de novo a partir dos versiculos |
 | `POST /chat` | pergunta de acompanhamento, com o historico |
 | `GET /versiculo-do-dia` | versiculo do dia; `data` e a data local do usuario |
