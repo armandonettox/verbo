@@ -8,11 +8,25 @@
 
 RAG fechado sobre a Biblia Catolica, em portugues. Responde perguntas usando so o texto da Biblia como fonte, sem inventar com conhecimento geral do LLM.
 
-Alem da busca semantica, o Verbo permite ler qualquer livro e capitulo por
-inteiro, ouvir o texto narrado, acompanhar um versiculo do dia e continuar a
-conversa com perguntas de acompanhamento sobre a resposta gerada.
-
 Em producao em [verbo.armandonetto.com](https://verbo.armandonetto.com).
+
+## O que o Verbo faz
+
+- **Busca semantica:** a pergunta encontra os versiculos mais proximos pelo sentido, nao so pelas
+  palavras. Os versiculos aparecem em cerca de 1 segundo e a resposta chega logo depois.
+- **Resposta so com a Biblia:** o LLM recebe apenas os versiculos encontrados. Se a resposta citar
+  uma passagem que nao estava entre eles, a tela avisa e linka o capitulo para conferir.
+- **Conversa:** perguntas de acompanhamento sobre a resposta, com opcao de gerar de novo, copiar e ouvir
+  a resposta narrada.
+- **Continua funcionando sem IA:** se a API da NVIDIA falhar, a busca cai sozinha para um indice local
+  e mostra so os versiculos, com aviso.
+- **Leitura:** qualquer livro e capitulo por inteiro, com navegacao entre capitulos, modo de rolagem
+  automatica, audio e versiculo do dia.
+- **Link da busca:** cada busca tem um endereco (`/buscar?q=...`) que pode ser copiado e aberto depois.
+  A conversa sobrevive a recarregar a pagina e as ultimas 10 buscas ficam a mao, guardadas so no
+  navegador e apagaveis.
+- **Celular e acessibilidade:** a barra lateral vira gaveta em tela estreita ou baixa, tema claro e
+  escuro, e as telas passam em varredura de acessibilidade automatica (WCAG AA).
 
 ## Origem
 
@@ -24,41 +38,47 @@ responde com base na Biblia que ela escolheu, a mesma usada na crisma.
 
 ## Como funciona
 
-A pergunta vira um vetor (embedding) e e comparada com os 3602 trechos da Biblia
-(um por capitulo, ou parte dele quando o capitulo e longo). Os mais proximos vao
-para o LLM, que responde usando so esses versiculos.
+1. **Indexacao (uma vez):** a Biblia e dividida em 3602 trechos (um por capitulo, ou parte dele quando o
+   capitulo e longo, sem quebrar versiculo). Cada trecho vira um vetor (embedding) guardado no ChromaDB.
+2. **Versiculos:** a pergunta vira um vetor e e comparada com os trechos. Os mais proximos acima de um
+   corte de similaridade seguem para o proximo passo. Perguntas sem relacao com a Biblia ficam sem
+   resultado.
+3. **Resposta:** o LLM responde usando exclusivamente esses versiculos. Depois, o backend le os
+   capitulos citados e compara com os que foram enviados (`citacoes_nao_confirmadas`).
+4. **Cache:** a primeira resposta de cada pergunta fica guardada (so o hash e a resposta, sem texto de
+   usuario), entao a mesma pergunta responde em fracao de segundo. "Gerar novamente" ignora o cache.
 
-Se a API da NVIDIA falhar (limite de uso, fora do ar, modelo aposentado), a busca
-cai sozinha para um indice local, gerado com um modelo que roda na propria
-maquina. Nesse modo a tela mostra so os versiculos mais proximos, sem resposta
-gerada, e avisa que a busca esta simplificada.
+### Quando a IA falha
+
+- A busca na NVIDIA tem timeout de 8 s e o chat de 45 s, sem tentar de novo.
+- Depois de 2 falhas seguidas o servico e pulado por 60 s (disjuntor): a busca local responde na hora e o
+  usuario nao espera o timeout a cada pergunta. Passada a pausa, uma tentativa de teste decide se volta.
+- O fallback usa `intfloat/multilingual-e5-small` rodando na propria maquina e devolve os 30 versiculos
+  mais proximos, sem resposta gerada. O modelo e carregado em segundo plano ao iniciar o backend.
+- Se so a resposta falhar, os versiculos continuam na tela e ha um botao para gerar de novo.
+- `GET /api/saude` mostra o estado dos disjuntores e contadores de falha e latencia (em memoria, sem dados
+  de usuario).
+
+### Qualidade medida
+
+Com 30 perguntas validadas (`tests/avaliacao/`), o capitulo esperado aparece entre os 10 primeiros em
+84,6% dos casos no indice da NVIDIA, e as perguntas sem relacao com a Biblia ficam sem resultado. Nas
+respostas geradas, 168 citacoes conferidas e nenhuma fora dos versiculos enviados. O ponto fraco sao as
+perguntas muito abstratas (por exemplo "por que Deus permite o sofrimento?"). Hibrido BM25, trechos
+menores e reescrita da pergunta foram testados e nao entraram porque nao melhoraram o conjunto.
 
 ## Stack
 
-- **Backend:** Python e FastAPI. A regra de negocio fica em `src/verbo/core/`,
-  sem depender do framework web.
-- **Busca e resposta:** API da NVIDIA NIM, com `nvidia/nemotron-3-embed-1b` para
-  embeddings e `nvidia/nemotron-3-super-120b-a12b` para a resposta. Os nomes dos
-  modelos sao variaveis de ambiente, porque a NVIDIA aposenta modelos de tempos em
-  tempos.
-- **Fallback local:** `intfloat/multilingual-e5-small` via fastembed (ONNX, CPU). Se a NVIDIA
-  falhar 2 vezes seguidas, ela e pulada por 60 s (disjuntor) e a busca local responde na hora.
-  O modelo local e carregado em segundo plano ao iniciar o backend.
-- **Link da busca, conversa e historico:** cada busca tem o endereco `/buscar?q=...` (ha um botao para
-  copiar o link), a conversa sobrevive a recarregar a pagina (fica so na aba) e as ultimas 10 buscas ficam
-  na barra lateral, guardadas apenas no navegador e apagaveis.
-- **Conferencia das citacoes:** o backend le as passagens que a resposta cita ("Lucas 11:2-4", "I Corintios 13")
-  e avisa na tela quando o capitulo nao estava entre os versiculos encontrados, com link para o texto.
-  A resposta nao e escondida: o aviso so pede para conferir.
-- **Cache:** a primeira resposta de cada pergunta fica num SQLite no volume (so o hash da pergunta e
-  a resposta, 14 dias, ate 5000 itens); "gerar novamente" ignora o cache. Livros, capitulos e versiculo
-  do dia saem com `Cache-Control`, e as buscas (POST) com `no-store`.
+- **Backend:** Python e FastAPI. A regra de negocio fica em `src/verbo/core/`, sem depender do framework web.
+- **Busca e resposta:** API da NVIDIA NIM, com `nvidia/nemotron-3-embed-1b` para embeddings e
+  `nvidia/nemotron-3-super-120b-a12b` para a resposta. Os nomes dos modelos sao variaveis de ambiente,
+  porque a NVIDIA aposenta modelos de tempos em tempos.
+- **Fallback local:** `intfloat/multilingual-e5-small` via fastembed (ONNX, CPU).
 - **Banco vetorial:** ChromaDB, com um indice para cada modelo de embedding.
-- **Frontend:** React 19, TypeScript, Vite e React Router, com CSS puro e tema
-  claro e escuro.
-- **Testes:** pytest, Vitest e Playwright (navegador com tela de computador e de
-  celular).
-- **Deploy:** containers (Docker e podman-compose) numa VPS, com GitHub Actions.
+- **Cache:** SQLite no volume do container.
+- **Frontend:** React 19, TypeScript, Vite e React Router, com CSS puro e tema claro e escuro.
+- **Testes:** pytest, Vitest, Playwright (computador e celular) e axe-core (acessibilidade).
+- **Deploy:** containers (Docker e podman-compose) numa VPS, nginx e Cloudflare na frente, GitHub Actions.
 
 ## Estrutura do projeto
 
@@ -67,25 +87,33 @@ backend/
   app/                   # API FastAPI (rotas, esquemas, carga da Biblia)
   Dockerfile
 src/verbo/
-  config.py
+  config.py              # configuracao por variavel de ambiente
   core/                  # regras de negocio, sem depender de framework web
     busca.py             # busca na NVIDIA com fallback para o indice local
+    disjuntor.py         # pula um servico que esta falhando por um tempo
+    metricas.py          # contadores e latencias em memoria
     embedding_local.py   # embeddings locais (multilingual-e5-small)
     resposta.py          # resposta inicial e perguntas de acompanhamento
+    cache_respostas.py   # cache das respostas em SQLite
+    citacoes.py          # confere as passagens citadas contra os versiculos enviados
     erros.py             # mapeia falhas de API para mensagens claras
     leitura.py           # carga dos capitulos, versiculo a versiculo
     versiculo_dia.py     # versiculo do dia, deterministico por data
     ingestao.py          # chunking usado na construcao dos indices
+    avaliacao.py         # metricas da avaliacao da busca
 frontend/
-  src/                   # telas, componentes e hooks em React
-  e2e/                   # testes de ponta a ponta (Playwright)
+  src/                   # paginas, componentes, hooks e utilitarios em React
+  e2e/                   # ponta a ponta: barra lateral, leitura, link da busca,
+                         # acessibilidade e teclado virtual (Playwright)
   Dockerfile             # build do React servido por nginx
 scripts/
   construir_banco.py     # gera os indices vetoriais (nvidia e local)
+  avaliar_busca.py       # mede a qualidade da busca
 deploy/                  # nginx do host, unit do systemd, script de deploy e guia
 tests/
   unit/                  # testam o core, sem rede
   backend/               # testam a API
+  avaliacao/             # perguntas validadas e linha de base da busca
 ```
 
 ## API
@@ -94,15 +122,16 @@ Todas as rotas ficam sob `/api`.
 
 | Rota | O que faz |
 |------|-----------|
-| `POST /versiculos` | so a busca (com fallback); devolve aviso e versiculos |
-| `POST /resposta` | resposta gerada para os versiculos; `usar_cache` so na primeira resposta; devolve `citacoes_nao_confirmadas` |
-| `POST /buscar` | as duas etapas numa chamada so (nao usada pelo site) |
-| `POST /resposta` | gera a resposta de novo a partir dos versiculos |
+| `POST /versiculos` | busca (com fallback); devolve modo, aviso e versiculos |
+| `POST /resposta` | gera a resposta para os versiculos; `usar_cache` so na primeira resposta de uma busca; devolve `citacoes_nao_confirmadas` |
 | `POST /chat` | pergunta de acompanhamento, com o historico |
+| `POST /buscar` | versiculos e resposta numa chamada so (apoio; o site usa as duas rotas acima) |
 | `GET /versiculo-do-dia` | versiculo do dia; `data` e a data local do usuario |
 | `GET /livros` | livros, com o total de capitulos |
 | `GET /capitulos/{livro}/{numero}` | capitulo completo, versiculo a versiculo |
-| `GET /saude` | estado da chave, dos dois indices, dos disjuntores e contadores de falha e latencia |
+| `GET /saude` | chave, indices, disjuntores, contadores e latencias |
+
+Livros e capitulos saem com `Cache-Control` de um dia; as rotas `POST` saem com `no-store`.
 
 ## Rodando localmente
 
@@ -133,12 +162,21 @@ npm install
 npm run dev
 ```
 
-Variaveis opcionais: `VERBO_CHROMA_DB_PATH` (pasta dos indices),
-`VERBO_EMBEDDING_MODEL`, `VERBO_CHAT_MODEL` e `VERBO_COLLECTION_NAME` (trocar os
-modelos da NVIDIA; ao trocar o embedding, troque tambem a colecao e refaca o indice).
-`VERBO_BUSCA_TIMEOUT` (8 s), `VERBO_CHAT_TIMEOUT` (45 s), `VERBO_DISJUNTOR_FALHAS` (2) e
-`VERBO_DISJUNTOR_PAUSA` (60 s), `VERBO_CACHE_RESPOSTAS_PATH`, `VERBO_CACHE_TTL_DIAS` (14) e
-`VERBO_CACHE_MAX_ITENS` (5000) ajustam os tempos de espera e o disjuntor.
+### Variaveis de ambiente
+
+Todas sao opcionais, exceto `NVIDIA_API_KEY`.
+
+| Variavel | Padrao | Para que serve |
+|----------|--------|----------------|
+| `NVIDIA_API_KEY` | | chave da API da NVIDIA |
+| `VERBO_CHROMA_DB_PATH` | `chroma-db` | pasta dos indices |
+| `VERBO_EMBEDDING_MODEL`, `VERBO_CHAT_MODEL` | modelos nemotron | modelos da NVIDIA |
+| `VERBO_COLLECTION_NAME`, `VERBO_COLLECTION_NAME_LOCAL` | `biblia-nemotron`, `biblia-local` | colecoes dos indices (ao trocar o embedding, troque a colecao e refaca o indice) |
+| `VERBO_BUSCA_TIMEOUT`, `VERBO_CHAT_TIMEOUT` | `8`, `45` | segundos de espera pela NVIDIA |
+| `VERBO_DISJUNTOR_FALHAS`, `VERBO_DISJUNTOR_PAUSA` | `2`, `60` | falhas seguidas para abrir e segundos de pausa |
+| `VERBO_TOP_K_LOCAL` | `30` | versiculos devolvidos pelo fallback local |
+| `VERBO_CACHE_RESPOSTAS_PATH` | desligado | arquivo SQLite do cache de respostas |
+| `VERBO_CACHE_TTL_DIAS`, `VERBO_CACHE_MAX_ITENS` | `14`, `5000` | validade e tamanho do cache |
 
 ## Testes
 
