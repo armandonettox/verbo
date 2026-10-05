@@ -163,6 +163,10 @@ python scripts/avaliar_busca.py --indice ambos --comparar tests/avaliacao/linha-
 python scripts/avaliar_busca.py --indice nvidia --respostas   # gera respostas reais e mede as citacoes fora dos versiculos
 ```
 
+Para testar outro jeito de indexar sem mexer nos indices em uso, crie colecoes ao lado
+(`scripts/construir_banco.py --tamanho-trecho 600 --com-referencia --sufixo=-t600r`) e avalie com
+`--sufixo=-t600r --total-lido 80`.
+
 ## Deploy
 
 O deploy roda sozinho quando os testes passam na `master`: constroi as imagens,

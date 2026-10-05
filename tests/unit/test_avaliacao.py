@@ -140,3 +140,29 @@ def test_resumir_citacoes_sem_respostas_nem_citacoes():
 
     assert resumir_citacoes([])["respostas_com_citacao_nao_confirmada"] is None
     assert resumir_citacoes([{"citacoes": 0, "nao_confirmadas": 0}])["taxa_citacao_nao_confirmada"] is None
+
+
+def test_resumir_margem_do_corte_de_similaridade():
+    itens = [
+        _item(1) | {"similaridade_top": 48.0},
+        _item(3) | {"similaridade_top": 33.5},
+        _item(None, categoria="fora-de-escopo", esperados=(), quantidade=0) | {"similaridade_top": 23.2},
+        _item(None, categoria="fora-de-escopo", esperados=(), quantidade=0) | {"similaridade_top": 14.0},
+    ]
+    resumo = resumir(itens)
+    assert resumo["em_escopo_menor_similaridade"] == 33.5
+    assert resumo["fora_de_escopo_maior_similaridade"] == 23.2
+    assert resumo["em_escopo_sem_versiculos"] == 0
+
+
+def test_resumir_conta_pergunta_em_escopo_que_o_corte_deixaria_sem_versiculos():
+    itens = [_item(None, quantidade=0) | {"similaridade_top": 20.0}, _item(1) | {"similaridade_top": 40.0}]
+    assert resumir(itens)["em_escopo_sem_versiculos"] == 1
+
+
+def test_resumir_sem_similaridade_nao_inventa_margem():
+    # indice local: sem notas de similaridade
+    resumo = resumir([_item(1)])
+    assert resumo["em_escopo_menor_similaridade"] is None
+    assert resumo["fora_de_escopo_maior_similaridade"] is None
+    assert resumo["em_escopo_sem_versiculos"] is None

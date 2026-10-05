@@ -27,3 +27,22 @@ def test_montar_chunks_capitulo_nao_quebra_um_unico_versiculo_no_meio():
     chunks = montar_chunks_capitulo("Salmos", 119, versiculos)
     assert len(chunks) == 1
     assert chunks[0]["texto"] == versiculo_longo
+
+
+def test_tamanho_menor_gera_mais_trechos():
+    versiculos = [{"versiculo": i, "texto": "x" * 400} for i in range(1, 7)]
+    grandes = montar_chunks_capitulo("Salmos", 1, versiculos)
+    pequenos = montar_chunks_capitulo("Salmos", 1, versiculos, tamanho=500)
+    assert len(pequenos) > len(grandes)
+    assert [c["referencia"] for c in pequenos] == [f"Salmos 1:{i}" for i in range(1, 7)]
+
+
+def test_com_referencia_so_muda_o_texto_do_embedding():
+    versiculos = [{"versiculo": 1, "texto": "No principio."}, {"versiculo": 2, "texto": "Deus criou."}]
+    simples = montar_chunks_capitulo("Gênesis", 1, versiculos)[0]
+    marcado = montar_chunks_capitulo("Gênesis", 1, versiculos, com_referencia=True)[0]
+    assert "texto_indexado" not in simples
+    assert marcado["texto_indexado"] == "Gênesis 1:1-2. No principio. Deus criou."
+    # o texto guardado e mostrado continua puro
+    assert marcado["texto"] == simples["texto"] == "No principio. Deus criou."
+    assert marcado["referencia"] == simples["referencia"]

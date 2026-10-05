@@ -24,7 +24,7 @@ sys.path.insert(0, str(RAIZ / "src"))
 
 import openai
 
-from verbo.config import COLLECTION_NAME, COLLECTION_NAME_LOCAL
+from verbo.config import COLLECTION_NAME, COLLECTION_NAME_LOCAL, SIMILARIDADE_MINIMA
 from verbo.core import busca
 from verbo.core.avaliacao import capitulos_em_ordem, posicao_do_acerto, resumir, resumir_citacoes
 from verbo.core.citacoes import citacoes_na_resposta, nao_confirmadas
@@ -32,12 +32,15 @@ from verbo.core.embedding_local import gerar_embeddings
 from verbo.core.resposta import gerar_resposta
 
 PERGUNTAS = RAIZ / "tests" / "avaliacao" / "perguntas.json"
+# ajustaveis por argumento, para avaliar colecoes alternativas (ver construir_banco.py --sufixo)
 TOTAL_LIDO = 40
+COLECAO_NVIDIA = COLLECTION_NAME
+COLECAO_LOCAL = COLLECTION_NAME_LOCAL
 
 
 def _ranking_nvidia(pergunta):
     vetor = busca._embedding_da_pergunta(pergunta)
-    resultados = busca._obter_colecao(COLLECTION_NAME).query(
+    resultados = busca._obter_colecao(COLECAO_NVIDIA).query(
         query_embeddings=[vetor], n_results=TOTAL_LIDO
     )
     return busca._formatar(resultados)
@@ -45,7 +48,7 @@ def _ranking_nvidia(pergunta):
 
 def _ranking_local(pergunta):
     vetor = gerar_embeddings([pergunta], "query")[0]
-    resultados = busca._obter_colecao(COLLECTION_NAME_LOCAL).query(
+    resultados = busca._obter_colecao(COLECAO_LOCAL).query(
         query_embeddings=[vetor], n_results=TOTAL_LIDO
     )
     return busca._formatar(resultados)
@@ -58,17 +61,19 @@ def avaliar(indice, perguntas):
         inicio = time.monotonic()
         versiculos = ranking(p["pergunta"])
         segundos = time.monotonic() - inicio
-        if p["esperados"]:
-            posicao = posicao_do_acerto(capitulos_em_ordem(versiculos), p["esperados"])
-            quantidade = len(versiculos)
+        posicao = posicao_do_acerto(capitulos_em_ordem(versiculos), p["esperados"]) if p["esperados"] else None
+        if indice == "nvidia":
+            # o mesmo corte da busca real, aplicado ao ranking lido (vale para colecoes alternativas)
+            quantidade = sum(1 for v in versiculos if v["similaridade"] >= SIMILARIDADE_MINIMA)
+            similaridade_top = versiculos[0]["similaridade"] if versiculos else None
         else:
-            posicao = None
-            # so a NVIDIA tem corte de similaridade; no local nao ha o que medir aqui
-            quantidade = len(busca.buscar_versiculos(p["pergunta"])) if indice == "nvidia" else None
+            # o indice local nao tem corte de similaridade: nao ha o que medir aqui
+            quantidade = len(versiculos) if p["esperados"] else None
+            similaridade_top = None
         itens.append({
             "id": p["id"], "categoria": p["categoria"], "pergunta": p["pergunta"],
             "esperados": p["esperados"], "posicao": posicao, "quantidade": quantidade,
-            "segundos": segundos,
+            "similaridade_top": similaridade_top, "segundos": segundos,
         })
     return itens
 
@@ -131,12 +136,20 @@ def _mostrar(indice, itens, resumo, anterior=None):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--indice", choices=["nvidia", "local", "ambos"], default="ambos")
+    parser.add_argument("--sufixo", default="", help="avalia as colecoes com este sufixo no nome")
+    parser.add_argument("--total-lido", type=int, default=40,
+                        help="quantos trechos ler de cada busca (colecoes de trechos menores pedem mais)")
     parser.add_argument("--salvar", help="grava o resumo neste arquivo JSON")
     parser.add_argument("--comparar", help="mostra a diferenca para um resumo salvo antes")
     parser.add_argument("--respostas", action="store_true",
                         help="tambem gera as respostas (NVIDIA) e mede as citacoes fora dos versiculos")
     parser.add_argument("--so-validadas", action="store_true", help="usa so as perguntas marcadas como validadas")
     args = parser.parse_args()
+
+    global TOTAL_LIDO, COLECAO_NVIDIA, COLECAO_LOCAL
+    TOTAL_LIDO = args.total_lido
+    COLECAO_NVIDIA = COLLECTION_NAME + args.sufixo
+    COLECAO_LOCAL = COLLECTION_NAME_LOCAL + args.sufixo
 
     dados = json.loads(PERGUNTAS.read_text(encoding="utf-8"))
     perguntas = [p for p in dados["perguntas"] if p["validado"] or not args.so_validadas]

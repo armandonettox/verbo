@@ -48,6 +48,15 @@ def resumir(itens: list[dict]) -> dict:
     resumo["fora_de_escopo_sem_versiculos"] = (
         round(sum(1 for i in medidas if i["quantidade"] == 0) / len(medidas), 3) if medidas else None
     )
+    # margem do corte de similaridade (so a NVIDIA): a maior nota de uma pergunta fora de escopo
+    # precisa ficar abaixo do corte, e a menor de uma pergunta em escopo, acima
+    dentro = [i["similaridade_top"] for i in com_resposta if i.get("similaridade_top") is not None]
+    fora_notas = [i["similaridade_top"] for i in fora if i.get("similaridade_top") is not None]
+    resumo["em_escopo_menor_similaridade"] = min(dentro) if dentro else None
+    resumo["fora_de_escopo_maior_similaridade"] = max(fora_notas) if fora_notas else None
+    resumo["em_escopo_sem_versiculos"] = (
+        sum(1 for i in com_resposta if i["quantidade"] == 0) if dentro else None
+    )
     por_categoria = {}
     for categoria in sorted({i["categoria"] for i in com_resposta}):
         grupo = [i for i in com_resposta if i["categoria"] == categoria]
