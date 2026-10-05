@@ -44,6 +44,9 @@ gerada, e avisa que a busca esta simplificada.
 - **Fallback local:** `intfloat/multilingual-e5-small` via fastembed (ONNX, CPU). Se a NVIDIA
   falhar 2 vezes seguidas, ela e pulada por 60 s (disjuntor) e a busca local responde na hora.
   O modelo local e carregado em segundo plano ao iniciar o backend.
+- **Link da busca, conversa e historico:** cada busca tem o endereco `/buscar?q=...` (ha um botao para
+  copiar o link), a conversa sobrevive a recarregar a pagina (fica so na aba) e as ultimas 10 buscas ficam
+  na barra lateral, guardadas apenas no navegador e apagaveis.
 - **Conferencia das citacoes:** o backend le as passagens que a resposta cita ("Lucas 11:2-4", "I Corintios 13")
   e avisa na tela quando o capitulo nao estava entre os versiculos encontrados, com link para o texto.
   A resposta nao e escondida: o aviso so pede para conferir.
@@ -146,7 +149,7 @@ pytest tests/unit tests/backend      # Python
 cd frontend
 npm test                             # unidade (Vitest)
 npx playwright install chromium      # uma vez
-npm run e2e                          # navegador: computador e celular
+npm run e2e                          # navegador: computador e celular, acessibilidade e teclado virtual
 ```
 
 Os testes de ponta a ponta usam a API simulada. Para rodar contra o site no ar
